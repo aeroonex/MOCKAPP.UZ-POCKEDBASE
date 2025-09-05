@@ -21,6 +21,7 @@ interface StudentInfoFormProps {
 }
 
 const StudentInfoForm: React.FC<StudentInfoFormProps> = ({ isOpen, onClose, onSave }) => {
+  console.log("StudentInfoForm: isOpen prop received:", isOpen); // NEW LOG
   const [studentId, setStudentId] = useState<string>("");
   const [studentName, setStudentName] = useState<string>("");
   const [studentPhone, setStudentPhone] = useState<string>("");

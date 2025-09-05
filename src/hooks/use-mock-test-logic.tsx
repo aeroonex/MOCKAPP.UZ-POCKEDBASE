@@ -394,6 +394,7 @@ export const useMockTestLogic = ({
     console.log("MockTest: Randomly selected questions for this test:", selectedQuestionsForTest);
 
     setIsStudentInfoFormOpen(true);
+    console.log("handleStartTestClick: isStudentInfoFormOpen set to true."); // NEW LOG
   };
 
   const handleStudentInfoSave = async (id: string, name: string, phone: string) => {
