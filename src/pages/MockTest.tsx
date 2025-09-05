@@ -50,24 +50,26 @@ const MockTest: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
       {!isTestStarted && <Navbar />} {/* Navbar'ni test boshlanmaganda ko'rsatish */}
-      <main className="flex-grow container mx-auto p-4 flex items-center justify-center relative"> {/* Added relative to main */}
-        {/* Student Info (fixed to top-left of viewport) */}
-        {isTestStarted && studentInfo && (
-          <div className="fixed top-4 left-4 bg-black bg-opacity-70 text-white p-2 rounded-md text-sm z-20">
-            <p><strong>ID:</strong> {studentInfo.id}</p>
-            <p><strong>Ism:</strong> {studentInfo.name}</p>
-            <p><strong>Tel:</strong> {studentInfo.phone}</p>
+      <main className="flex-grow container mx-auto p-4 flex items-center justify-center relative">
+        {/* Webcam Preview and Student Info (grouped in a single fixed container) */}
+        {(webcamStream || (isTestStarted && studentInfo)) && (
+          <div className="fixed top-4 left-4 z-20 flex flex-col items-start space-y-2">
+            {webcamStream && (
+              <video
+                ref={webcamVideoRef}
+                autoPlay
+                muted
+                className="w-32 h-24 rounded-lg shadow-lg border-2 border-primary-foreground bg-black"
+              />
+            )}
+            {isTestStarted && studentInfo && (
+              <div className="bg-black bg-opacity-70 text-white p-2 rounded-md text-sm">
+                <p><strong>ID:</strong> {studentInfo.id}</p>
+                <p><strong>Ism:</strong> {studentInfo.name}</p>
+                <p><strong>Tel:</strong> {studentInfo.phone}</p>
+              </div>
+            )}
           </div>
-        )}
-
-        {/* Webcam Preview (always visible if stream is available) */}
-        {webcamStream && (
-          <video
-            ref={webcamVideoRef}
-            autoPlay
-            muted
-            className="fixed top-4 left-4 w-32 h-24 rounded-lg shadow-lg border-2 border-primary-foreground bg-black z-20"
-          />
         )}
 
         {isRecording && (
