@@ -8,7 +8,7 @@ import {
   StudentInfo,
   Part1Question,
   Part1_1Question,
-  Part1_2Question, // Import new type
+  Part1_2Question,
   Part2Question,
   Part3Question,
 } from "@/lib/types";
@@ -33,6 +33,15 @@ interface UseMockTestLogicProps {
   resetRecordedData: () => void;
 }
 
+// Helper function to get N random unique elements from an array
+function getRandomElements<T>(arr: T[], num: number): T[] {
+  if (arr.length === 0 || num <= 0) return [];
+  if (num >= arr.length) return [...arr]; // Return all if num is greater than or equal to array length
+
+  const shuffled = [...arr].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, num);
+}
+
 export const useMockTestLogic = ({
   startRecording,
   stopAllStreams,
@@ -42,10 +51,19 @@ export const useMockTestLogic = ({
   const [questions, setQuestions] = useState<Record<SpeakingPart, SpeakingQuestion[]>>({
     "Part 1": [],
     "Part 1.1": [],
-    "Part 1.2": [], // Initialize for new part
+    "Part 1.2": [],
     "Part 2": [],
     "Part 3": [],
   });
+  // Ref to store all available questions from localStorage
+  const allAvailableQuestionsRef = useRef<Record<SpeakingPart, SpeakingQuestion[]>>({
+    "Part 1": [],
+    "Part 1.1": [],
+    "Part 1.2": [],
+    "Part 2": [],
+    "Part 3": [],
+  });
+
   const [currentPartIndex, setCurrentPartIndex] = useState<number>(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [currentSubQuestionIndex, setCurrentSubQuestionIndex] = useState<number>(0);
@@ -99,7 +117,7 @@ export const useMockTestLogic = ({
         stopAllStreams();
         setIsTestStarted(false);
         setCurrentPhase("finished");
-        showSuccess("Mock test completed!");
+        showSuccess("Mock test yakunlandi!");
       }
       return;
     }
@@ -138,7 +156,7 @@ export const useMockTestLogic = ({
         }
         break;
       }
-      case "part1.2": { // New Part 1.2 logic
+      case "part1.2": {
         console.log("Part 1.2 sub-question finished. Checking for next sub-question or next image/part.");
         const part1_2Q = currentQ as Part1_2Question;
         if (currentSubQuestionIndex < part1_2Q.subQuestions.length - 1) {
@@ -196,7 +214,7 @@ export const useMockTestLogic = ({
     }
   }, [currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, questions, currentPhase, stopAllStreams, getCurrentQuestion]);
 
-  // Load questions on component mount (initial load)
+  // Load ALL questions from localStorage on component mount into the ref
   useEffect(() => {
     const loadAllQuestions = () => {
       const loadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
@@ -209,8 +227,8 @@ export const useMockTestLogic = ({
           loadedQuestions[part] = JSON.parse(stored);
         }
       });
-      setQuestions(loadedQuestions);
-      console.log("MockTest: Initial questions loaded from localStorage:", loadedQuestions);
+      allAvailableQuestionsRef.current = loadedQuestions;
+      console.log("MockTest: All available questions loaded from localStorage:", loadedQuestions);
     };
     loadAllQuestions();
   }, []);
@@ -242,7 +260,7 @@ export const useMockTestLogic = ({
       case "part1.1":
         duration = TIMINGS.PART1_1_QUESTION;
         break;
-      case "part1.2": // New Part 1.2 timing
+      case "part1.2":
         duration = TIMINGS.PART1_2_QUESTION;
         break;
       case "part2":
@@ -310,24 +328,43 @@ export const useMockTestLogic = ({
   }, [isTestStarted, currentPhase, questions]);
 
   const handleStartTestClick = () => {
-    const reloadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
+    const selectedQuestionsForTest: Record<SpeakingPart, SpeakingQuestion[]> = {
       "Part 1": [], "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
     };
-    allSpeakingParts.forEach(part => {
-      const storageKey = getSpeakingQuestionStorageKey(part);
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        reloadedQuestions[part] = JSON.parse(stored);
-      }
-    });
-    setQuestions(reloadedQuestions);
-    console.log("MockTest: Questions reloaded before starting test:", reloadedQuestions);
 
-    const totalQuestions = allSpeakingParts.reduce((sum, part) => sum + reloadedQuestions[part].length, 0);
-    if (totalQuestions === 0) {
+    // Part 1: Select 3 random questions
+    selectedQuestionsForTest["Part 1"] = getRandomElements(allAvailableQuestionsRef.current["Part 1"] as Part1Question[], 3);
+
+    // Part 1.1: Select 1 random question object, then 3 random sub-questions from it
+    const randomPart1_1Q = getRandomElements(allAvailableQuestionsRef.current["Part 1.1"] as Part1_1Question[], 1)[0];
+    if (randomPart1_1Q) {
+      const selectedSubQuestions = getRandomElements(randomPart1_1Q.subQuestions, 3);
+      selectedQuestionsForTest["Part 1.1"] = [{ ...randomPart1_1Q, subQuestions: selectedSubQuestions }];
+    }
+
+    // Part 1.2: Select 1 random question object, then 3 random sub-questions from it
+    const randomPart1_2Q = getRandomElements(allAvailableQuestionsRef.current["Part 1.2"] as Part1_2Question[], 1)[0];
+    if (randomPart1_2Q) {
+      const selectedSubQuestions = getRandomElements(randomPart1_2Q.subQuestions, 3);
+      selectedQuestionsForTest["Part 1.2"] = [{ ...randomPart1_2Q, subQuestions: selectedSubQuestions }];
+    }
+
+    // Part 2: Select 1 random question
+    selectedQuestionsForTest["Part 2"] = getRandomElements(allAvailableQuestionsRef.current["Part 2"] as Part2Question[], 1);
+
+    // Part 3: Select 1 random question
+    selectedQuestionsForTest["Part 3"] = getRandomElements(allAvailableQuestionsRef.current["Part 3"] as Part3Question[], 1);
+
+    // Filter out empty parts and check if any questions were selected
+    const totalSelectedQuestions = allSpeakingParts.reduce((sum, part) => sum + selectedQuestionsForTest[part].length, 0);
+    if (totalSelectedQuestions === 0) {
       showError("Mock testni boshlash uchun savollar mavjud emas. Iltimos, avval savollar qo'shing.");
       return;
     }
+
+    setQuestions(selectedQuestionsForTest); // Update the questions state with the randomly selected ones
+    console.log("MockTest: Randomly selected questions for this test:", selectedQuestionsForTest);
+
     setIsStudentInfoFormOpen(true);
   };
 
@@ -343,7 +380,7 @@ export const useMockTestLogic = ({
     }
 
     setIsTestStarted(true);
-    setCurrentPhase("idle");
+    setCurrentPhase("idle"); // This will trigger the useEffect to start the test flow
     showSuccess("Mock test boshlandi!");
     setIsStudentInfoFormOpen(false); // Close form after saving and starting
   };
@@ -368,6 +405,14 @@ export const useMockTestLogic = ({
     setCurrentPartIndex(0);
     setCurrentQuestionIndex(0);
     setCurrentSubQuestionIndex(0);
+    // Clear the questions state to ensure a fresh selection on next start
+    setQuestions({
+      "Part 1": [],
+      "Part 1.1": [],
+      "Part 1.2": [],
+      "Part 2": [],
+      "Part 3": [],
+    });
   };
 
   return {
