@@ -104,6 +104,8 @@ export const useRecorder = () => {
     const fileName = `${studentIdentifier}${timestamp}.webm`;
     const filePath = `public/${fileName}`; // Store in a 'public' folder within the bucket
 
+    console.log("Recorder: Attempting to upload video to Supabase. FilePath:", filePath);
+
     try {
       const { data, error } = await supabase.storage
         .from(SUPABASE_BUCKET_NAME)
@@ -114,17 +116,20 @@ export const useRecorder = () => {
         });
 
       if (error) {
+        console.error("Recorder: Supabase upload error:", error.message);
         throw error;
       }
+      console.log("Recorder: Supabase upload successful. Data:", data);
 
       const { data: publicUrlData } = supabase.storage
         .from(SUPABASE_BUCKET_NAME)
         .getPublicUrl(filePath);
 
+      console.log("Recorder: Supabase public URL obtained:", publicUrlData.publicUrl);
       return publicUrlData.publicUrl;
 
     } catch (error: any) {
-      console.error("Error uploading video to Supabase:", error.message);
+      console.error("Recorder: Error uploading video to Supabase:", error.message);
       showError(`Videoni yuklashda xatolik yuz berdi: ${error.message}`);
       return null;
     }
@@ -252,6 +257,7 @@ export const useRecorder = () => {
           stopRecordingProcess();
           return;
         }
+        console.log("Recorder: Supabase URL obtained:", supabaseUrl); // NEW LOG
 
         const newRecording: RecordingWithSupabaseUrl = {
           timestamp: new Date().toISOString(),

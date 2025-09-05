@@ -21,6 +21,7 @@ const Records: React.FC = () => {
   useEffect(() => {
     const loadRecordings = async () => {
       const recordingsFromDb: RecordingWithSupabaseUrl[] = await getAllRecordingsFromDB();
+      console.log("Records: Loaded recordings from IndexedDB:", recordingsFromDb); // NEW LOG
       // Map to RecordedSession, ensuring 'url' points to 'supabaseUrl'
       const recordingsWithUrls: RecordedSession[] = recordingsFromDb.map(rec => ({
         ...rec,
@@ -65,17 +66,19 @@ const Records: React.FC = () => {
       }
       // The path starts after the bucket name, including 'public/'
       const filePath = urlParts.slice(bucketIndex + 1).join('/');
+      console.log("Records: Attempting to delete from Supabase Storage. FilePath:", filePath);
 
       const { error } = await supabase.storage
         .from(SUPABASE_BUCKET_NAME)
         .remove([filePath]);
 
       if (error) {
+        console.error("Records: Supabase delete error:", error.message);
         throw error;
       }
-      console.log(`Video ${filePath} deleted from Supabase Storage.`);
+      console.log(`Records: Video ${filePath} deleted from Supabase Storage.`);
     } catch (error: any) {
-      console.error("Error deleting video from Supabase:", error.message);
+      console.error("Records: Error deleting video from Supabase:", error.message);
       showError(`Videoni Supabase'dan o'chirishda xatolik yuz berdi: ${error.message}`);
     }
   };
