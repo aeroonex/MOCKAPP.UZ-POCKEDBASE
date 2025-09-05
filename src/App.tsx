@@ -10,7 +10,8 @@ import Login from "./pages/Login";
 import Home from "./pages/Home";
 import AddQuestion from "./pages/AddQuestion";
 import Tests from "./pages/Tests";
-import MockTest from "./pages/MockTest"; // Import the new MockTest page
+import MockTest from "./pages/MockTest";
+import Settings from "./pages/Settings"; // Import the new Settings page
 
 const queryClient = new QueryClient();
 
@@ -27,7 +28,8 @@ const App = () => (
           <Route path="/home" element={<Home />} />
           <Route path="/add-question" element={<AddQuestion />} />
           <Route path="/tests" element={<Tests />} />
-          <Route path="/mock-test" element={<MockTest />} /> {/* Add the new MockTest route */}
+          <Route path="/mock-test" element={<MockTest />} />
+          <Route path="/settings" element={<Settings />} /> {/* Add the new Settings route */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
