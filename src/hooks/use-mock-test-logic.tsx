@@ -77,19 +77,7 @@ export const useMockTestLogic = ({
   // Helper to get current question based on part and index
   const getCurrentQuestion = useCallback(() => {
     const currentPartName = allSpeakingParts[currentPartIndex];
-    // console.log("getCurrentQuestion: currentPartName:", currentPartName);
-    // console.log("getCurrentQuestion: currentPartIndex:", currentPartIndex);
-    // console.log("getCurrentQuestion: currentQuestionIndex:", currentQuestionIndex);
-    // console.log("getCurrentQuestion: questions state keys:", Object.keys(questions)); // Log keys to see if part name exists
-
-    if (!currentPartName || !questions[currentPartName]) {
-      // console.warn(`getCurrentQuestion: Invalid part name or no questions for part: ${currentPartName}`);
-      return undefined;
-    }
-
-    const question = questions[currentPartName]?.[currentQuestionIndex];
-    // console.log("getCurrentQuestion: returning question:", question);
-    return question;
+    return questions[currentPartName]?.[currentQuestionIndex];
   }, [currentPartIndex, currentQuestionIndex, questions]);
 
   // Function to manage countdown
@@ -421,11 +409,8 @@ export const useMockTestLogic = ({
       "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
     };
 
-    // Part 1.1: Select 1 random question object (which includes its sub-questions)
-    const randomPart1_1Q = getRandomElements(allAvailableQuestionsRef.current["Part 1.1"] as Part1_1Question[], 1)[0];
-    if (randomPart1_1Q) {
-      selectedQuestionsForTest["Part 1.1"] = [randomPart1_1Q];
-    }
+    // Part 1.1: Select 3 random question objects
+    selectedQuestionsForTest["Part 1.1"] = getRandomElements(allAvailableQuestionsRef.current["Part 1.1"] as Part1_1Question[], 3);
     console.log("handleStartTestClick: selectedQuestionsForTest (Part 1.1):", selectedQuestionsForTest["Part 1.1"]);
 
     // Part 1.2: Select 1 random question object (which includes its images and sub-questions)

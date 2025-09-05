@@ -10,6 +10,7 @@ import {
   Part3Question,
 } from "@/lib/types";
 import { TestPhase } from "@/hooks/use-mock-test-logic";
+import { Hourglass } from "lucide-react"; // Import Hourglass icon
 
 interface TestQuestionDisplayProps {
   currentQ: SpeakingQuestion | undefined;
@@ -28,6 +29,18 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
   currentPhase,
   countdown,
 }) => {
+  if (currentPhase === "part_finished_announcement" || currentPhase === "next_part_announcement") {
+    return (
+      <div className="space-y-4 flex flex-col items-center justify-center min-h-[250px]">
+        <Hourglass className="h-16 w-16 text-primary animate-spin" />
+        <h3 className="text-2xl font-bold text-primary dark:text-primary-foreground mt-4">
+          {currentPhase === 'part_finished_announcement' ? 'Bo\'lim yakunlandi' : 'Keyingi bo\'limga tayyorlaning...'}
+        </h3>
+        <p className="text-7xl font-bold text-primary mb-4">{countdown}</p>
+      </div>
+    );
+  }
+
   if (currentPhase === "pre_test_countdown") {
     return (
       <div className="space-y-4">
