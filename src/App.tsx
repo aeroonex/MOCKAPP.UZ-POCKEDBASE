@@ -9,7 +9,8 @@ import MoodJournal from "./pages/MoodJournal";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import AddQuestion from "./pages/AddQuestion";
-import Tests from "./pages/Tests"; // Import the new Tests page
+import Tests from "./pages/Tests";
+import MockTest from "./pages/MockTest"; // Import the new MockTest page
 
 const queryClient = new QueryClient();
 
@@ -25,7 +26,8 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/home" element={<Home />} />
           <Route path="/add-question" element={<AddQuestion />} />
-          <Route path="/tests" element={<Tests />} /> {/* Add the new Tests route */}
+          <Route path="/tests" element={<Tests />} />
+          <Route path="/mock-test" element={<MockTest />} /> {/* Add the new MockTest route */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
