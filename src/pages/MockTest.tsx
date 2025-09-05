@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
@@ -10,6 +10,8 @@ import { useRecorder } from "@/hooks/use-recorder";
 import { Video } from "lucide-react";
 import { SpeakingQuestion, SpeakingPart } from "@/lib/types";
 import { allSpeakingParts, getSpeakingQuestionStorageKey } from "@/lib/constants";
+
+const MOCK_TEST_QUESTION_DURATION = 30; // seconds
 
 const MockTest: React.FC = () => {
   const [isTestStarted, setIsTestStarted] = useState<boolean>(false);
@@ -22,10 +24,40 @@ const MockTest: React.FC = () => {
   const [currentPartIndex, setCurrentPartIndex] = useState<number>(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [isTestFinished, setIsTestFinished] = useState<boolean>(false);
+  const [countdown, setCountdown] = useState<number>(MOCK_TEST_QUESTION_DURATION);
 
-  const { isRecording, startRecording, stopAllStreams, webcamStream, resetRecordedData } = useRecorder(); // Use stopAllStreams
+  const { isRecording, startRecording, stopAllStreams, webcamStream, resetRecordedData } = useRecorder();
   const webcamVideoRef = useRef<HTMLVideoElement>(null);
+  const countdownIntervalRef = useRef<number | null>(null);
 
+  // Function to move to the next question or part
+  const nextQuestion = useCallback(() => {
+    const currentPart = allSpeakingParts[currentPartIndex];
+    const partQuestions = questions[currentPart];
+
+    if (currentQuestionIndex < partQuestions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+      setCountdown(MOCK_TEST_QUESTION_DURATION); // Reset countdown for new question
+    } else {
+      if (currentPartIndex < allSpeakingParts.length - 1) {
+        setCurrentPartIndex(prev => prev + 1);
+        setCurrentQuestionIndex(0);
+        setCountdown(MOCK_TEST_QUESTION_DURATION); // Reset countdown for new part
+      } else {
+        // No more questions or parts
+        stopAllStreams();
+        setIsTestFinished(true);
+        setIsTestStarted(false);
+        showSuccess("Mock test completed!");
+        if (countdownIntervalRef.current) {
+          clearInterval(countdownIntervalRef.current);
+          countdownIntervalRef.current = null;
+        }
+      }
+    }
+  }, [currentPartIndex, currentQuestionIndex, questions, stopAllStreams]);
+
+  // Load questions on component mount
   useEffect(() => {
     const loadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
       "Part 1": [], "Part 1.1": [], "Part 2": [], "Part 3": [],
@@ -40,6 +72,7 @@ const MockTest: React.FC = () => {
     setQuestions(loadedQuestions);
   }, []);
 
+  // Manage webcam video stream
   useEffect(() => {
     if (webcamVideoRef.current) {
       if (webcamStream) {
@@ -50,6 +83,35 @@ const MockTest: React.FC = () => {
     }
   }, [webcamStream]);
 
+  // Manage countdown timer
+  useEffect(() => {
+    if (isTestStarted && !isTestFinished) {
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+      }
+      countdownIntervalRef.current = window.setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownIntervalRef.current!);
+            countdownIntervalRef.current = null;
+            nextQuestion(); // Automatically move to next question
+            return MOCK_TEST_QUESTION_DURATION; // Reset for next question immediately
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+
+    return () => {
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+      }
+    };
+  }, [isTestStarted, isTestFinished, nextQuestion, currentPartIndex, currentQuestionIndex]); // Re-run effect when question/part changes
+
   const startTest = async () => {
     const totalQuestions = allSpeakingParts.reduce((sum, part) => sum + questions[part].length, 0);
     if (totalQuestions === 0) {
@@ -57,9 +119,8 @@ const MockTest: React.FC = () => {
       return;
     }
 
-    const recordingStartedSuccessfully = await startRecording(); // Await the boolean result
+    const recordingStartedSuccessfully = await startRecording();
     if (!recordingStartedSuccessfully) {
-        // Error message already shown by useRecorder, just return
         return;
     }
 
@@ -67,32 +128,18 @@ const MockTest: React.FC = () => {
     setIsTestFinished(false);
     setCurrentPartIndex(0);
     setCurrentQuestionIndex(0);
+    setCountdown(MOCK_TEST_QUESTION_DURATION); // Initialize countdown
     showSuccess("Mock test started!");
   };
 
-  const nextQuestion = () => {
-    const currentPart = allSpeakingParts[currentPartIndex];
-    const partQuestions = questions[currentPart];
-
-    if (currentQuestionIndex < partQuestions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
-    } else {
-      if (currentPartIndex < allSpeakingParts.length - 1) {
-        setCurrentPartIndex(prev => prev + 1);
-        setCurrentQuestionIndex(0);
-      } else {
-        stopAllStreams(); // Stop all streams when test finishes
-        setIsTestFinished(true);
-        setIsTestStarted(false);
-        showSuccess("Mock test completed!");
-      }
-    }
-  };
-
   const handleEndTest = () => {
-    stopAllStreams(); // Stop all streams if user manually ends test
+    stopAllStreams();
     setIsTestFinished(true);
     setIsTestStarted(false);
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
     showSuccess("Mock test ended.");
   };
 
@@ -109,7 +156,7 @@ const MockTest: React.FC = () => {
               <Video className="h-5 w-5 animate-pulse" /> REC
             </div>
           )}
-          {webcamStream && ( // Display webcam if stream is active
+          {webcamStream && (
             <video
               ref={webcamVideoRef}
               autoPlay
@@ -133,12 +180,13 @@ const MockTest: React.FC = () => {
                 <h3 className="text-xl font-semibold text-muted-foreground">
                   {currentPart} - Question {currentQuestionIndex + 1}
                 </h3>
+                <p className="text-5xl font-bold text-primary mb-4">{countdown}</p> {/* Countdown display */}
                 <p className="text-2xl font-medium text-foreground min-h-[100px] flex items-center justify-center p-4 border rounded-md bg-secondary">
                   {currentQuestion.text}
                 </p>
                 <div className="flex gap-2 mt-4">
-                  <Button onClick={nextQuestion} className="flex-grow">
-                    Next Question
+                  <Button onClick={nextQuestion} className="flex-grow" disabled={true}> {/* Disable Next Question button */}
+                    Next Question (Auto)
                   </Button>
                   <Button onClick={handleEndTest} variant="destructive" className="flex-grow">
                     End Test
