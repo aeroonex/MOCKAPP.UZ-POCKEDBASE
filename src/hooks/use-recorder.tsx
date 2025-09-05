@@ -32,16 +32,24 @@ export const useRecorder = () => {
     }
   }, []);
 
+  // Function to stop the MediaRecorder specifically
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      console.log("Recorder: Explicitly stopping recording. Current state:", mediaRecorderRef.current.state);
+      mediaRecorderRef.current.stop();
+      clearRecordingTimeout(); // Clear auto-stop timeout
+    }
+  }, [clearRecordingTimeout]); // isRecording is no longer a direct dependency for useCallback
+
   // Function to stop all active media streams
   const stopAllStreams = useCallback(() => {
     console.log("Recorder: Stopping all streams...");
     clearRecordingTimeout(); // Clear auto-stop timeout
 
-    if (mediaRecorderRef.current && isRecording) {
+    // Check if mediaRecorderRef.current exists and is active
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       console.log("Recorder: Stopping MediaRecorder. Current state:", mediaRecorderRef.current.state);
-      if (mediaRecorderRef.current.state !== "inactive") {
-        mediaRecorderRef.current.stop(); // This will trigger onstop
-      }
+      mediaRecorderRef.current.stop(); // This will trigger onstop
     }
 
     // Stop webcam stream used for display
@@ -64,20 +72,17 @@ export const useRecorder = () => {
       micStreamRef.current = null;
     }
 
-    setIsRecording(false);
-    console.log("Recorder: All streams stopped.");
-  }, [isRecording, webcamStream, clearRecordingTimeout]);
-
-  // Function to stop the MediaRecorder specifically
-  const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && isRecording) {
-      console.log("Recorder: Explicitly stopping recording. Current state:", mediaRecorderRef.current.state);
-      if (mediaRecorderRef.current.state !== "inactive") {
-        mediaRecorderRef.current.stop();
+    // Only set setIsRecording to false if it's currently true, to avoid unnecessary re-renders
+    setIsRecording(prev => {
+      if (prev) {
+        console.log("Recorder: Setting isRecording to false.");
+        return false;
       }
-      clearRecordingTimeout(); // Clear auto-stop timeout
-    }
-  }, [isRecording, clearRecordingTimeout]);
+      return prev;
+    });
+    console.log("Recorder: All streams stopped.");
+  }, [webcamStream, clearRecordingTimeout]); // isRecording is no longer a direct dependency for useCallback
+
 
   // Effect to get webcam stream for preview on component mount
   useEffect(() => {
@@ -96,13 +101,14 @@ export const useRecorder = () => {
 
     return () => {
       // Stop only the preview stream if it's not part of an active recording
-      if (webcamStream && !isRecording) {
+      // This cleanup should only run on actual unmount or if webcamStream changes
+      if (webcamStream) { // Check if webcamStream exists before trying to stop
         webcamStream.getTracks().forEach(track => track.stop());
         setWebcamStream(null);
         console.log("Recorder: Webcam preview stream cleaned up on unmount.");
       }
     };
-  }, []); // Run only once on mount
+  }, []); // Run only once on mount, webcamStream is handled by its own state update
 
   const startRecording = useCallback(async (studentInfo?: StudentInfo): Promise<boolean> => {
     console.log("Recorder: Attempting to start recording...");
@@ -172,11 +178,11 @@ export const useRecorder = () => {
       // Create a new stream with screen video and combined audio (NO WEBCAM VIDEO IN RECORDING)
       const combinedStream = new MediaStream();
       screenStream.getVideoTracks().forEach(track => {
-        console.log("Recorder: Adding screen video track to combined stream:", track.id);
+        console.log("Recorder: Adding screen video track to combined stream:", track.id, "ReadyState:", track.readyState);
         combinedStream.addTrack(track);
       });
       destination.stream.getAudioTracks().forEach(track => {
-        console.log("Recorder: Adding combined audio track to combined stream:", track.id);
+        console.log("Recorder: Adding combined audio track to combined stream:", track.id, "ReadyState:", track.readyState);
         combinedStream.addTrack(track);
       });
 
@@ -283,11 +289,34 @@ export const useRecorder = () => {
   // Cleanup on component unmount
   useEffect(() => {
     return () => {
-      stopAllStreams(); // Ensure all streams are stopped when component unmounts
-      clearRecordingTimeout(); // Also clear the timeout on unmount
-      console.log("Recorder: Component unmounted, all streams and timeouts cleared.");
+      console.log("Recorder: Component unmounting, performing cleanup.");
+      clearRecordingTimeout();
+
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        console.log("Recorder: Stopping MediaRecorder during unmount cleanup.");
+        mediaRecorderRef.current.stop();
+      }
+
+      // Stop webcam stream if it's still active (it might have been stopped by stopAllStreams already)
+      if (webcamStream) {
+        webcamStream.getTracks().forEach(track => track.stop());
+        console.log("Recorder: Webcam preview stream stopped during unmount cleanup.");
+      }
+
+      if (screenStreamRef.current) {
+        screenStreamRef.current.getTracks().forEach(track => track.stop());
+        console.log("Recorder: Screen stream stopped during unmount cleanup.");
+      }
+
+      if (micStreamRef.current) {
+        micStreamRef.current.getTracks().forEach(track => track.stop());
+        console.log("Recorder: Microphone stream stopped during unmount cleanup.");
+      }
+      console.log("Recorder: All streams and timeouts cleared on unmount.");
     };
-  }, [stopAllStreams, clearRecordingTimeout]);
+  }, [clearRecordingTimeout]); // webcamStream removed from dependencies to prevent premature cleanup
+  // The webcamStream cleanup is now handled directly within the return function,
+  // and its state is managed by setWebcamStream(null) in stopAllStreams.
 
   return {
     isRecording,
