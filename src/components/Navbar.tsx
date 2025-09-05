@@ -4,16 +4,16 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LogOut, User, Settings, Home as HomeIcon, ListChecks, PlusCircle, BookOpen, Video } from "lucide-react"; // Import Video icon
+import { Menu, LogOut, User, Settings, Home as HomeIcon, ListChecks, ImagePlus, BookOpen, Video } from "lucide-react"; // Import ImagePlus icon
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const navLinks = [
   { name: "Home", path: "/home", icon: HomeIcon },
   { name: "Questions", path: "/questions", icon: BookOpen },
-  { name: "Add Question", path: "/add-question", icon: PlusCircle },
+  { name: "Add Question", path: "/add-question", icon: ImagePlus }, // Changed icon here
   { name: "Tests", path: "/tests", icon: ListChecks },
   { name: "Mock Test", path: "/mock-test", icon: ListChecks },
-  { name: "Records", path: "/records", icon: Video }, // Add Records link
+  { name: "Records", path: "/records", icon: Video },
   { name: "Settings", path: "/settings", icon: Settings },
   { name: "Profile", path: "/user-profile", icon: User },
 ];

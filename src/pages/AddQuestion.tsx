@@ -18,24 +18,25 @@ import {
   SpeakingPart,
   Part1Question,
   Part1_1Question,
-  Part1_2Question, // Import new type
+  Part1_2Question,
   Part2Question,
   Part3Question,
 } from "@/lib/types";
 import { allSpeakingParts, getSpeakingQuestionStorageKey } from "@/lib/constants";
-import { fileToBase64 } from "@/utils/imageUtils"; // Import the new utility function
+import { supabase } from "@/lib/supabase"; // Import Supabase client
 
 const SpeakingQuestionManager: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<SpeakingPart>("Part 1");
   const [questionText, setQuestionText] = useState<string>("");
-  const [imageFiles, setImageFiles] = useState<File[]>([]); // Changed to array
-  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]); // Changed to array
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [subQuestionsText, setSubQuestionsText] = useState<string>("");
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   const [questions, setQuestions] = useState<Record<SpeakingPart, SpeakingQuestion[]>>({
     "Part 1": [],
     "Part 1.1": [],
-    "Part 1.2": [], // Initialize for new part
+    "Part 1.2": [],
     "Part 2": [],
     "Part 3": [],
   });
@@ -44,7 +45,7 @@ const SpeakingQuestionManager: React.FC = () => {
     const loadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
       "Part 1": [],
       "Part 1.1": [],
-      "Part 1.2": [], // Load for new part
+      "Part 1.2": [],
       "Part 2": [],
       "Part 3": [],
     };
@@ -65,36 +66,79 @@ const SpeakingQuestionManager: React.FC = () => {
     });
   }, [questions]);
 
+  const uploadImageToSupabase = async (file: File): Promise<string | null> => {
+    if (!file) return null;
+
+    const fileExtension = file.name.split('.').pop();
+    const filePath = `${uuidv4()}.${fileExtension}`; // Unique file name
+    
+    try {
+      const { data, error } = await supabase.storage
+        .from('question-images') // Ensure this bucket exists in Supabase
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('question-images')
+        .getPublicUrl(filePath);
+
+      return publicUrlData.publicUrl;
+
+    } catch (error: any) {
+      console.error("Error uploading image to Supabase:", error.message);
+      showError(`Rasmni yuklashda xatolik yuz berdi: ${error.message}`);
+      return null;
+    }
+  };
+
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       const newImageFiles = [...imageFiles];
       newImageFiles[index] = file;
       setImageFiles(newImageFiles);
+      setIsUploading(true);
+      // Removed toastId from showSuccess/showError as they don't support it directly
+      showSuccess("Rasm yuklanmoqda..."); 
 
       try {
-        const base64 = await fileToBase64(file);
-        const newImagePreviewUrls = [...imagePreviewUrls];
-        newImagePreviewUrls[index] = base64;
-        setImagePreviewUrls(newImagePreviewUrls);
+        const publicUrl = await uploadImageToSupabase(file);
+        if (publicUrl) {
+          const newImagePreviewUrls = [...imagePreviewUrls];
+          newImagePreviewUrls[index] = publicUrl;
+          setImagePreviewUrls(newImagePreviewUrls);
+          showSuccess("Rasm muvaffaqiyatli yuklandi!"); // Removed toastId
+        } else {
+          showError("Rasmni yuklashda xatolik yuz berdi."); // Removed toastId
+          const newImagePreviewUrls = [...imagePreviewUrls];
+          newImagePreviewUrls[index] = "";
+          setImagePreviewUrls(newImagePreviewUrls.filter(Boolean));
+        }
       } catch (error) {
-        console.error("Error converting file to Base64:", error);
-        showError("Rasmni yuklashda xatolik yuz berdi.");
+        console.error("Error handling image upload:", error);
+        showError("Rasmni yuklashda kutilmagan xatolik yuz berdi."); // Removed toastId
         const newImagePreviewUrls = [...imagePreviewUrls];
-        newImagePreviewUrls[index] = ""; // Clear preview on error
-        setImagePreviewUrls(newImagePreviewUrls);
+        newImagePreviewUrls[index] = "";
+        setImagePreviewUrls(newImagePreviewUrls.filter(Boolean));
+      } finally {
+        setIsUploading(false);
       }
     } else {
       const newImageFiles = [...imageFiles];
-      newImageFiles[index] = undefined; // Clear file
-      setImageFiles(newImageFiles.filter(Boolean) as File[]); // Remove undefined
+      newImageFiles[index] = undefined as any; // Clear file
+      setImageFiles(newImageFiles.filter(Boolean) as File[]);
       const newImagePreviewUrls = [...imagePreviewUrls];
-      newImagePreviewUrls[index] = ""; // Clear preview
-      setImagePreviewUrls(newImagePreviewUrls.filter(Boolean)); // Remove empty strings
+      newImagePreviewUrls[index] = "";
+      setImagePreviewUrls(newImagePreviewUrls.filter(Boolean));
     }
   };
 
-  // Reset image states when tab changes
   useEffect(() => {
     setImageFiles([]);
     setImagePreviewUrls([]);
@@ -102,21 +146,20 @@ const SpeakingQuestionManager: React.FC = () => {
 
 
   const handleAddQuestion = async (part: SpeakingPart) => {
-    let base64Images: string[] = [];
+    if (isUploading) {
+      showError("Rasmlar yuklanmoqda. Iltimos kuting.");
+      return;
+    }
+
+    let finalImageUrls: string[] = [];
     const isImageRequiredPart = ["Part 1.2", "Part 2", "Part 3"].includes(part);
 
     if (isImageRequiredPart) {
-      const validImageFiles = imageFiles.filter(Boolean); // Filter out any null/undefined entries
-      if (validImageFiles.length < 2) {
+      if (imagePreviewUrls.filter(Boolean).length < 2) {
         showError("Kamida ikkita rasm yuklanmagan.");
         return;
       }
-      try {
-        base64Images = await Promise.all(validImageFiles.map(file => fileToBase64(file)));
-      } catch (error) {
-        showError("Rasmlarni qayta ishlashda xatolik yuz berdi.");
-        return;
-      }
+      finalImageUrls = imagePreviewUrls.filter(Boolean);
     }
 
     if (part === "Part 1") {
@@ -154,16 +197,16 @@ const SpeakingQuestionManager: React.FC = () => {
       }));
       setSubQuestionsText("");
       showSuccess(`Savol ${part} ga qo'shildi!`);
-    } else if (part === "Part 1.2") { // New Part 1.2 logic
+    } else if (part === "Part 1.2") {
       const subQ = subQuestionsText.split('\n').map(q => q.trim()).filter(q => q.length > 0);
-      if (base64Images.length < 2 || subQ.length === 0) {
+      if (finalImageUrls.length < 2 || subQ.length === 0) {
         showError("Kamida ikkita rasm va bitta kichik savol kiritishingiz kerak.");
         return;
       }
       const newQuestion: Part1_2Question = {
         id: uuidv4(),
         type: "part1.2",
-        imageUrls: base64Images,
+        imageUrls: finalImageUrls,
         subQuestions: subQ,
         date: new Date().toISOString(),
       };
@@ -177,14 +220,14 @@ const SpeakingQuestionManager: React.FC = () => {
       showSuccess(`Savol ${part} ga qo'shildi!`);
     }
     else if (part === "Part 2") {
-      if (base64Images.length < 2 || !questionText.trim()) { // Now requires two images
+      if (finalImageUrls.length < 2 || !questionText.trim()) {
         showError("Kamida ikkita rasm va savol matni bo'sh bo'lishi mumkin emas.");
         return;
       }
       const newQuestion: Part2Question = {
         id: uuidv4(),
         type: "part2",
-        imageUrls: base64Images, // Store array
+        imageUrls: finalImageUrls,
         question: questionText.trim(),
         date: new Date().toISOString(),
       };
@@ -197,7 +240,7 @@ const SpeakingQuestionManager: React.FC = () => {
       setQuestionText("");
       showSuccess(`Savol ${part} ga qo'shildi!`);
     } else if (part === "Part 3") {
-      if (base64Images.length < 2 || !questionText.trim()) { // Now requires two images
+      if (finalImageUrls.length < 2 || !questionText.trim()) {
         showError("Savol matni va kamida ikkita rasm bo'sh bo'lishi mumkin emas.");
         return;
       }
@@ -205,7 +248,7 @@ const SpeakingQuestionManager: React.FC = () => {
         id: uuidv4(),
         type: "part3",
         question: questionText.trim(),
-        imageUrls: base64Images, // Store array
+        imageUrls: finalImageUrls,
         date: new Date().toISOString(),
       };
       setQuestions(prev => ({
@@ -219,12 +262,46 @@ const SpeakingQuestionManager: React.FC = () => {
     }
   };
 
+  const deleteImageFromSupabase = async (imageUrl: string) => {
+    try {
+      const urlParts = imageUrl.split('/');
+      const fileName = urlParts[urlParts.length - 1]; // Get the file name from the URL
+      const { error } = await supabase.storage
+        .from('question-images')
+        .remove([fileName]);
+
+      if (error) {
+        throw error;
+      }
+      console.log(`Image ${fileName} deleted from Supabase Storage.`);
+    } catch (error: any) {
+      console.error("Error deleting image from Supabase:", error.message);
+      showError(`Rasmni o'chirishda xatolik yuz berdi: ${error.message}`);
+    }
+  };
+
   const handleDeleteQuestion = (part: SpeakingPart, id: string) => {
-    setQuestions(prev => ({
-      ...prev,
-      [part]: prev[part].filter(q => q.id !== id),
-    }));
-    showSuccess("Savol muvaffaqiyatli o'chirildi!");
+    setQuestions(prev => {
+      const questionToDelete = prev[part].find(q => q.id === id);
+      if (questionToDelete) {
+        // If the question has images, attempt to delete them from Supabase Storage
+        if (
+          (questionToDelete.type === "part1.2" && (questionToDelete as Part1_2Question).imageUrls) ||
+          (questionToDelete.type === "part2" && (questionToDelete as Part2Question).imageUrls) ||
+          (questionToDelete.type === "part3" && (questionToDelete as Part3Question).imageUrls)
+        ) {
+          const imageUrls = (questionToDelete as Part1_2Question | Part2Question | Part3Question).imageUrls;
+          imageUrls.forEach(url => deleteImageFromSupabase(url));
+        }
+      }
+
+      const updatedQuestions = prev[part].filter(q => q.id !== id);
+      showSuccess("Savol muvaffaqiyatli o'chirildi!");
+      return {
+        ...prev,
+        [part]: updatedQuestions,
+      };
+    });
   };
 
   const renderQuestionInput = (part: SpeakingPart) => {
@@ -243,6 +320,7 @@ const SpeakingQuestionManager: React.FC = () => {
                   accept="image/*"
                   onChange={(e) => handleImageChange(e, idx)}
                   className="mt-1"
+                  disabled={isUploading}
                 />
                 {imagePreviewUrls[idx] && (
                   <div className="mt-2">
@@ -253,7 +331,7 @@ const SpeakingQuestionManager: React.FC = () => {
               </div>
             ))}
             <p className="text-xs text-red-500 mt-1">
-              Eslatma: Rasmlar brauzeringizning mahalliy xotirasida saqlanadi. Katta hajmli rasmlar ilova ish faoliyatini sekinlashtirishi mumkin.
+              Eslatma: Rasmlar Supabase Storage'ga yuklanadi.
             </p>
           </div>
         )}
@@ -318,7 +396,7 @@ const SpeakingQuestionManager: React.FC = () => {
             </ul>
           </div>
         );
-      case "part1.2": // New Part 1.2 display
+      case "part1.2":
         const part1_2Q = q as Part1_2Question;
         return (
           <div className="flex flex-col items-start flex-grow mr-4">
@@ -379,7 +457,7 @@ const SpeakingQuestionManager: React.FC = () => {
               setImagePreviewUrls([]);
               setSubQuestionsText("");
             }} className="w-full">
-              <TabsList className="grid w-full grid-cols-5"> {/* Updated grid-cols to 5 */}
+              <TabsList className="grid w-full grid-cols-5">
                 {allSpeakingParts.map(part => (
                   <TabsTrigger key={part} value={part}>{part}</TabsTrigger>
                 ))}
@@ -390,7 +468,7 @@ const SpeakingQuestionManager: React.FC = () => {
                   <h3 className="text-xl font-semibold mb-4">{part} savollari</h3>
                   <div className="space-y-4 mb-6 p-4 border rounded-lg bg-card">
                     {renderQuestionInput(part)}
-                    <Button onClick={() => handleAddQuestion(part)} className="w-full">
+                    <Button onClick={() => handleAddQuestion(part)} className="w-full" disabled={isUploading}>
                       Savolni {part} ga qo'shish
                     </Button>
                   </div>
