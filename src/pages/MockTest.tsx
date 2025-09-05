@@ -8,16 +8,8 @@ import { Button } from "@/components/ui/button";
 import { showSuccess, showError } from "@/utils/toast";
 import { useRecorder } from "@/hooks/use-recorder";
 import { Video } from "lucide-react";
-
-interface SpeakingQuestion {
-  id: string;
-  text: string;
-  date: string; // ISO string
-}
-
-type SpeakingPart = "Part 1" | "Part 1.1" | "Part 2" | "Part 3";
-
-const allSpeakingParts: SpeakingPart[] = ["Part 1", "Part 1.1", "Part 2", "Part 3"];
+import { SpeakingQuestion, SpeakingPart } from "@/lib/types"; // Import from shared types
+import { allSpeakingParts, getSpeakingQuestionStorageKey } from "@/lib/constants"; // Import from shared constants
 
 const MockTest: React.FC = () => {
   const [isTestStarted, setIsTestStarted] = useState<boolean>(false);
@@ -43,7 +35,7 @@ const MockTest: React.FC = () => {
       "Part 3": [],
     };
     allSpeakingParts.forEach(part => {
-      const storageKey = `speakingQuestions_${part.replace(/\s/g, '_').replace(/\./g, '')}`;
+      const storageKey = getSpeakingQuestionStorageKey(part); // Use shared utility
       const stored = localStorage.getItem(storageKey);
       if (stored) {
         loadedQuestions[part] = JSON.parse(stored);

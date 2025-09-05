@@ -12,14 +12,8 @@ import { showSuccess, showError } from "@/utils/toast";
 import { v4 as uuidv4 } from "uuid";
 import { Trash2 } from "lucide-react";
 import { format } from "date-fns";
-
-interface SpeakingQuestion {
-  id: string;
-  text: string;
-  date: string; // ISO string
-}
-
-type SpeakingPart = "Part 1" | "Part 1.1" | "Part 2" | "Part 3";
+import { SpeakingQuestion, SpeakingPart } from "@/lib/types"; // Import from shared types
+import { allSpeakingParts, getSpeakingQuestionStorageKey } from "@/lib/constants"; // Import from shared constants
 
 const SpeakingQuestionManager: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<SpeakingPart>("Part 1");
@@ -39,8 +33,8 @@ const SpeakingQuestionManager: React.FC = () => {
       "Part 2": [],
       "Part 3": [],
     };
-    (["Part 1", "Part 1.1", "Part 2", "Part 3"] as SpeakingPart[]).forEach(part => {
-      const storageKey = `speakingQuestions_${part.replace(/\s/g, '_').replace(/\./g, '')}`;
+    allSpeakingParts.forEach(part => {
+      const storageKey = getSpeakingQuestionStorageKey(part); // Use shared utility
       const stored = localStorage.getItem(storageKey);
       if (stored) {
         loadedQuestions[part] = JSON.parse(stored);
@@ -51,8 +45,8 @@ const SpeakingQuestionManager: React.FC = () => {
 
   useEffect(() => {
     // Save questions to localStorage whenever they change
-    (["Part 1", "Part 1.1", "Part 2", "Part 3"] as SpeakingPart[]).forEach(part => {
-      const storageKey = `speakingQuestions_${part.replace(/\s/g, '_').replace(/\./g, '')}`;
+    allSpeakingParts.forEach(part => {
+      const storageKey = getSpeakingQuestionStorageKey(part); // Use shared utility
       localStorage.setItem(storageKey, JSON.stringify(questions[part]));
     });
   }, [questions]);
@@ -96,13 +90,12 @@ const SpeakingQuestionManager: React.FC = () => {
           <CardContent>
             <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as SpeakingPart)} className="w-full">
               <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="Part 1">Part 1</TabsTrigger>
-                <TabsTrigger value="Part 1.1">Part 1.1</TabsTrigger>
-                <TabsTrigger value="Part 2">Part 2</TabsTrigger>
-                <TabsTrigger value="Part 3">Part 3</TabsTrigger>
+                {allSpeakingParts.map(part => ( // Use shared constant
+                  <TabsTrigger key={part} value={part}>{part}</TabsTrigger>
+                ))}
               </TabsList>
 
-              {(["Part 1", "Part 1.1", "Part 2", "Part 3"] as SpeakingPart[]).map(part => (
+              {allSpeakingParts.map(part => ( // Use shared constant
                 <TabsContent key={part} value={part} className="mt-4">
                   <h3 className="text-xl font-semibold mb-4">{part} Questions</h3>
                   <div className="space-y-4 mb-6 p-4 border rounded-lg bg-card">
