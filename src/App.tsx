@@ -5,7 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import MoodJournal from "./pages/MoodJournal"; // Import the new MoodJournal page
+import MoodJournal from "./pages/MoodJournal";
+import Login from "./pages/Login"; // Import the new Login page
+import Home from "./pages/Home";   // Import the new Home page
 
 const queryClient = new QueryClient();
 
@@ -17,7 +19,9 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/mood-journal" element={<MoodJournal />} /> {/* Add the new route */}
+          <Route path="/mood-journal" element={<MoodJournal />} />
+          <Route path="/login" element={<Login />} /> {/* Add the new Login route */}
+          <Route path="/home" element={<Home />} />   {/* Add the new Home route */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -1,20 +1,27 @@
 import { MadeWithDyad } from "@/components/made-with-dyad";
-import { Link } from "react-router-dom"; // Import Link
-import { Button } from "@/components/ui/button"; // Import Button
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900 text-foreground">
       <div className="text-center p-6 bg-card rounded-lg shadow-lg">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
+        <h1 className="text-4xl font-bold mb-4">Welcome to Your Dyad App</h1>
         <p className="text-xl text-muted-foreground mb-6">
-          Start building your amazing project here!
+          Explore the features or log in to your platform.
         </p>
-        <Link to="/mood-journal">
-          <Button size="lg" className="text-lg px-8 py-4">
-            Go to Mood Journal
-          </Button>
-        </Link>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link to="/mood-journal">
+            <Button size="lg" className="text-lg px-8 py-4 w-full sm:w-auto">
+              Go to Mood Journal
+            </Button>
+          </Link>
+          <Link to="/login">
+            <Button size="lg" variant="outline" className="text-lg px-8 py-4 w-full sm:w-auto">
+              Go to Platform Login
+            </Button>
+          </Link>
+        </div>
       </div>
       <MadeWithDyad />
     </div>
