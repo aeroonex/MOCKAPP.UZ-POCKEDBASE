@@ -38,8 +38,10 @@ export const useRecorder = () => {
     clearRecordingTimeout(); // Clear auto-stop timeout
 
     if (mediaRecorderRef.current && isRecording) {
-      console.log("Recorder: Stopping MediaRecorder.");
-      mediaRecorderRef.current.stop(); // This will trigger onstop
+      console.log("Recorder: Stopping MediaRecorder. Current state:", mediaRecorderRef.current.state);
+      if (mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop(); // This will trigger onstop
+      }
     }
 
     // Stop webcam stream used for display
@@ -69,8 +71,10 @@ export const useRecorder = () => {
   // Function to stop the MediaRecorder specifically
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
-      console.log("Recorder: Explicitly stopping recording.");
-      mediaRecorderRef.current.stop();
+      console.log("Recorder: Explicitly stopping recording. Current state:", mediaRecorderRef.current.state);
+      if (mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop();
+      }
       clearRecordingTimeout(); // Clear auto-stop timeout
     }
   }, [isRecording, clearRecordingTimeout]);
@@ -176,6 +180,8 @@ export const useRecorder = () => {
         combinedStream.addTrack(track);
       });
 
+      console.log("Recorder: Combined stream tracks before MediaRecorder init:", combinedStream.getTracks().map(t => ({ id: t.id, kind: t.kind, readyState: t.readyState, enabled: t.enabled })));
+
       if (combinedStream.getTracks().length === 0) {
         showError("Yozib olish uchun hech qanday stream topilmadi. Iltimos, ekran va mikrofon ruxsatnomalarini tekshiring.");
         stopAllStreams();
@@ -190,14 +196,14 @@ export const useRecorder = () => {
       mediaRecorderRef.current.ondataavailable = (event) => {
         if (event.data && event.data.size > 0) {
           recordedChunksRef.current.push(event.data);
-          console.log("Recorder: Data available, size:", event.data.size, "bytes. Total chunks:", recordedChunksRef.current.length);
+          console.log("Recorder: Data available, size:", event.data.size, "bytes. Total chunks:", recordedChunksRef.current.length, "MediaRecorder state:", mediaRecorderRef.current?.state);
         } else {
-          console.warn("Recorder: ondataavailable event fired with no data or zero size data.");
+          console.warn("Recorder: ondataavailable event fired with no data or zero size data. MediaRecorder state:", mediaRecorderRef.current?.state);
         }
       };
 
       mediaRecorderRef.current.onstop = () => {
-        console.log("Recorder: MediaRecorder onstop event triggered. Recorded chunks count:", recordedChunksRef.current.length);
+        console.log("Recorder: MediaRecorder onstop event triggered. Recorded chunks count:", recordedChunksRef.current.length, "MediaRecorder state:", mediaRecorderRef.current?.state);
         clearRecordingTimeout(); // Clear auto-stop timeout
         if (recordedChunksRef.current.length === 0) {
           showError("Yozib olishda hech qanday ma'lumot yig'ilmadi. Iltimos, qayta urinib ko'ring.");
@@ -244,11 +250,12 @@ export const useRecorder = () => {
         stopAllStreams();
       };
 
+      console.log("Recorder: MediaRecorder state before start:", mediaRecorderRef.current.state);
       mediaRecorderRef.current.start();
       startTimeRef.current = Date.now();
       setIsRecording(true);
       showSuccess("Recording started!");
-      console.log("Recorder: Recording successfully started.");
+      console.log("Recorder: Recording successfully started. MediaRecorder state after start:", mediaRecorderRef.current.state);
 
       // Set timeout to automatically stop recording after MAX_RECORDING_DURATION_MS
       recordingTimeoutRef.current = setTimeout(() => {
