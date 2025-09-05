@@ -42,8 +42,11 @@ export interface BaseRecordedSession {
   timestamp: string;
   duration: number; // in seconds
   studentInfo?: StudentInfo; // Optional student information
+  supabaseUrl: string; // Supabase'da saqlangan videoning URL manzili
 }
 
 export interface RecordedSession extends BaseRecordedSession {
-  url: string; // This will be a temporary object URL created at runtime
+  // `url` endi `supabaseUrl` bilan bir xil bo'ladi, shuning uchun alohida `url` maydoni kerak emas.
+  // Lekin mavjud komponentlar bilan moslik uchun uni saqlab qolamiz va `supabaseUrl` ga tenglashtiramiz.
+  url: string; 
 }

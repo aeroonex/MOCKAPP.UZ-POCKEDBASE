@@ -5,14 +5,15 @@ const DB_NAME = 'MockTestDB';
 const DB_VERSION = 1;
 const STORE_NAME = 'recordings';
 
-export interface RecordingWithBlob extends BaseRecordedSession {
-  blob: Blob;
+// Endi blob o'rniga supabaseUrl saqlanadi
+export interface RecordingWithSupabaseUrl extends BaseRecordedSession {
+  supabaseUrl: string;
 }
 
 interface MockTestDB extends DBSchema {
   [STORE_NAME]: {
     key: string; // timestamp
-    value: RecordingWithBlob;
+    value: RecordingWithSupabaseUrl;
   };
 }
 
@@ -31,12 +32,12 @@ const getDb = (): Promise<IDBPDatabase<MockTestDB>> => {
   return dbPromise;
 };
 
-export const addRecordingToDB = async (recording: RecordingWithBlob): Promise<void> => {
+export const addRecordingToDB = async (recording: RecordingWithSupabaseUrl): Promise<void> => {
   const db = await getDb();
   await db.put(STORE_NAME, recording);
 };
 
-export const getAllRecordingsFromDB = async (): Promise<RecordingWithBlob[]> => {
+export const getAllRecordingsFromDB = async (): Promise<RecordingWithSupabaseUrl[]> => {
   const db = await getDb();
   // Get all and sort by timestamp descending to show newest first
   const recordings = await db.getAll(STORE_NAME);

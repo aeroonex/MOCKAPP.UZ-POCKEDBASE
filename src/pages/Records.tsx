@@ -9,31 +9,32 @@ import { Download, PlayCircle, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { RecordedSession } from "@/lib/types";
 import { showError, showSuccess } from "@/utils/toast";
-import { getAllRecordingsFromDB, deleteRecordingFromDB } from "@/lib/db";
+import { getAllRecordingsFromDB, deleteRecordingFromDB, RecordingWithSupabaseUrl } from "@/lib/db"; // Updated import
+import { supabase } from "@/lib/supabase"; // Import Supabase client
+
+const SUPABASE_BUCKET_NAME = 'recordings'; // Ensure this matches the recorder hook
 
 const Records: React.FC = () => {
   const [recordings, setRecordings] = useState<RecordedSession[]>([]);
 
   // Load recordings from IndexedDB on component mount
   useEffect(() => {
-    const objectUrls: string[] = [];
-
     const loadRecordings = async () => {
-      const recordingsFromDb = await getAllRecordingsFromDB();
-      const recordingsWithUrls = recordingsFromDb.map(rec => {
-        const url = URL.createObjectURL(rec.blob);
-        objectUrls.push(url); // Keep track of URL to revoke later
-        return { ...rec, url };
-      });
+      const recordingsFromDb: RecordingWithSupabaseUrl[] = await getAllRecordingsFromDB();
+      // Map to RecordedSession, ensuring 'url' points to 'supabaseUrl'
+      const recordingsWithUrls: RecordedSession[] = recordingsFromDb.map(rec => ({
+        ...rec,
+        url: rec.supabaseUrl, // Use supabaseUrl for the 'url' property
+      }));
       setRecordings(recordingsWithUrls);
     };
 
     loadRecordings();
 
-    // Cleanup function to revoke object URLs on unmount
-    return () => {
-      objectUrls.forEach(url => URL.revokeObjectURL(url));
-    };
+    // No need to revoke Object URLs here as we are using direct Supabase URLs
+    // return () => {
+    //   objectUrls.forEach(url => URL.revokeObjectURL(url));
+    // };
   }, []);
 
   const handleDownload = useCallback((recording: RecordedSession) => {
@@ -47,27 +48,48 @@ const Records: React.FC = () => {
     }
     
     const a = document.createElement("a");
-    a.href = recording.url;
+    a.href = recording.url; // Use the Supabase URL directly
     a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
   }, []);
 
-  const handleDelete = useCallback(async (timestampToDelete: string) => {
+  const deleteVideoFromSupabase = async (supabaseUrl: string) => {
     try {
-      // Delete from DB
+      // Extract the file path from the public URL
+      const urlParts = supabaseUrl.split('/');
+      const bucketIndex = urlParts.indexOf(SUPABASE_BUCKET_NAME);
+      if (bucketIndex === -1 || bucketIndex + 1 >= urlParts.length) {
+        throw new Error("Invalid Supabase URL format for deletion.");
+      }
+      // The path starts after the bucket name, including 'public/'
+      const filePath = urlParts.slice(bucketIndex + 1).join('/');
+
+      const { error } = await supabase.storage
+        .from(SUPABASE_BUCKET_NAME)
+        .remove([filePath]);
+
+      if (error) {
+        throw error;
+      }
+      console.log(`Video ${filePath} deleted from Supabase Storage.`);
+    } catch (error: any) {
+      console.error("Error deleting video from Supabase:", error.message);
+      showError(`Videoni Supabase'dan o'chirishda xatolik yuz berdi: ${error.message}`);
+    }
+  };
+
+  const handleDelete = useCallback(async (timestampToDelete: string, supabaseUrl: string) => {
+    try {
+      // First, delete from Supabase Storage
+      await deleteVideoFromSupabase(supabaseUrl);
+
+      // Then, delete from IndexedDB
       await deleteRecordingFromDB(timestampToDelete);
       
       // Update state
-      setRecordings(prevRecordings => {
-        const recordingToDelete = prevRecordings.find(rec => rec.timestamp === timestampToDelete);
-        if (recordingToDelete) {
-          // Revoke the object URL to free up memory immediately
-          URL.revokeObjectURL(recordingToDelete.url);
-        }
-        return prevRecordings.filter(rec => rec.timestamp !== timestampToDelete);
-      });
+      setRecordings(prevRecordings => prevRecordings.filter(rec => rec.timestamp !== timestampToDelete));
 
       showSuccess("Yozib olingan sessiya o'chirildi!");
     } catch (error) {
@@ -107,7 +129,7 @@ const Records: React.FC = () => {
                       <div className="flex gap-2">
                         <Button
                           onClick={() => {
-                            const videoWindow = window.open(recording.url, "_blank");
+                            const videoWindow = window.open(recording.url, "_blank"); // Use Supabase URL directly
                             if (videoWindow) {
                               videoWindow.focus();
                             } else {
@@ -119,7 +141,6 @@ const Records: React.FC = () => {
                         >
                           <PlayCircle className="h-4 w-4" /> Play
                         </Button>
-                        {/* Changed to pass the whole recording object */}
                         <Button
                           onClick={() => handleDownload(recording)} 
                           variant="outline"
@@ -129,7 +150,7 @@ const Records: React.FC = () => {
                           <Download className="h-4 w-4" /> Download
                         </Button>
                         <Button
-                          onClick={() => handleDelete(recording.timestamp)}
+                          onClick={() => handleDelete(recording.timestamp, recording.supabaseUrl)} // Pass supabaseUrl for deletion
                           variant="destructive"
                           size="sm"
                           className="flex items-center gap-1"
@@ -150,7 +171,7 @@ const Records: React.FC = () => {
             )}
             <p className="text-sm text-red-500 mt-4 text-center">
               Note: Recordings are saved as .webm format. MP4 conversion is not supported directly in the browser.
-              These recordings are stored in your browser's local storage and will persist unless cleared manually.
+              These recordings are now stored in Supabase Storage and indexed in your browser's local storage.
             </p>
           </CardContent>
         </Card>

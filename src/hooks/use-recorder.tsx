@@ -3,10 +3,13 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { showSuccess, showError } from "@/utils/toast";
 import { StudentInfo } from "@/lib/types";
-import { addRecordingToDB, RecordingWithBlob } from "@/lib/db";
+import { addRecordingToDB, RecordingWithSupabaseUrl } from "@/lib/db"; // Updated import
+import { supabase } from "@/lib/supabase"; // Import Supabase client
+import { v4 as uuidv4 } from "uuid"; // For unique file names
 
 const MAX_RECORDING_DURATION_MS = 60 * 60 * 1000; // 60 minutes in milliseconds
 const MIME_TYPE = "video/webm; codecs=vp8,opus"; // Using a common WebM codec
+const SUPABASE_BUCKET_NAME = 'recordings'; // New bucket for recordings
 
 export const useRecorder = () => {
   const [isRecording, setIsRecording] = useState<boolean>(false);
@@ -94,6 +97,38 @@ export const useRecorder = () => {
       }
     };
   }, []); // Run only once on mount
+
+  const uploadVideoToSupabase = async (blob: Blob, studentInfo?: StudentInfo): Promise<string | null> => {
+    const timestamp = new Date().toISOString();
+    const studentIdentifier = studentInfo ? `${studentInfo.name.replace(/\s/g, '_')}_${studentInfo.id}_` : '';
+    const fileName = `${studentIdentifier}${timestamp}.webm`;
+    const filePath = `public/${fileName}`; // Store in a 'public' folder within the bucket
+
+    try {
+      const { data, error } = await supabase.storage
+        .from(SUPABASE_BUCKET_NAME)
+        .upload(filePath, blob, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: MIME_TYPE,
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from(SUPABASE_BUCKET_NAME)
+        .getPublicUrl(filePath);
+
+      return publicUrlData.publicUrl;
+
+    } catch (error: any) {
+      console.error("Error uploading video to Supabase:", error.message);
+      showError(`Videoni yuklashda xatolik yuz berdi: ${error.message}`);
+      return null;
+    }
+  };
 
   const startRecording = useCallback(async (studentInfo?: StudentInfo): Promise<boolean> => {
     console.log("Recorder: Attempting to start recording...");
@@ -208,17 +243,27 @@ export const useRecorder = () => {
         const endTime = Date.now();
         const duration = Math.round((endTime - startTimeRef.current) / 1000);
 
-        const newRecording: RecordingWithBlob = {
+        // Upload to Supabase Storage
+        showSuccess("Videoni yuklash boshlandi...");
+        const supabaseUrl = await uploadVideoToSupabase(blob, studentInfo);
+
+        if (!supabaseUrl) {
+          showError("Videoni Supabase'ga yuklashda xatolik yuz berdi. Yozib olish saqlanmadi.");
+          stopRecordingProcess();
+          return;
+        }
+
+        const newRecording: RecordingWithSupabaseUrl = {
           timestamp: new Date().toISOString(),
           duration,
           studentInfo,
-          blob,
+          supabaseUrl, // Save the Supabase URL
         };
         
         try {
           await addRecordingToDB(newRecording);
-          showSuccess("Recording stopped and saved!");
-          console.log("Recorder: Recording successfully processed and saved to IndexedDB.");
+          showSuccess("Recording stopped and saved to cloud!");
+          console.log("Recorder: Recording successfully processed and saved to IndexedDB with Supabase URL.");
         } catch (error) {
           console.error("Recorder: Failed to save recording to IndexedDB", error);
           showError("Yozib olingan videoni saqlashda xatolik yuz berdi.");
@@ -263,7 +308,7 @@ export const useRecorder = () => {
       stopRecordingProcess(); // Use the new function
       return false;
     }
-  }, [stopRecordingProcess, clearRecordingTimeout]);
+  }, [stopRecordingProcess, clearRecordingTimeout, uploadVideoToSupabase]);
 
   // Cleanup on component unmount
   useEffect(() => {
