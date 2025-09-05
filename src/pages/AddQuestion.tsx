@@ -152,8 +152,8 @@ const SpeakingQuestionManager: React.FC = () => {
     const isImageRequiredPart = ["Part 1.2", "Part 2", "Part 3"].includes(part);
 
     if (isImageRequiredPart) {
-      if (imagePreviewUrls.filter(Boolean).length < 2) {
-        showError("Kamida ikkita rasm yuklanmagan.");
+      if (imagePreviewUrls.filter(Boolean).length < 1) {
+        showError("Kamida bitta rasm yuklanishi kerak.");
         return;
       }
       finalImageUrls = imagePreviewUrls.filter(Boolean);
@@ -179,8 +179,8 @@ const SpeakingQuestionManager: React.FC = () => {
       showSuccess(`Savol ${part} ga qo'shildi!`);
     } else if (part === "Part 1.2") {
       const subQ = subQuestionsText.split('\n').map(q => q.trim()).filter(q => q.length > 0);
-      if (finalImageUrls.length < 2 || subQ.length === 0) {
-        showError("Kamida ikkita rasm va bitta kichik savol kiritishingiz kerak.");
+      if (finalImageUrls.length < 1 || subQ.length === 0) {
+        showError("Kamida bitta rasm va bitta kichik savol kiritishingiz kerak.");
         return;
       }
       const newQuestion: Part1_2Question = {
@@ -200,8 +200,8 @@ const SpeakingQuestionManager: React.FC = () => {
       showSuccess(`Savol ${part} ga qo'shildi!`);
     }
     else if (part === "Part 2") {
-      if (finalImageUrls.length < 2 || !questionText.trim()) {
-        showError("Kamida ikkita rasm va savol matni bo'sh bo'lishi mumkin emas.");
+      if (finalImageUrls.length < 1 || !questionText.trim()) {
+        showError("Kamida bitta rasm va savol matni bo'sh bo'lishi mumkin emas.");
         return;
       }
       const newQuestion: Part2Question = {
@@ -220,8 +220,8 @@ const SpeakingQuestionManager: React.FC = () => {
       setQuestionText("");
       showSuccess(`Savol ${part} ga qo'shildi!`);
     } else if (part === "Part 3") {
-      if (finalImageUrls.length < 2 || !questionText.trim()) {
-        showError("Savol matni va kamida ikkita rasm bo'sh bo'lishi mumkin emas.");
+      if (finalImageUrls.length < 1 || !questionText.trim()) {
+        showError("Savol matni va kamida bitta rasm bo'sh bo'lishi mumkin emas.");
         return;
       }
       const newQuestion: Part3Question = {
@@ -290,7 +290,7 @@ const SpeakingQuestionManager: React.FC = () => {
       <>
         {isImageRequiredPart && (
           <div className="space-y-4 mb-4">
-            <Label className="text-base">Rasmlar yuklash (2 ta rasm talab qilinadi)</Label>
+            <Label className="text-base">Rasmlar yuklash (1 yoki 2 ta rasm)</Label>
             {[0, 1].map((idx) => (
               <div key={idx} className="space-y-2 border p-2 rounded-md">
                 <Label htmlFor={`image-upload-${part}-${idx}`} className="text-sm">Rasm {idx + 1} yuklash</Label>
