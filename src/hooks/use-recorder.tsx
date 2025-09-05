@@ -56,6 +56,7 @@ export const useRecorder = () => {
         setDisplayWebcamStream(newDisplayWebcamStream);
       } catch (webcamErr) {
         console.error("Error getting display webcam stream for UI preview:", webcamErr);
+        showError("Kamera tasvirini olishda xatolik yuz berdi. Kamerangizni tekshiring yoki boshqa ilova ishlatmayotganiga ishonch hosil qiling.");
         // Don't stop everything if only display webcam fails, but log it.
         // The recording webcam will still be requested.
       }
