@@ -49,7 +49,7 @@ const MockTest: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
-      <Navbar />
+      {!isTestStarted && <Navbar />} {/* Navbar'ni test boshlanmaganda ko'rsatish */}
       <main className="flex-grow container mx-auto p-4 flex items-center justify-center relative"> {/* Added relative to main */}
         {/* Student Info (fixed to top-left of viewport) */}
         {isTestStarted && studentInfo && (
@@ -66,7 +66,7 @@ const MockTest: React.FC = () => {
             ref={webcamVideoRef}
             autoPlay
             muted
-            className="fixed top-4 right-4 w-32 h-24 rounded-lg shadow-lg border-2 border-primary-foreground bg-black z-20"
+            className="fixed top-4 left-4 w-32 h-24 rounded-lg shadow-lg border-2 border-primary-foreground bg-black z-20"
           />
         )}
 
