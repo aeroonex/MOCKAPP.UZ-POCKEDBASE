@@ -370,6 +370,30 @@ export const useMockTestLogic = ({
     }
   }, [isTestStarted, currentPhase, questions]);
 
+  // NEW useEffect to speak the question when it's displayed
+  useEffect(() => {
+    if (isTestStarted && currentPhase === "question_display") {
+      const currentPartName = allSpeakingParts[currentPartIndex];
+      const currentQ = getCurrentQuestion(); // currentQ is defined here
+
+      if (currentQ) {
+        let textToSpeak = "";
+        if (currentQ.type === "part1.1" || currentQ.type === "part1.2") {
+          textToSpeak = (currentQ as Part1_1Question | Part1_2Question).subQuestions[currentSubQuestionIndex];
+        } else if (currentQ.type === "part2" || currentQ.type === "part3") {
+          textToSpeak = (currentQ as Part2Question | Part3Question).question;
+        }
+
+        if (textToSpeak) {
+          console.log(`Speaking question: "${textToSpeak}"`);
+          // Assuming questions are in English, adjust 'en-US' if they are in Uzbek ('uz-UZ')
+          speakText(textToSpeak, 'en-US'); 
+        }
+      }
+    }
+  }, [isTestStarted, currentPhase, currentSubQuestionIndex, currentPartIndex, getCurrentQuestion]);
+
+
   const handleStartTestClick = () => {
     console.log("handleStartTestClick: Tugma bosildi.");
     console.log("handleStartTestClick: allAvailableQuestionsRef.current:", allAvailableQuestionsRef.current);
