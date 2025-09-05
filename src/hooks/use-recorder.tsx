@@ -2,118 +2,123 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { showSuccess, showError } from "@/utils/toast";
-import { StudentInfo, RecordedSession } from "@/lib/types"; // Import StudentInfo and RecordedSession
+import { StudentInfo, RecordedSession } from "@/lib/types";
 
-interface RecordingData extends RecordedSession { // Extend RecordedSession
+interface RecordingData extends RecordedSession {
   blob: Blob | null;
 }
 
 export const useRecorder = () => {
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [recordedData, setRecordedData] = useState<RecordingData | null>(null);
-  const [displayWebcamStream, setDisplayWebcamStream] = useState<MediaStream | null>(null); // State for display webcam
+  const [webcamStream, setWebcamStream] = useState<MediaStream | null>(null); // Unified webcam stream for display and recording
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
   const screenStreamRef = useRef<MediaStream | null>(null);
-  const recordingWebcamStreamRef = useRef<MediaStream | null>(null); // Webcam stream specifically for recording
+  const micStreamRef = useRef<MediaStream | null>(null); // Separate ref for microphone stream
   const startTimeRef = useRef<number>(0);
 
+  // Function to stop all active media streams
   const stopAllStreams = useCallback(() => {
-    // Stop MediaRecorder if active
+    console.log("Stopping all streams...");
     if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop(); // This will trigger onstop, which handles screenStreamRef and recordingWebcamStreamRef
+      mediaRecorderRef.current.stop(); // This will trigger onstop
     }
 
-    // Explicitly stop display webcam stream
-    displayWebcamStream?.getTracks().forEach(track => track.stop());
-    setDisplayWebcamStream(null); // Clear state
+    webcamStream?.getTracks().forEach(track => track.stop());
+    setWebcamStream(null);
 
-    // Ensure recording streams are also stopped if not already by onstop
     screenStreamRef.current?.getTracks().forEach(track => track.stop());
     screenStreamRef.current = null;
-    recordingWebcamStreamRef.current?.getTracks().forEach(track => track.stop());
-    recordingWebcamStreamRef.current = null;
+
+    micStreamRef.current?.getTracks().forEach(track => track.stop());
+    micStreamRef.current = null;
 
     setIsRecording(false);
-  }, [isRecording, displayWebcamStream]); // Add displayWebcamStream to dependencies
+    console.log("All streams stopped.");
+  }, [isRecording, webcamStream]);
 
+  // Function to stop the MediaRecorder specifically
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
     }
   }, [isRecording]);
 
-  const startRecording = useCallback(async (studentInfo?: StudentInfo): Promise<boolean> => {
-    try {
-      // 1. Request display webcam stream (video only) for UI preview
-      let newDisplayWebcamStream: MediaStream | null = null;
+  // Effect to get webcam stream for preview on component mount
+  useEffect(() => {
+    const getWebcamPreview = async () => {
       try {
-        newDisplayWebcamStream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: false, // Only video for display
-        });
-        setDisplayWebcamStream(newDisplayWebcamStream);
-      } catch (webcamErr) {
-        console.error("Error getting display webcam stream for UI preview:", webcamErr);
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        setWebcamStream(stream);
+        console.log("Webcam preview stream obtained.");
+      } catch (err) {
+        console.error("Error getting webcam preview stream:", err);
         showError("Kamera tasvirini olishda xatolik yuz berdi. Kamerangizni tekshiring yoki boshqa ilova ishlatmayotganiga ishonch hosil qiling.");
-        // Don't stop everything if only display webcam fails, but log it.
-        // The recording webcam will still be requested.
       }
+    };
 
-      // 2. Request screen and system audio
-      let screenStream: MediaStream | null = null;
+    getWebcamPreview();
+
+    return () => {
+      // Stop only the preview stream if it's not part of an active recording
+      if (webcamStream && !isRecording) {
+        webcamStream.getTracks().forEach(track => track.stop());
+        setWebcamStream(null);
+      }
+    };
+  }, []); // Run only once on mount
+
+  const startRecording = useCallback(async (studentInfo?: StudentInfo): Promise<boolean> => {
+    console.log("Attempting to start recording...");
+    recordedChunksRef.current = []; // Clear previous chunks
+
+    try {
+      // 1. Get screen and system audio
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: true,
+      });
+      if (!screenStream || screenStream.getVideoTracks().length === 0) {
+        showError("Ekran ulashish bekor qilindi yoki video stream olinmadi.");
+        stopAllStreams();
+        return false;
+      }
+      screenStreamRef.current = screenStream;
+      screenStream.addEventListener('ended', () => {
+        console.log("Screen sharing ended by user or system.");
+        showError("Ekran ulashish to'xtatildi. Yozib olish tugatildi.");
+        stopRecording();
+      });
+      console.log("Screen stream obtained.");
+
+      // 2. Get microphone audio (if not already part of webcamStream)
+      let micStream: MediaStream | null = null;
       try {
-        screenStream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-          audio: true,
-        });
-        if (!screenStream) { // User cancelled or denied
-          showError("Ekran ulashish bekor qilindi yoki ruxsat berilmadi.");
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        if (!micStream || micStream.getAudioTracks().length === 0) {
+          showError("Mikrofon ruxsatnomasi berilmadi yoki audio stream olinmadi.");
           stopAllStreams();
           return false;
         }
-        screenStreamRef.current = screenStream;
-        screenStream.addEventListener('ended', () => {
-          console.log("Screen sharing ended by user or system.");
-          showError("Ekran ulashish to'xtatildi. Yozib olish tugatildi.");
-          stopRecording();
-        });
-      } catch (screenErr) {
-        console.error("Error getting screen stream:", screenErr);
-        showError("Ekran ulashishni boshlashda xatolik yuz berdi. Ruxsatnomalarni tekshiring.");
+        micStreamRef.current = micStream;
+        console.log("Microphone stream obtained.");
+      } catch (micErr) {
+        console.error("Error getting microphone stream:", micErr);
+        showError("Mikrofon ruxsatnomasi berilmadi. Yozib olish uchun mikrofon kerak.");
         stopAllStreams();
         return false;
       }
 
-      // 3. Request webcam and microphone audio for recording
-      let recordingWebcamStream: MediaStream | null = null;
-      try {
-        recordingWebcamStream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true,
-        });
-        if (!recordingWebcamStream) { // User cancelled or denied
-          showError("Kamera yoki mikrofon ruxsatnomasi berilmadi.");
-          stopAllStreams();
-          return false;
-        }
-        recordingWebcamStreamRef.current = recordingWebcamStream;
-      } catch (micWebcamErr) {
-        console.error("Error getting recording webcam/mic stream:", micWebcamErr);
-        showError("Kamera yoki mikrofon ruxsatnomasi berilmadi.");
+      // Ensure webcamStream is available for recording (it should be from the useEffect)
+      if (!webcamStream || webcamStream.getVideoTracks().length === 0) {
+        showError("Kamera tasviri yozib olish uchun mavjud emas. Kamerangizni tekshiring.");
         stopAllStreams();
         return false;
       }
 
-      // Ensure both screenStream and recordingWebcamStream are not null before proceeding
-      if (!screenStream || !recordingWebcamStream) {
-          showError("Yozib olish uchun barcha kerakli ruxsatnomalar berilmadi.");
-          stopAllStreams();
-          return false;
-      }
-
-      // Combine audio tracks: system audio + microphone audio from recording webcam
+      // Combine audio tracks: system audio + microphone audio
       const audioContext = new AudioContext();
       const destination = audioContext.createMediaStreamDestination();
 
@@ -122,19 +127,19 @@ export const useRecorder = () => {
         source.connect(destination);
       });
 
-      recordingWebcamStream.getAudioTracks().forEach(track => {
+      micStream.getAudioTracks().forEach(track => {
         const source = audioContext.createMediaStreamSource(new MediaStream([track]));
         source.connect(destination);
       });
 
-      // Create a new stream with screen video, recording webcam video, and combined audio
+      // Create a new stream with screen video, webcam video, and combined audio
       const combinedStream = new MediaStream();
       screenStream.getVideoTracks().forEach(track => combinedStream.addTrack(track));
-      recordingWebcamStream.getVideoTracks().forEach(track => combinedStream.addTrack(track));
-      destination.stream.getAudioTracks().forEach(track => combinedStream.addTrack(track));
+      webcamStream.getVideoTracks().forEach(track => combinedStream.addTrack(track)); // Add webcam video
+      destination.stream.getAudioTracks().forEach(track => combinedStream.addTrack(track)); // Add combined audio
 
       mediaRecorderRef.current = new MediaRecorder(combinedStream, {
-        mimeType: "video/webm; codecs=vp8,opus", // WebM is widely supported
+        mimeType: "video/webm; codecs=vp8,opus",
       });
 
       mediaRecorderRef.current.ondataavailable = (event) => {
@@ -144,7 +149,7 @@ export const useRecorder = () => {
       };
 
       mediaRecorderRef.current.onstop = () => {
-        console.log("MediaRecorder onstop event triggered."); // Debugging log
+        console.log("MediaRecorder onstop event triggered.");
         const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
         const url = URL.createObjectURL(blob);
         const endTime = Date.now();
@@ -155,33 +160,33 @@ export const useRecorder = () => {
           url,
           timestamp: new Date().toISOString(),
           duration,
-          studentInfo, // Include student info
+          studentInfo,
         };
         setRecordedData(newRecording);
         sessionStorage.setItem("lastRecording", JSON.stringify({
           url,
           timestamp: newRecording.timestamp,
           duration: newRecording.duration,
-          studentInfo: newRecording.studentInfo, // Include student info in session storage
+          studentInfo: newRecording.studentInfo,
         }));
         recordedChunksRef.current = [];
         setIsRecording(false);
 
-        // Stop tracks for the recording streams only
+        // Stop only the recording-specific streams here
         screenStreamRef.current?.getTracks().forEach(track => track.stop());
         screenStreamRef.current = null;
-        recordingWebcamStreamRef.current?.getTracks().forEach(track => track.stop());
-        recordingWebcamStreamRef.current = null;
+        micStreamRef.current?.getTracks().forEach(track => track.stop());
+        micStreamRef.current = null;
         
         showSuccess("Recording stopped and saved!");
       };
 
-      recordedChunksRef.current = [];
       mediaRecorderRef.current.start();
       startTimeRef.current = Date.now();
       setIsRecording(true);
       showSuccess("Recording started!");
-      return true; // Successfully started recording
+      console.log("Recording successfully started.");
+      return true;
     } catch (err) {
       console.error("General error starting recording:", err);
       showError("Yozib olishni boshlashda kutilmagan xatolik yuz berdi. Ruxsatnomalarni tekshiring.");
@@ -189,7 +194,7 @@ export const useRecorder = () => {
       stopAllStreams();
       return false;
     }
-  }, [stopAllStreams, displayWebcamStream, stopRecording]);
+  }, [stopAllStreams, webcamStream, stopRecording]);
 
   const resetRecordedData = useCallback(() => {
     setRecordedData(null);
@@ -209,7 +214,7 @@ export const useRecorder = () => {
     stopRecording,
     stopAllStreams,
     recordedData,
-    webcamStream: displayWebcamStream, // Return the state variable
+    webcamStream, // Return the unified webcam stream
     resetRecordedData,
   };
 };

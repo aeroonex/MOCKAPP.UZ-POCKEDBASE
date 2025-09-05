@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import { showSuccess, showError } from "@/utils/toast";
 import { useRecorder } from "@/hooks/use-recorder";
 import { Video } from "lucide-react";
-import { SpeakingQuestion, SpeakingPart, StudentInfo } from "@/lib/types"; // Import StudentInfo
+import { SpeakingQuestion, SpeakingPart, StudentInfo } from "@/lib/types";
 import { allSpeakingParts, getSpeakingQuestionStorageKey } from "@/lib/constants";
-import StudentInfoForm from "@/components/StudentInfoForm"; // Import the new component
+import StudentInfoForm from "@/components/StudentInfoForm";
 
 const MOCK_TEST_QUESTION_DURATION = 30; // seconds
 
@@ -26,8 +26,8 @@ const MockTest: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [isTestFinished, setIsTestFinished] = useState<boolean>(false);
   const [countdown, setCountdown] = useState<number>(MOCK_TEST_QUESTION_DURATION);
-  const [isStudentInfoFormOpen, setIsStudentInfoFormOpen] = useState<boolean>(false); // State for dialog
-  const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null); // State to store student info
+  const [isStudentInfoFormOpen, setIsStudentInfoFormOpen] = useState<boolean>(false);
+  const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
 
   const { isRecording, startRecording, stopAllStreams, webcamStream, resetRecordedData } = useRecorder();
   const webcamVideoRef = useRef<HTMLVideoElement>(null);
@@ -113,7 +113,7 @@ const MockTest: React.FC = () => {
         clearInterval(countdownIntervalRef.current);
       }
     };
-  }, [isTestStarted, isTestFinished, nextQuestion, currentPartIndex, currentQuestionIndex]); // Re-run effect when question/part changes
+  }, [isTestStarted, isTestFinished, nextQuestion, currentPartIndex, currentQuestionIndex]);
 
   const handleStartTestClick = () => {
     const totalQuestions = allSpeakingParts.reduce((sum, part) => sum + questions[part].length, 0);
@@ -163,11 +163,7 @@ const MockTest: React.FC = () => {
       <Navbar />
       <main className="flex-grow container mx-auto p-4 flex items-center justify-center">
         <Card className="w-full max-w-2xl text-center relative">
-          {isRecording && (
-            <div className="absolute top-4 left-4 flex items-center gap-2 text-red-500 font-semibold z-10">
-              <Video className="h-5 w-5 animate-pulse" /> REC
-            </div>
-          )}
+          {/* Webcam Preview (always visible if stream is available) */}
           {webcamStream && (
             <video
               ref={webcamVideoRef}
@@ -176,6 +172,13 @@ const MockTest: React.FC = () => {
               className="absolute top-4 right-4 w-32 h-24 rounded-lg shadow-lg border-2 border-primary-foreground bg-black z-10"
             />
           )}
+
+          {isRecording && (
+            <div className="absolute top-4 left-4 flex items-center gap-2 text-red-500 font-semibold z-10">
+              <Video className="h-5 w-5 animate-pulse" /> REC
+            </div>
+          )}
+          
           {isTestStarted && studentInfo && (
             <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black bg-opacity-70 text-white p-2 rounded-md text-sm z-10">
               <p><strong>ID:</strong> {studentInfo.id}</p>
