@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { showSuccess, showError } from "@/utils/toast";
+import { speakText } from "@/utils/audioUtils"; // Yangi audio utilitini import qilish
 import {
   SpeakingQuestion,
   SpeakingPart,
@@ -22,9 +23,11 @@ const TIMINGS = {
   PART2_SPEAK: 120, // seconds
   PART3_PREP: 60, // seconds
   PART3_SPEAK: 120, // seconds
+  ANNOUNCEMENT_DELAY: 5, // Delay between "Part X Finished" and "Part Y"
+  ANNOUNCEMENT_SPEAK_DURATION: 2, // Estimated time for the speech synthesis to complete
 };
 
-export type TestPhase = "idle" | "pre_test_countdown" | "preparation" | "speaking" | "question_display" | "finished";
+export type TestPhase = "idle" | "pre_test_countdown" | "preparation" | "speaking" | "question_display" | "part_finished_announcement" | "next_part_announcement" | "finished";
 
 interface UseMockTestLogicProps {
   startRecording: (studentInfo: StudentInfo) => Promise<boolean>;
@@ -108,10 +111,7 @@ export const useMockTestLogic = ({
       console.log("No more questions in current part. Attempting to move to next part.");
       if (currentPartIndex < allSpeakingParts.length - 1) {
         console.log(`Advancing to next part from index ${currentPartIndex} to ${currentPartIndex + 1}`);
-        setCurrentPartIndex(prev => prev + 1);
-        setCurrentQuestionIndex(0);
-        setCurrentSubQuestionIndex(0);
-        setCurrentPhase("question_display");
+        setCurrentPhase("part_finished_announcement"); // Announce current part finished
       } else {
         console.log("All parts finished. Stopping streams and ending test.");
         stopAllStreams();
@@ -140,10 +140,7 @@ export const useMockTestLogic = ({
             setCurrentPhase("question_display");
           } else {
             console.log("All questions in Part 1.1 finished. Moving to next part.");
-            setCurrentPartIndex(prev => prev + 1);
-            setCurrentQuestionIndex(0);
-            setCurrentSubQuestionIndex(0);
-            setCurrentPhase("question_display");
+            setCurrentPhase("part_finished_announcement"); // Announce current part finished
           }
         }
         break;
@@ -164,10 +161,7 @@ export const useMockTestLogic = ({
             setCurrentPhase("question_display");
           } else {
             console.log("All questions in Part 1.2 finished. Moving to next part.");
-            setCurrentPartIndex(prev => prev + 1);
-            setCurrentQuestionIndex(0);
-            setCurrentSubQuestionIndex(0);
-            setCurrentPhase("question_display");
+            setCurrentPhase("part_finished_announcement"); // Announce current part finished
           }
         }
         break;
@@ -182,10 +176,7 @@ export const useMockTestLogic = ({
           setCurrentPhase("speaking");
         } else if (currentPhase === "speaking") {
           console.log("Part 2: Speaking phase finished. Moving to next part.");
-          setCurrentPartIndex(prev => prev + 1); // This should move to Part 3
-          setCurrentQuestionIndex(0);
-          setCurrentSubQuestionIndex(0);
-          setCurrentPhase("question_display");
+          setCurrentPhase("part_finished_announcement"); // Announce current part finished
         }
         break;
       }
@@ -199,19 +190,13 @@ export const useMockTestLogic = ({
           setCurrentPhase("speaking");
         } else if (currentPhase === "speaking") {
           console.log("Part 3: Speaking phase finished. Moving to next part (or ending test).");
-          setCurrentPartIndex(prev => prev + 1); // This should move past Part 3
-          setCurrentQuestionIndex(0);
-          setCurrentSubQuestionIndex(0);
-          setCurrentPhase("question_display");
+          setCurrentPhase("part_finished_announcement"); // Announce current part finished
         }
         break;
       }
       default:
         console.warn("Unknown question type encountered:", (currentQ as any).type);
-        setCurrentPartIndex(prev => prev + 1);
-        setCurrentQuestionIndex(0);
-        setCurrentSubQuestionIndex(0);
-        setCurrentPhase("question_display");
+        setCurrentPhase("part_finished_announcement"); // Treat as part finished to advance
         break;
     }
     console.log("--- advanceTest END ---");
@@ -259,6 +244,45 @@ export const useMockTestLogic = ({
         console.log("Pre-test countdown finished. Setting phase to idle to trigger test start.");
         setCurrentPhase("idle"); // This will trigger the other useEffect to start the actual test flow
       };
+    } else if (currentPhase === "part_finished_announcement") {
+      const finishedPartName = allSpeakingParts[currentPartIndex];
+      speakText(`${finishedPartName} finished.`, 'en-US');
+      duration = TIMINGS.ANNOUNCEMENT_DELAY; // Delay before announcing next part
+      nextAction = () => {
+        setCurrentPartIndex(prev => prev + 1); // Advance part index for the next announcement
+        setCurrentQuestionIndex(0);
+        setCurrentSubQuestionIndex(0);
+        setCurrentPhase("next_part_announcement");
+      };
+    } else if (currentPhase === "next_part_announcement") {
+      const nextPartName = allSpeakingParts[currentPartIndex]; // currentPartIndex has already been incremented
+      if (nextPartName) {
+        speakText(`${nextPartName}`, 'en-US');
+        duration = TIMINGS.ANNOUNCEMENT_SPEAK_DURATION; // Estimated time for the speech synthesis to complete
+        nextAction = () => {
+          // After announcement, check if there are questions for this new part
+          if (questions[nextPartName] && questions[nextPartName].length > 0) {
+            const firstQuestion = questions[nextPartName][0];
+            if (firstQuestion.type === "part2" || firstQuestion.type === "part3") {
+              setCurrentPhase("question_display"); // Start with question display, then it will advance to preparation
+            } else {
+              setCurrentPhase("question_display");
+            }
+          } else {
+            // If no questions in this part, try to advance again (skip this empty part)
+            console.log(`No questions found for ${nextPartName}. Advancing to next part.`);
+            advanceTest(); // This will trigger part_finished_announcement for the current (empty) part
+          }
+        };
+      } else {
+        // No more parts to announce, end the test
+        stopAllStreams();
+        setIsTestStarted(false);
+        setCurrentPhase("finished");
+        showSuccess("Mock test yakunlandi!");
+        duration = 0;
+        nextAction = () => {};
+      }
     } else {
       const currentPartName = allSpeakingParts[currentPartIndex];
       const currentQ = questions[currentPartName]?.[currentQuestionIndex];
@@ -309,7 +333,7 @@ export const useMockTestLogic = ({
         console.log("Countdown useEffect: Cleanup - interval cleared.");
       }
     };
-  }, [isTestStarted, currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, currentPhase, questions, startCountdown, advanceTest]);
+  }, [isTestStarted, currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, currentPhase, questions, startCountdown, advanceTest, stopAllStreams]);
 
   // Effect to start the test flow when isTestStarted becomes true and phase is idle
   useEffect(() => {
@@ -342,12 +366,7 @@ export const useMockTestLogic = ({
       setCurrentPartIndex(firstPartWithQuestionsIndex);
       setCurrentQuestionIndex(0);
       setCurrentSubQuestionIndex(0);
-      const firstQuestion = questions[allSpeakingParts[firstPartWithQuestionsIndex]]?.[0];
-      if (firstQuestion && (firstQuestion.type === "part2" || firstQuestion.type === "part3")) {
-        setCurrentPhase("question_display"); // Start with question display, then it will advance to preparation
-      } else {
-        setCurrentPhase("question_display");
-      }
+      setCurrentPhase("question_display"); // Start with question display, then it will advance to preparation
     }
   }, [isTestStarted, currentPhase, questions]);
 
