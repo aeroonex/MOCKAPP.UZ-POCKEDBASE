@@ -38,6 +38,12 @@ export const useRecorder = () => {
     setIsRecording(false);
   }, [isRecording, displayWebcamStream]); // Add displayWebcamStream to dependencies
 
+  const stopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+    }
+  }, [isRecording]);
+
   const startRecording = useCallback(async (studentInfo?: StudentInfo): Promise<boolean> => {
     try {
       // 1. Request display webcam stream (video only) for UI preview
@@ -52,13 +58,30 @@ export const useRecorder = () => {
         video: true,
         audio: true,
       });
+      if (!screenStream) {
+        showError("Ekran ulashish bekor qilindi yoki ruxsat berilmadi.");
+        stopAllStreams();
+        return false;
+      }
       screenStreamRef.current = screenStream;
+
+      // Add an event listener for when the screen sharing ends
+      screenStream.addEventListener('ended', () => {
+        console.log("Screen sharing ended by user or system.");
+        showError("Ekran ulashish to'xtatildi. Yozib olish tugatildi.");
+        stopRecording(); // Stop the recording gracefully
+      });
 
       // 3. Request webcam and microphone audio for recording
       const recordingWebcamStream = await navigator.mediaDevices.getUserMedia({
         video: true,
         audio: true,
       });
+      if (!recordingWebcamStream) {
+        showError("Kamera yoki mikrofon ruxsatnomasi berilmadi.");
+        stopAllStreams();
+        return false;
+      }
       recordingWebcamStreamRef.current = recordingWebcamStream;
 
       // Combine audio tracks: system audio + microphone audio from recording webcam
@@ -132,18 +155,12 @@ export const useRecorder = () => {
       return true; // Successfully started recording
     } catch (err) {
       console.error("Error starting recording:", err);
-      showError("Failed to start recording. Please check camera/microphone/screen permissions.");
+      showError("Yozib olishni boshlashda xatolik yuz berdi. Kamera/mikrofon/ekran ruxsatnomalarini tekshiring.");
       setIsRecording(false);
       stopAllStreams(); // Ensure all streams are stopped if an error occurs during setup
       return false; // Failed to start recording
     }
-  }, [stopAllStreams, displayWebcamStream]); // Added displayWebcamStream to dependencies
-
-  const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
-    }
-  }, [isRecording]);
+  }, [stopAllStreams, displayWebcamStream, stopRecording]);
 
   const resetRecordedData = useCallback(() => {
     setRecordedData(null);
