@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { showSuccess, showError } from "@/utils/toast";
 import { useRecorder } from "@/hooks/use-recorder";
 import { Video } from "lucide-react";
-import { SpeakingQuestion, SpeakingPart } from "@/lib/types"; // Import from shared types
-import { allSpeakingParts, getSpeakingQuestionStorageKey } from "@/lib/constants"; // Import from shared constants
+import { SpeakingQuestion, SpeakingPart } from "@/lib/types";
+import { allSpeakingParts, getSpeakingQuestionStorageKey } from "@/lib/constants";
 
 const MockTest: React.FC = () => {
   const [isTestStarted, setIsTestStarted] = useState<boolean>(false);
@@ -23,19 +23,15 @@ const MockTest: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [isTestFinished, setIsTestFinished] = useState<boolean>(false);
 
-  const { isRecording, startRecording, stopRecording, webcamStream, resetRecordedData } = useRecorder();
+  const { isRecording, startRecording, stopAllStreams, webcamStream, resetRecordedData } = useRecorder(); // Use stopAllStreams
   const webcamVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    // Load questions from localStorage for each part
     const loadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
-      "Part 1": [],
-      "Part 1.1": [],
-      "Part 2": [],
-      "Part 3": [],
+      "Part 1": [], "Part 1.1": [], "Part 2": [], "Part 3": [],
     };
     allSpeakingParts.forEach(part => {
-      const storageKey = getSpeakingQuestionStorageKey(part); // Use shared utility
+      const storageKey = getSpeakingQuestionStorageKey(part);
       const stored = localStorage.getItem(storageKey);
       if (stored) {
         loadedQuestions[part] = JSON.parse(stored);
@@ -49,7 +45,6 @@ const MockTest: React.FC = () => {
       if (webcamStream) {
         webcamVideoRef.current.srcObject = webcamStream;
       } else {
-        // Clear the video element's srcObject when webcamStream is null (recording stopped)
         webcamVideoRef.current.srcObject = null;
       }
     }
@@ -63,9 +58,12 @@ const MockTest: React.FC = () => {
     }
 
     await startRecording();
-    // The `isRecording` state might not be updated immediately after `startRecording` due to async nature.
-    // We should check if `webcamStream` is available or if `startRecording` reported an error.
-    // For simplicity, we'll proceed assuming `startRecording` handles its own errors via toast.
+    // Check if recording actually started successfully (webcamStream should be available)
+    if (!webcamStream) {
+        showError("Failed to start webcam for recording. Please ensure camera permissions are granted.");
+        stopAllStreams(); // Clean up any partial streams
+        return;
+    }
 
     setIsTestStarted(true);
     setIsTestFinished(false);
@@ -85,7 +83,7 @@ const MockTest: React.FC = () => {
         setCurrentPartIndex(prev => prev + 1);
         setCurrentQuestionIndex(0);
       } else {
-        stopRecording();
+        stopAllStreams(); // Stop all streams when test finishes
         setIsTestFinished(true);
         setIsTestStarted(false);
         showSuccess("Mock test completed!");
@@ -94,7 +92,7 @@ const MockTest: React.FC = () => {
   };
 
   const handleEndTest = () => {
-    stopRecording();
+    stopAllStreams(); // Stop all streams if user manually ends test
     setIsTestFinished(true);
     setIsTestStarted(false);
     showSuccess("Mock test ended.");
@@ -113,7 +111,7 @@ const MockTest: React.FC = () => {
               <Video className="h-5 w-5 animate-pulse" /> REC
             </div>
           )}
-          {isRecording && webcamStream && (
+          {webcamStream && ( // Display webcam if stream is active
             <video
               ref={webcamVideoRef}
               autoPlay

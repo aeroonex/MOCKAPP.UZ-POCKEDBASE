@@ -15,9 +15,28 @@ export const useRecorder = () => {
   const [recordedData, setRecordedData] = useState<RecordingData | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
-  const webcamStreamRef = useRef<MediaStream | null>(null);
   const screenStreamRef = useRef<MediaStream | null>(null);
+  const recordingWebcamStreamRef = useRef<MediaStream | null>(null); // Webcam stream specifically for recording
+  const displayWebcamStreamRef = useRef<MediaStream | null>(null); // Webcam stream specifically for display
   const startTimeRef = useRef<number>(0);
+
+  const stopAllStreams = useCallback(() => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop(); // This will trigger onstop, which handles screenStreamRef and recordingWebcamStreamRef
+    }
+
+    // Explicitly stop display webcam stream if it's active
+    displayWebcamStreamRef.current?.getTracks().forEach(track => track.stop());
+    displayWebcamStreamRef.current = null;
+
+    // Ensure recording streams are also stopped if not already by onstop
+    screenStreamRef.current?.getTracks().forEach(track => track.stop());
+    screenStreamRef.current = null;
+    recordingWebcamStreamRef.current?.getTracks().forEach(track => track.stop());
+    recordingWebcamStreamRef.current = null;
+
+    setIsRecording(false);
+  }, [isRecording]);
 
   const startRecording = useCallback(async () => {
     try {
@@ -28,14 +47,23 @@ export const useRecorder = () => {
       });
       screenStreamRef.current = screenStream;
 
-      // Request webcam and microphone audio
-      const webcamStream = await navigator.mediaDevices.getUserMedia({
+      // Request webcam and microphone audio for recording
+      const recordingWebcamStream = await navigator.mediaDevices.getUserMedia({
         video: true,
         audio: true,
       });
-      webcamStreamRef.current = webcamStream;
+      recordingWebcamStreamRef.current = recordingWebcamStream;
 
-      // Combine audio tracks: system audio + microphone audio
+      // If display webcam is not yet active, start it (video only)
+      if (!displayWebcamStreamRef.current) {
+        const displayWebcamStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false, // Only video for display
+        });
+        displayWebcamStreamRef.current = displayWebcamStream;
+      }
+
+      // Combine audio tracks: system audio + microphone audio from recording webcam
       const audioContext = new AudioContext();
       const destination = audioContext.createMediaStreamDestination();
 
@@ -44,19 +72,19 @@ export const useRecorder = () => {
         source.connect(destination);
       });
 
-      webcamStream.getAudioTracks().forEach(track => {
+      recordingWebcamStream.getAudioTracks().forEach(track => {
         const source = audioContext.createMediaStreamSource(new MediaStream([track]));
         source.connect(destination);
       });
 
-      // Create a new stream with screen video, webcam video, and combined audio
+      // Create a new stream with screen video, recording webcam video, and combined audio
       const combinedStream = new MediaStream();
       screenStream.getVideoTracks().forEach(track => combinedStream.addTrack(track));
-      webcamStream.getVideoTracks().forEach(track => combinedStream.addTrack(track));
+      recordingWebcamStream.getVideoTracks().forEach(track => combinedStream.addTrack(track));
       destination.stream.getAudioTracks().forEach(track => combinedStream.addTrack(track));
 
       mediaRecorderRef.current = new MediaRecorder(combinedStream, {
-        mimeType: "video/webm; codecs=vp8,opus",
+        mimeType: "video/webm; codecs=vp8,opus", // WebM is widely supported
       });
 
       mediaRecorderRef.current.ondataavailable = (event) => {
@@ -86,12 +114,12 @@ export const useRecorder = () => {
         recordedChunksRef.current = [];
         setIsRecording(false);
 
-        // Stop all tracks to release camera/mic/screen
-        webcamStreamRef.current?.getTracks().forEach(track => track.stop());
+        // Stop tracks for the recording streams only
         screenStreamRef.current?.getTracks().forEach(track => track.stop());
-        // Clear references after stopping tracks
-        webcamStreamRef.current = null;
         screenStreamRef.current = null;
+        recordingWebcamStreamRef.current?.getTracks().forEach(track => track.stop());
+        recordingWebcamStreamRef.current = null;
+        
         showSuccess("Recording stopped and saved!");
       };
 
@@ -104,13 +132,10 @@ export const useRecorder = () => {
       console.error("Error starting recording:", err);
       showError("Failed to start recording. Please check camera/microphone/screen permissions.");
       setIsRecording(false);
-      // Ensure streams are stopped and references cleared if an error occurs during setup
-      webcamStreamRef.current?.getTracks().forEach(track => track.stop());
-      screenStreamRef.current?.getTracks().forEach(track => track.stop());
-      webcamStreamRef.current = null;
-      screenStreamRef.current = null;
+      // Ensure all streams are stopped if an error occurs during setup
+      stopAllStreams(); // Use the comprehensive stop function
     }
-  }, []);
+  }, [stopAllStreams]); // Dependency on stopAllStreams
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
@@ -126,22 +151,17 @@ export const useRecorder = () => {
   // Cleanup on component unmount
   useEffect(() => {
     return () => {
-      if (isRecording) {
-        stopRecording();
-      }
-      webcamStreamRef.current?.getTracks().forEach(track => track.stop());
-      screenStreamRef.current?.getTracks().forEach(track => track.stop());
-      webcamStreamRef.current = null; // Clear reference on unmount
-      screenStreamRef.current = null; // Clear reference on unmount
+      stopAllStreams(); // Ensure all streams are stopped when component unmounts
     };
-  }, [isRecording, stopRecording]);
+  }, [stopAllStreams]);
 
   return {
     isRecording,
     startRecording,
-    stopRecording,
+    stopRecording, // This will only stop the MediaRecorder, not the display webcam
+    stopAllStreams, // New function to stop everything
     recordedData,
-    webcamStream: webcamStreamRef.current,
+    webcamStream: displayWebcamStreamRef.current, // Return the display-only webcam stream
     resetRecordedData,
   };
 };
