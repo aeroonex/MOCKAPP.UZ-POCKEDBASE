@@ -2,6 +2,8 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 import { format } from "date-fns";
 
 interface MoodEntry {
@@ -13,6 +15,7 @@ interface MoodEntry {
 
 interface MoodEntryCardProps {
   entry: MoodEntry;
+  onDelete: (id: string) => void; // New prop for delete functionality
 }
 
 const moodEmojis: { [key: string]: string } = {
@@ -23,7 +26,7 @@ const moodEmojis: { [key: string]: string } = {
   Angry: "😠",
 };
 
-const MoodEntryCard: React.FC<MoodEntryCardProps> = ({ entry }) => {
+const MoodEntryCard: React.FC<MoodEntryCardProps> = ({ entry, onDelete }) => {
   const displayDate = format(new Date(entry.date), "PPP - p"); // e.g., Oct 27, 2023 - 10:30 AM
 
   return (
@@ -33,7 +36,12 @@ const MoodEntryCard: React.FC<MoodEntryCardProps> = ({ entry }) => {
           <span className="text-3xl">{moodEmojis[entry.mood] || "❓"}</span>
           {entry.mood}
         </CardTitle>
-        <p className="text-sm text-muted-foreground">{displayDate}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-muted-foreground">{displayDate}</p>
+          <Button variant="ghost" size="icon" onClick={() => onDelete(entry.id)} aria-label="Delete entry">
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <p className="text-sm text-foreground">{entry.text}</p>
