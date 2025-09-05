@@ -47,42 +47,70 @@ export const useRecorder = () => {
   const startRecording = useCallback(async (studentInfo?: StudentInfo): Promise<boolean> => {
     try {
       // 1. Request display webcam stream (video only) for UI preview
-      const newDisplayWebcamStream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: false, // Only video for display
-      });
-      setDisplayWebcamStream(newDisplayWebcamStream);
+      let newDisplayWebcamStream: MediaStream | null = null;
+      try {
+        newDisplayWebcamStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false, // Only video for display
+        });
+        setDisplayWebcamStream(newDisplayWebcamStream);
+      } catch (webcamErr) {
+        console.error("Error getting display webcam stream for UI preview:", webcamErr);
+        // Don't stop everything if only display webcam fails, but log it.
+        // The recording webcam will still be requested.
+      }
 
       // 2. Request screen and system audio
-      const screenStream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: true,
-      });
-      if (!screenStream) {
-        showError("Ekran ulashish bekor qilindi yoki ruxsat berilmadi.");
+      let screenStream: MediaStream | null = null;
+      try {
+        screenStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: true,
+        });
+        if (!screenStream) { // User cancelled or denied
+          showError("Ekran ulashish bekor qilindi yoki ruxsat berilmadi.");
+          stopAllStreams();
+          return false;
+        }
+        screenStreamRef.current = screenStream;
+        screenStream.addEventListener('ended', () => {
+          console.log("Screen sharing ended by user or system.");
+          showError("Ekran ulashish to'xtatildi. Yozib olish tugatildi.");
+          stopRecording();
+        });
+      } catch (screenErr) {
+        console.error("Error getting screen stream:", screenErr);
+        showError("Ekran ulashishni boshlashda xatolik yuz berdi. Ruxsatnomalarni tekshiring.");
         stopAllStreams();
         return false;
       }
-      screenStreamRef.current = screenStream;
-
-      // Add an event listener for when the screen sharing ends
-      screenStream.addEventListener('ended', () => {
-        console.log("Screen sharing ended by user or system.");
-        showError("Ekran ulashish to'xtatildi. Yozib olish tugatildi.");
-        stopRecording(); // Stop the recording gracefully
-      });
 
       // 3. Request webcam and microphone audio for recording
-      const recordingWebcamStream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
-      if (!recordingWebcamStream) {
+      let recordingWebcamStream: MediaStream | null = null;
+      try {
+        recordingWebcamStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
+        if (!recordingWebcamStream) { // User cancelled or denied
+          showError("Kamera yoki mikrofon ruxsatnomasi berilmadi.");
+          stopAllStreams();
+          return false;
+        }
+        recordingWebcamStreamRef.current = recordingWebcamStream;
+      } catch (micWebcamErr) {
+        console.error("Error getting recording webcam/mic stream:", micWebcamErr);
         showError("Kamera yoki mikrofon ruxsatnomasi berilmadi.");
         stopAllStreams();
         return false;
       }
-      recordingWebcamStreamRef.current = recordingWebcamStream;
+
+      // Ensure both screenStream and recordingWebcamStream are not null before proceeding
+      if (!screenStream || !recordingWebcamStream) {
+          showError("Yozib olish uchun barcha kerakli ruxsatnomalar berilmadi.");
+          stopAllStreams();
+          return false;
+      }
 
       // Combine audio tracks: system audio + microphone audio from recording webcam
       const audioContext = new AudioContext();
@@ -154,11 +182,11 @@ export const useRecorder = () => {
       showSuccess("Recording started!");
       return true; // Successfully started recording
     } catch (err) {
-      console.error("Error starting recording:", err);
-      showError("Yozib olishni boshlashda xatolik yuz berdi. Kamera/mikrofon/ekran ruxsatnomalarini tekshiring.");
+      console.error("General error starting recording:", err);
+      showError("Yozib olishni boshlashda kutilmagan xatolik yuz berdi. Ruxsatnomalarni tekshiring.");
       setIsRecording(false);
-      stopAllStreams(); // Ensure all streams are stopped if an error occurs during setup
-      return false; // Failed to start recording
+      stopAllStreams();
+      return false;
     }
   }, [stopAllStreams, displayWebcamStream, stopRecording]);
 

@@ -75,7 +75,7 @@ const MockTest: React.FC = () => {
     setQuestions(loadedQuestions);
   }, []);
 
-  // Manage webcam video stream
+  // Manage webcam video stream for display
   useEffect(() => {
     if (webcamVideoRef.current) {
       if (webcamStream) {
@@ -131,6 +131,7 @@ const MockTest: React.FC = () => {
     const recordingStartedSuccessfully = await startRecording(newStudentInfo);
     if (!recordingStartedSuccessfully) {
         setStudentInfo(null); // Clear student info if recording failed
+        setIsStudentInfoFormOpen(false); // Close form if recording failed
         return;
     }
 
@@ -163,7 +164,7 @@ const MockTest: React.FC = () => {
       <main className="flex-grow container mx-auto p-4 flex items-center justify-center">
         <Card className="w-full max-w-2xl text-center relative">
           {isRecording && (
-            <div className="absolute top-4 left-4 flex items-center gap-2 text-red-500 font-semibold">
+            <div className="absolute top-4 left-4 flex items-center gap-2 text-red-500 font-semibold z-10">
               <Video className="h-5 w-5 animate-pulse" /> REC
             </div>
           )}
@@ -172,8 +173,15 @@ const MockTest: React.FC = () => {
               ref={webcamVideoRef}
               autoPlay
               muted
-              className="absolute top-4 right-4 w-32 h-24 rounded-lg shadow-lg border-2 border-primary-foreground bg-black"
+              className="absolute top-4 right-4 w-32 h-24 rounded-lg shadow-lg border-2 border-primary-foreground bg-black z-10"
             />
+          )}
+          {isTestStarted && studentInfo && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black bg-opacity-70 text-white p-2 rounded-md text-sm z-10">
+              <p><strong>ID:</strong> {studentInfo.id}</p>
+              <p><strong>Ism:</strong> {studentInfo.name}</p>
+              <p><strong>Tel:</strong> {studentInfo.phone}</p>
+            </div>
           )}
           <CardHeader>
             <CardTitle className="text-3xl font-bold">Mock Speaking Test</CardTitle>
