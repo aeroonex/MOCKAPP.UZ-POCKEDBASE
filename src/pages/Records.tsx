@@ -95,8 +95,9 @@ const Records: React.FC = () => {
                         >
                           <PlayCircle className="h-4 w-4" /> Play
                         </Button>
+                        {/* Changed to pass the whole recording object */}
                         <Button
-                          onClick={() => handleDownload(recording)}
+                          onClick={() => handleDownload(recording)} 
                           variant="outline"
                           size="sm"
                           className="flex items-center gap-1"
