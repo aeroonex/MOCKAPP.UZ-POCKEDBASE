@@ -2,15 +2,15 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
-import { CefrCentreFooter } from "@/components/CefrCentreFooter"; // Updated import
+import { CefrCentreFooter } from "@/components/CefrCentreFooter";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, PlayCircle, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { RecordedSession } from "@/lib/types"; // Import RecordedSession type
+import { RecordedSession } from "@/lib/types";
 import { showError, showSuccess } from "@/utils/toast";
 
-const RECORDINGS_STORAGE_KEY = "allMockTestRecordings"; // Must match the key in use-recorder.tsx
+const RECORDINGS_STORAGE_KEY = "allMockTestRecordings";
 
 const Records: React.FC = () => {
   const [recordings, setRecordings] = useState<RecordedSession[]>([]);
@@ -130,7 +130,7 @@ const Records: React.FC = () => {
           </CardContent>
         </Card>
       </main>
-      <CefrCentreFooter /> {/* Replaced MadeWithDyad */}
+      <CefrCentreFooter />
     </div>
   );
 };
