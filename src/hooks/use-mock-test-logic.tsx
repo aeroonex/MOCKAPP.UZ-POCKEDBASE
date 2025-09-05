@@ -352,6 +352,9 @@ export const useMockTestLogic = ({
   }, [isTestStarted, currentPhase, questions]);
 
   const handleStartTestClick = () => {
+    console.log("handleStartTestClick: Tugma bosildi.");
+    console.log("handleStartTestClick: allAvailableQuestionsRef.current:", allAvailableQuestionsRef.current);
+
     const selectedQuestionsForTest: Record<SpeakingPart, SpeakingQuestion[]> = {
       "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
     };
@@ -361,21 +364,27 @@ export const useMockTestLogic = ({
     if (randomPart1_1Q) {
       selectedQuestionsForTest["Part 1.1"] = [randomPart1_1Q];
     }
+    console.log("handleStartTestClick: selectedQuestionsForTest (Part 1.1):", selectedQuestionsForTest["Part 1.1"]);
 
     // Part 1.2: Select 1 random question object (which includes its images and sub-questions)
     const randomPart1_2Q = getRandomElements(allAvailableQuestionsRef.current["Part 1.2"] as Part1_2Question[], 1)[0];
     if (randomPart1_2Q) {
       selectedQuestionsForTest["Part 1.2"] = [randomPart1_2Q];
     }
+    console.log("handleStartTestClick: selectedQuestionsForTest (Part 1.2):", selectedQuestionsForTest["Part 1.2"]);
 
     // Part 2: Select 1 random question
     selectedQuestionsForTest["Part 2"] = getRandomElements(allAvailableQuestionsRef.current["Part 2"] as Part2Question[], 1);
+    console.log("handleStartTestClick: selectedQuestionsForTest (Part 2):", selectedQuestionsForTest["Part 2"]);
 
     // Part 3: Select 1 random question
     selectedQuestionsForTest["Part 3"] = getRandomElements(allAvailableQuestionsRef.current["Part 3"] as Part3Question[], 1);
+    console.log("handleStartTestClick: selectedQuestionsForTest (Part 3):", selectedQuestionsForTest["Part 3"]);
 
     // Filter out empty parts and check if any questions were selected
     const totalSelectedQuestions = allSpeakingParts.reduce((sum, part) => sum + selectedQuestionsForTest[part].length, 0);
+    console.log("handleStartTestClick: totalSelectedQuestions:", totalSelectedQuestions);
+
     if (totalSelectedQuestions === 0) {
       showError("Mock testni boshlash uchun savollar mavjud emas. Iltimos, avval savollar qo'shing.");
       return;
@@ -388,10 +397,13 @@ export const useMockTestLogic = ({
   };
 
   const handleStudentInfoSave = async (id: string, name: string, phone: string) => {
+    console.log("handleStudentInfoSave: Ma'lumotlar saqlanmoqda:", { id, name, phone });
     const newStudentInfo: StudentInfo = { id, name, phone };
     setStudentInfo(newStudentInfo);
 
     const recordingStartedSuccessfully = await startRecording(newStudentInfo);
+    console.log("handleStudentInfoSave: Yozib olish muvaffaqiyatli boshlandimi:", recordingStartedSuccessfully);
+
     if (!recordingStartedSuccessfully) {
       setStudentInfo(null);
       setIsStudentInfoFormOpen(false);
