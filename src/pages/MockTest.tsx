@@ -6,8 +6,8 @@ import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { showSuccess, showError } from "@/utils/toast";
-import { useRecorder } from "@/hooks/use-recorder"; // Import the new hook
-import { Video } from "lucide-react"; // For recording indicator
+import { useRecorder } from "@/hooks/use-recorder";
+import { Video } from "lucide-react";
 
 interface SpeakingQuestion {
   id: string;
@@ -31,7 +31,7 @@ const MockTest: React.FC = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [isTestFinished, setIsTestFinished] = useState<boolean>(false);
 
-  const { isRecording, startRecording, stopRecording, webcamStream, resetRecordedData } = useRecorder(); // Destructure resetRecordedData
+  const { isRecording, startRecording, stopRecording, webcamStream, resetRecordedData } = useRecorder();
   const webcamVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -53,20 +53,23 @@ const MockTest: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (webcamVideoRef.current && webcamStream) {
-      webcamVideoRef.current.srcObject = webcamStream;
+    if (webcamVideoRef.current) {
+      if (webcamStream) {
+        webcamVideoRef.current.srcObject = webcamStream;
+      } else {
+        // Clear the video element's srcObject when webcamStream is null (recording stopped)
+        webcamVideoRef.current.srcObject = null;
+      }
     }
   }, [webcamStream]);
 
   const startTest = async () => {
-    // Check if there are any questions available
     const totalQuestions = allSpeakingParts.reduce((sum, part) => sum + questions[part].length, 0);
     if (totalQuestions === 0) {
       showError("No questions available to start the mock test. Please add some questions first.");
       return;
     }
 
-    // Start recording
     await startRecording();
     // The `isRecording` state might not be updated immediately after `startRecording` due to async nature.
     // We should check if `webcamStream` is available or if `startRecording` reported an error.
@@ -84,16 +87,13 @@ const MockTest: React.FC = () => {
     const partQuestions = questions[currentPart];
 
     if (currentQuestionIndex < partQuestions.length - 1) {
-      // Move to the next question in the current part
       setCurrentQuestionIndex(prev => prev + 1);
     } else {
-      // Move to the next part
       if (currentPartIndex < allSpeakingParts.length - 1) {
         setCurrentPartIndex(prev => prev + 1);
-        setCurrentQuestionIndex(0); // Reset question index for the new part
+        setCurrentQuestionIndex(0);
       } else {
-        // End of all parts and questions
-        stopRecording(); // Stop recording when test finishes
+        stopRecording();
         setIsTestFinished(true);
         setIsTestStarted(false);
         showSuccess("Mock test completed!");
@@ -102,7 +102,7 @@ const MockTest: React.FC = () => {
   };
 
   const handleEndTest = () => {
-    stopRecording(); // Stop recording if user manually ends test
+    stopRecording();
     setIsTestFinished(true);
     setIsTestStarted(false);
     showSuccess("Mock test ended.");

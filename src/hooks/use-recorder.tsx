@@ -23,15 +23,15 @@ export const useRecorder = () => {
     try {
       // Request screen and system audio
       const screenStream = await navigator.mediaDevices.getDisplayMedia({
-        video: true, // Removed mediaSource: "screen"
-        audio: true, // Capture system audio
+        video: true,
+        audio: true,
       });
       screenStreamRef.current = screenStream;
 
       // Request webcam and microphone audio
       const webcamStream = await navigator.mediaDevices.getUserMedia({
         video: true,
-        audio: true, // Capture microphone audio
+        audio: true,
       });
       webcamStreamRef.current = webcamStream;
 
@@ -56,7 +56,7 @@ export const useRecorder = () => {
       destination.stream.getAudioTracks().forEach(track => combinedStream.addTrack(track));
 
       mediaRecorderRef.current = new MediaRecorder(combinedStream, {
-        mimeType: "video/webm; codecs=vp8,opus", // WebM is widely supported
+        mimeType: "video/webm; codecs=vp8,opus",
       });
 
       mediaRecorderRef.current.ondataavailable = (event) => {
@@ -69,7 +69,7 @@ export const useRecorder = () => {
         const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
         const url = URL.createObjectURL(blob);
         const endTime = Date.now();
-        const duration = Math.round((endTime - startTimeRef.current) / 1000); // duration in seconds
+        const duration = Math.round((endTime - startTimeRef.current) / 1000);
 
         const newRecording: RecordingData = {
           blob,
@@ -89,6 +89,7 @@ export const useRecorder = () => {
         // Stop all tracks to release camera/mic/screen
         webcamStreamRef.current?.getTracks().forEach(track => track.stop());
         screenStreamRef.current?.getTracks().forEach(track => track.stop());
+        // Clear references after stopping tracks
         webcamStreamRef.current = null;
         screenStreamRef.current = null;
         showSuccess("Recording stopped and saved!");
@@ -103,7 +104,7 @@ export const useRecorder = () => {
       console.error("Error starting recording:", err);
       showError("Failed to start recording. Please check camera/microphone/screen permissions.");
       setIsRecording(false);
-      // Ensure streams are stopped if an error occurs during setup
+      // Ensure streams are stopped and references cleared if an error occurs during setup
       webcamStreamRef.current?.getTracks().forEach(track => track.stop());
       screenStreamRef.current?.getTracks().forEach(track => track.stop());
       webcamStreamRef.current = null;
@@ -119,7 +120,7 @@ export const useRecorder = () => {
 
   const resetRecordedData = useCallback(() => {
     setRecordedData(null);
-    sessionStorage.removeItem("lastRecording"); // Also clear from session storage
+    sessionStorage.removeItem("lastRecording");
   }, []);
 
   // Cleanup on component unmount
@@ -130,6 +131,8 @@ export const useRecorder = () => {
       }
       webcamStreamRef.current?.getTracks().forEach(track => track.stop());
       screenStreamRef.current?.getTracks().forEach(track => track.stop());
+      webcamStreamRef.current = null; // Clear reference on unmount
+      screenStreamRef.current = null; // Clear reference on unmount
     };
   }, [isRecording, stopRecording]);
 
@@ -139,6 +142,6 @@ export const useRecorder = () => {
     stopRecording,
     recordedData,
     webcamStream: webcamStreamRef.current,
-    resetRecordedData, // Expose the reset function
+    resetRecordedData,
   };
 };
