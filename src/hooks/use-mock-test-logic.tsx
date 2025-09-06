@@ -415,23 +415,48 @@ export const useMockTestLogic = ({
       "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
     };
 
+    // Minimal savollar sonini tekshirish
+    const minQuestions: Record<SpeakingPart, number> = {
+      "Part 1.1": 3,
+      "Part 1.2": 1,
+      "Part 2": 1,
+      "Part 3": 1,
+    };
+
+    let hasEnoughQuestions = true;
+    let missingParts: string[] = [];
+
+    allSpeakingParts.forEach(part => {
+      const available = allAvailableQuestionsRef.current[part].length;
+      const required = minQuestions[part];
+      if (available < required) {
+        hasEnoughQuestions = false;
+        missingParts.push(`${part} (kerak: ${required}, mavjud: ${available})`);
+      }
+    });
+
+    if (!hasEnoughQuestions) {
+      showError(`Mock testni boshlash uchun yetarli savollar mavjud emas. Iltimos, quyidagi bo'limlarga savollar qo'shing: ${missingParts.join(", ")}`);
+      return;
+    }
+
     // Part 1.1: Select 3 random question objects
-    selectedQuestionsForTest["Part 1.1"] = getRandomElements(allAvailableQuestionsRef.current["Part 1.1"] as Part1_1Question[], 3);
+    selectedQuestionsForTest["Part 1.1"] = getRandomElements(allAvailableQuestionsRef.current["Part 1.1"] as Part1_1Question[], minQuestions["Part 1.1"]);
     console.log("handleStartTestClick: selectedQuestionsForTest (Part 1.1):", selectedQuestionsForTest["Part 1.1"]);
 
     // Part 1.2: Select 1 random question object (which includes its images and sub-questions)
-    const randomPart1_2Q = getRandomElements(allAvailableQuestionsRef.current["Part 1.2"] as Part1_2Question[], 1)[0];
+    const randomPart1_2Q = getRandomElements(allAvailableQuestionsRef.current["Part 1.2"] as Part1_2Question[], minQuestions["Part 1.2"])[0];
     if (randomPart1_2Q) {
       selectedQuestionsForTest["Part 1.2"] = [randomPart1_2Q];
     }
     console.log("handleStartTestClick: selectedQuestionsForTest (Part 1.2):", selectedQuestionsForTest["Part 1.2"]);
 
     // Part 2: Select 1 random question
-    selectedQuestionsForTest["Part 2"] = getRandomElements(allAvailableQuestionsRef.current["Part 2"] as Part2Question[], 1);
+    selectedQuestionsForTest["Part 2"] = getRandomElements(allAvailableQuestionsRef.current["Part 2"] as Part2Question[], minQuestions["Part 2"]);
     console.log("handleStartTestClick: selectedQuestionsForTest (Part 2):", selectedQuestionsForTest["Part 2"]);
 
     // Part 3: Select 1 random question
-    selectedQuestionsForTest["Part 3"] = getRandomElements(allAvailableQuestionsRef.current["Part 3"] as Part3Question[], 1);
+    selectedQuestionsForTest["Part 3"] = getRandomElements(allAvailableQuestionsRef.current["Part 3"] as Part3Question[], minQuestions["Part 3"]);
     console.log("handleStartTestClick: selectedQuestionsForTest (Part 3):", selectedQuestionsForTest["Part 3"]);
 
     // Filter out empty parts and check if any questions were selected
