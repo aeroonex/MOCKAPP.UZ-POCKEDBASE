@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { showSuccess, showError } from "@/utils/toast";
-import { speakText } from "@/utils/audioUtils"; // Yangi audio utilitini import qilish
+import { speakText } from "@/utils/audioUtils";
 import {
   SpeakingQuestion,
   SpeakingPart,
@@ -202,24 +202,27 @@ export const useMockTestLogic = ({
     console.log("--- advanceTest END ---");
   }, [currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, questions, currentPhase, stopAllStreams, getCurrentQuestion]);
 
-  // Load ALL questions from localStorage on component mount into the ref
-  useEffect(() => {
-    const loadAllQuestions = () => {
-      const loadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
-        "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
-      };
-      allSpeakingParts.forEach(part => {
-        const storageKey = getSpeakingQuestionStorageKey(part);
-        const stored = localStorage.getItem(storageKey);
-        if (stored) {
-          loadedQuestions[part] = JSON.parse(stored);
-        }
-      });
-      allAvailableQuestionsRef.current = loadedQuestions;
-      console.log("MockTest: All available questions loaded from localStorage:", loadedQuestions);
+  // Function to load ALL questions from localStorage into the ref
+  const loadAllQuestions = useCallback(() => {
+    const loadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
+      "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
     };
-    loadAllQuestions();
+    allSpeakingParts.forEach(part => {
+      const storageKey = getSpeakingQuestionStorageKey(part);
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        loadedQuestions[part] = JSON.parse(stored);
+      }
+    });
+    allAvailableQuestionsRef.current = loadedQuestions;
+    console.log("MockTest: All available questions loaded from localStorage:", loadedQuestions);
   }, []);
+
+  // Initial load on mount
+  useEffect(() => {
+    loadAllQuestions();
+  }, [loadAllQuestions]);
+
 
   // Effect to manage countdowns based on current test state
   useEffect(() => {
@@ -403,7 +406,10 @@ export const useMockTestLogic = ({
 
   const handleStartTestClick = () => {
     console.log("handleStartTestClick: Tugma bosildi.");
-    console.log("handleStartTestClick: allAvailableQuestionsRef.current:", allAvailableQuestionsRef.current);
+    
+    // Har safar test boshlanganda savollarni localStorage'dan qayta yuklash
+    loadAllQuestions();
+    console.log("handleStartTestClick: allAvailableQuestionsRef.current (reloaded):", allAvailableQuestionsRef.current);
 
     const selectedQuestionsForTest: Record<SpeakingPart, SpeakingQuestion[]> = {
       "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
@@ -490,6 +496,8 @@ export const useMockTestLogic = ({
       "Part 2": [],
       "Part 3": [],
     });
+    // Also reload all available questions to ensure the next test starts with the latest pool
+    loadAllQuestions();
   };
 
   return {
