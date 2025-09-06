@@ -284,6 +284,19 @@ const SpeakingQuestionManager: React.FC = () => {
     });
   };
 
+  const handleResetAllCooldowns = () => {
+    const updatedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = { ...questions };
+    allSpeakingParts.forEach(part => {
+      updatedQuestions[part] = updatedQuestions[part].map(q => ({
+        ...q,
+        lastUsed: undefined, // lastUsed xususiyatini o'chirish
+      }));
+      localStorage.setItem(getSpeakingQuestionStorageKey(part), JSON.stringify(updatedQuestions[part]));
+    });
+    setQuestions(updatedQuestions); // State'ni yangilash
+    showSuccess("Barcha savollar cooldown'lari tiklandi!");
+  };
+
   const renderQuestionInput = (part: SpeakingPart) => {
     const isImageRequiredPart = ["Part 1.2", "Part 2", "Part 3"].includes(part);
     return (
@@ -445,7 +458,7 @@ const SpeakingQuestionManager: React.FC = () => {
                         <div key={q.id} className="flex items-center justify-between p-3 border rounded-md bg-secondary text-secondary-foreground">
                           {renderQuestionCardContent(q)}
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span>{format(new Date(q.date), "MMM dd, yyyy HH:mm")}</span>
+                            <span>{q.lastUsed ? `Oxirgi ishlatilgan: ${format(new Date(q.lastUsed), "MMM dd, yyyy HH:mm")}` : "Hech qachon ishlatilmagan"}</span>
                             <Button variant="ghost" size="icon" onClick={() => handleDeleteQuestion(part, q.id)} aria-label="Savolni o'chirish">
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
@@ -457,6 +470,14 @@ const SpeakingQuestionManager: React.FC = () => {
                 </TabsContent>
               ))}
             </Tabs>
+            <div className="mt-6 text-center">
+              <Button onClick={handleResetAllCooldowns} variant="outline" className="w-full">
+                Barcha savollar cooldown'ini tiklash
+              </Button>
+              <p className="text-xs text-muted-foreground mt-2">
+                Bu barcha savollarni darhol qayta ishlatishga imkon beradi.
+              </p>
+            </div>
           </CardContent>
         </Card>
       </main>
