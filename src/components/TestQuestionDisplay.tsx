@@ -90,7 +90,7 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
           <CountdownBar />
           <div className="min-h-[100px] flex flex-col items-center justify-center p-4 border rounded-md bg-secondary text-foreground">
             <p className="text-xl font-medium mb-2">Savol {currentSubQuestionIndex + 1}:</p>
-            <p className="text-2xl font-medium text-center">{part1_1Q.subQuestions[currentSubQuestionIndex]}</p>
+            <p className="text-2xl font-medium text-center">{part1_1Q.sub_questions[currentSubQuestionIndex]}</p>
           </div>
         </div>
       );
@@ -102,14 +102,14 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
             {currentPartName} - Rasm {currentQuestionIndex + 1}
           </h3>
           <div className="flex justify-center gap-4 mb-4">
-            {part1_2Q.imageUrls.map((url, idx) => (
+            {part1_2Q.image_urls.map((url, idx) => (
               <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-64 object-contain rounded-lg shadow-md" />
             ))}
           </div>
           <CountdownBar />
           <div className="min-h-[100px] flex flex-col items-center justify-center p-4 border rounded-md bg-secondary text-foreground">
             <p className="text-xl font-medium mb-2">Savol {currentSubQuestionIndex + 1}:</p>
-            <p className="text-2xl font-medium text-center">{part1_2Q.subQuestions[currentSubQuestionIndex]}</p>
+            <p className="text-2xl font-medium text-center">{part1_2Q.sub_questions[currentSubQuestionIndex]}</p>
           </div>
         </div>
       );
@@ -121,13 +121,13 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
             {currentPartName} - Savol {currentQuestionIndex + 1}
           </h3>
           <div className="flex justify-center gap-4 mb-4">
-            {part2Q.imageUrls.map((url, idx) => (
+            {part2Q.image_urls.map((url, idx) => (
               <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-64 object-contain rounded-lg shadow-md" />
             ))}
           </div>
           <CountdownBar label={currentPhase === "preparation" ? "Tayyorgarlik:" : "Javob:"} />
           <p className="text-2xl font-medium text-foreground min-h-[100px] flex items-center justify-center p-4 border rounded-md bg-secondary">
-            {part2Q.question}
+            {part2Q.question_text}
           </p>
         </div>
       );
@@ -140,10 +140,10 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
           </h3>
           <CountdownBar label={currentPhase === "preparation" ? "Tayyorgarlik:" : "Javob:"} />
           <p className="text-2xl font-medium text-foreground min-h-[100px] flex items-center justify-center p-4 border rounded-md bg-secondary mb-4">
-            {part3Q.question}
+            {part3Q.question_text}
           </p>
           <div className="flex justify-center gap-4">
-            {part3Q.imageUrls.map((url, idx) => (
+            {part3Q.image_urls.map((url, idx) => (
               <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-64 object-contain rounded-lg shadow-md" />
             ))}
           </div>

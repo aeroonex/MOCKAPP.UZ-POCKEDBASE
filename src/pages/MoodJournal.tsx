@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { v4 as uuidv4 } from "uuid";
+import React, { useState, useEffect, useCallback } from "react";
 import JournalEntryForm from "@/components/JournalEntryForm";
 import MoodEntryCard from "@/components/MoodEntryCard";
-import { CefrCentreFooter } from "@/components/CefrCentreFooter"; // Updated import
+import { CefrCentreFooter } from "@/components/CefrCentreFooter";
 import {
   Select,
   SelectContent,
@@ -13,9 +12,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { showError, showSuccess } from "@/utils/toast";
+import { supabase } from "@/lib/supabase";
 
 interface MoodEntry {
-  id: string;
+  id: string; // uuid
   mood: string;
   text: string;
   date: string; // ISO string
@@ -33,31 +33,53 @@ const moods = [
 const MoodJournal: React.FC = () => {
   const [entries, setEntries] = useState<MoodEntry[]>([]);
   const [filterMood, setFilterMood] = useState<string>("All");
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const storedEntries = localStorage.getItem("moodJournalEntries");
-    if (storedEntries) {
-      setEntries(JSON.parse(storedEntries));
+  const fetchEntries = useCallback(async () => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('mood_entries')
+      .select('*')
+      .order('date', { ascending: false });
+
+    if (error) {
+      showError(`Yozuvlarni yuklashda xatolik: ${error.message}`);
+    } else {
+      setEntries(data as MoodEntry[]);
     }
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("moodJournalEntries", JSON.stringify(entries));
-  }, [entries]);
+    fetchEntries();
+  }, [fetchEntries]);
 
-  const handleAddEntry = (mood: string, text: string) => {
-    const newEntry: MoodEntry = {
-      id: uuidv4(),
-      mood,
-      text,
-      date: new Date().toISOString(),
-    };
-    setEntries((prevEntries) => [newEntry, ...prevEntries]);
+  const handleAddEntry = async (mood: string, text: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      showError("Yozuv qo'shish uchun tizimga kiring.");
+      return;
+    }
+
+    const newEntry = { mood, text }; // id, date, user_id will be set by DB
+    const { error } = await supabase.from('mood_entries').insert([newEntry]);
+
+    if (error) {
+      showError(`Yozuvni saqlashda xatolik: ${error.message}`);
+    } else {
+      // No need to show success toast here, JournalEntryForm already does
+      fetchEntries(); // Refresh the list from DB
+    }
   };
 
-  const handleDeleteEntry = (id: string) => {
-    setEntries((prevEntries) => prevEntries.filter((entry) => entry.id !== id));
-    showSuccess("Entry deleted successfully!");
+  const handleDeleteEntry = async (id: string) => {
+    const { error } = await supabase.from('mood_entries').delete().eq('id', id);
+    if (error) {
+      showError(`Yozuvni o'chirishda xatolik: ${error.message}`);
+    } else {
+      showSuccess("Yozuv muvaffaqiyatli o'chirildi!");
+      setEntries((prevEntries) => prevEntries.filter((entry) => entry.id !== id));
+    }
   };
 
   const filteredEntries = entries.filter((entry) =>
@@ -67,13 +89,11 @@ const MoodJournal: React.FC = () => {
   return (
     <div className="container mx-auto p-4 max-w-3xl">
       <h1 className="text-4xl font-bold text-center mb-8">Mood Journal & Tracker</h1>
-
       <div className="mb-8">
         <JournalEntryForm onAddEntry={handleAddEntry} />
       </div>
-
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-semibold text-center">Your Past Entries</h2>
+        <h2 className="text-2xl font-semibold">Your Past Entries</h2>
         <Select value={filterMood} onValueChange={setFilterMood}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Filter by mood" />
@@ -87,12 +107,9 @@ const MoodJournal: React.FC = () => {
           </SelectContent>
         </Select>
       </div>
-
-      {filteredEntries.length === 0 ? (
+      {isLoading ? <p className="text-center">Yuklanmoqda...</p> : filteredEntries.length === 0 ? (
         <p className="text-center text-muted-foreground">
-          {filterMood === "All"
-            ? "No entries yet. Start by adding your first mood!"
-            : `No "${filterMood}" entries found.`}
+          {filterMood === "All" ? "Hali yozuvlar yo'q." : `"${filterMood}" yozuvlari topilmadi.`}
         </p>
       ) : (
         <div className="space-y-4">
@@ -101,7 +118,7 @@ const MoodJournal: React.FC = () => {
           ))}
         </div>
       )}
-      <CefrCentreFooter /> {/* Replaced MadeWithDyad */}
+      <CefrCentreFooter />
     </div>
   );
 };

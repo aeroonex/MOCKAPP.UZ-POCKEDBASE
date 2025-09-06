@@ -3,32 +3,34 @@
 export type SpeakingPart = "Part 1.1" | "Part 1.2" | "Part 2" | "Part 3";
 
 export interface BaseSpeakingQuestion {
-  id: string;
+  id: string; // uuid
+  user_id: string; // uuid
   date: string; // ISO string
-  lastUsed?: string; // NEW: ISO string of when the question was last used
+  last_used?: string; // ISO string
+  type: "part1.1" | "part1.2" | "part2" | "part3";
 }
 
 export interface Part1_1Question extends BaseSpeakingQuestion {
   type: "part1.1";
-  subQuestions: string[]; // 3 questions per image, now without images
+  sub_questions: string[];
 }
 
 export interface Part1_2Question extends BaseSpeakingQuestion {
   type: "part1.2";
-  imageUrls: string[]; // 2 images for Part 1.2
-  subQuestions: string[]; // 3 questions per image
+  image_urls: string[];
+  sub_questions: string[];
 }
 
 export interface Part2Question extends BaseSpeakingQuestion {
   type: "part2";
-  imageUrls: string[]; // Changed from imageUrl to imageUrls
-  question: string;
+  image_urls: string[];
+  question_text: string;
 }
 
 export interface Part3Question extends BaseSpeakingQuestion {
   type: "part3";
-  question: string;
-  imageUrls: string[]; // Changed from imageUrl to imageUrls
+  question_text: string;
+  image_urls: string[];
 }
 
 export type SpeakingQuestion = Part1_1Question | Part1_2Question | Part2Question | Part3Question;
@@ -39,18 +41,14 @@ export interface StudentInfo {
   phone: string;
 }
 
-export interface BaseRecordedSession {
-  timestamp: string;
+// This is what we'll fetch from Supabase and use in the Records page
+export interface RecordedSession {
+  id: string; // uuid
+  user_id: string; // uuid
+  timestamp: string; // ISO string
   duration: number; // in seconds
-  studentInfo?: StudentInfo; // Optional student information
-}
-
-// This is what we'll store in IndexedDB
-export interface StoredRecording extends BaseRecordedSession {
-  videoBlob: Blob;
-}
-
-// This is what we'll use in the Records page component's state
-export interface RecordedSession extends StoredRecording {
-  url: string; // Temporary Object URL for playback/download
+  student_id?: string;
+  student_name?: string;
+  student_phone?: string;
+  video_url: string; // Public URL from Supabase Storage
 }

@@ -2,11 +2,12 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { showSuccess, showError } from "@/utils/toast";
-import { StudentInfo, StoredRecording } from "@/lib/types";
-import { addRecordingToDB } from "@/lib/db";
+import { StudentInfo, RecordedSession } from "@/lib/types";
+import { supabase } from "@/lib/supabase";
+import { v4 as uuidv4 } from "uuid";
 
-const MAX_RECORDING_DURATION_MS = 60 * 60 * 1000; // 60 minutes in milliseconds
-const MIME_TYPE = "video/webm; codecs=vp8,opus"; // Using a common WebM codec
+const MAX_RECORDING_DURATION_MS = 60 * 60 * 1000;
+const MIME_TYPE = "video/webm; codecs=vp8,opus";
 
 export const useRecorder = () => {
   const [isRecording, setIsRecording] = useState<boolean>(false);
@@ -23,46 +24,25 @@ export const useRecorder = () => {
     if (recordingTimeoutRef.current) {
       clearTimeout(recordingTimeoutRef.current);
       recordingTimeoutRef.current = null;
-      console.log("Recorder: Recording auto-stop timeout cleared.");
     }
   }, []);
 
   const stopRecordingProcess = useCallback(() => {
-    console.log("Recorder: Stopping recording process (MediaRecorder, screen, mic streams)...");
     clearRecordingTimeout();
-
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-      console.log("Recorder: Stopping MediaRecorder. Current state:", mediaRecorderRef.current.state);
       mediaRecorderRef.current.stop();
     }
-
-    if (screenStreamRef.current) {
-      screenStreamRef.current.getTracks().forEach(track => track.stop());
-      console.log("Recorder: Screen stream stopped.");
-      screenStreamRef.current = null;
-    }
-
-    if (micStreamRef.current) {
-      micStreamRef.current.getTracks().forEach(track => track.stop());
-      console.log("Recorder: Microphone stream stopped.");
-      micStreamRef.current = null;
-    }
-
+    screenStreamRef.current?.getTracks().forEach(track => track.stop());
+    micStreamRef.current?.getTracks().forEach(track => track.stop());
+    screenStreamRef.current = null;
+    micStreamRef.current = null;
     setIsRecording(false);
-    console.log("Recorder: Recording process streams stopped.");
   }, [clearRecordingTimeout]);
 
   const stopAllStreams = useCallback(() => {
-    console.log("Recorder: Stopping ALL streams (including webcam preview)...");
     stopRecordingProcess();
-
-    if (webcamStream) {
-      webcamStream.getTracks().forEach(track => track.stop());
-      console.log("Recorder: Webcam preview stream stopped.");
-    }
+    webcamStream?.getTracks().forEach(track => track.stop());
     setWebcamStream(null);
-
-    console.log("Recorder: All streams stopped.");
   }, [webcamStream, stopRecordingProcess]);
 
   useEffect(() => {
@@ -70,107 +50,58 @@ export const useRecorder = () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         setWebcamStream(stream);
-        console.log("Recorder: Webcam preview stream obtained.");
       } catch (err) {
-        console.error("Recorder: Error getting webcam preview stream:", err);
-        showError("Kamera tasvirini olishda xatolik yuz berdi. Kamerangizni tekshiring yoki boshqa ilova ishlatmayotganiga ishonch hosil qiling.");
+        showError("Kamera tasvirini olishda xatolik yuz berdi.");
       }
     };
-
     getWebcamPreview();
-
     return () => {
-      if (webcamStream) {
-        webcamStream.getTracks().forEach(track => track.stop());
-        setWebcamStream(null);
-        console.log("Recorder: Webcam preview stream cleaned up on unmount.");
-      }
+      webcamStream?.getTracks().forEach(track => track.stop());
     };
   }, []);
 
   const startRecording = useCallback(async (studentInfo?: StudentInfo): Promise<boolean> => {
-    console.log("Recorder: Attempting to start recording...");
     recordedChunksRef.current = [];
-
     if (!MediaRecorder.isTypeSupported(MIME_TYPE)) {
-      showError(`Yozib olish formati (${MIME_TYPE}) brauzeringiz tomonidan qo'llab-quvvatlanmaydi.`);
-      console.error(`Recorder: MIME type ${MIME_TYPE} is not supported.`);
-      stopRecordingProcess();
+      showError(`Yozib olish formati (${MIME_TYPE}) qo'llab-quvvatlanmaydi.`);
       return false;
     }
 
     try {
-      const screenStream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: true,
-      });
-      if (!screenStream || screenStream.getVideoTracks().length === 0) {
-        showError("Ekran ulashish bekor qilindi yoki video stream olinmadi.");
-        stopRecordingProcess();
-        return false;
-      }
+      const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
       screenStreamRef.current = screenStream;
       screenStream.addEventListener('ended', () => {
-        console.log("Recorder: Screen sharing ended by user or system.");
         showError("Ekran ulashish to'xtatildi. Yozib olish tugatildi.");
         stopRecordingProcess();
       });
 
-      let micStream: MediaStream | null = null;
-      try {
-        micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        if (!micStream || micStream.getAudioTracks().length === 0) {
-          showError("Mikrofon ruxsatnomasi berilmadi yoki audio stream olinmadi.");
-          stopRecordingProcess();
-          return false;
-        }
-        micStreamRef.current = micStream;
-      } catch (micErr) {
-        console.error("Recorder: Error getting microphone stream:", micErr);
-        showError("Mikrofon ruxsatnomasi berilmadi. Yozib olish uchun mikrofon kerak.");
-        stopRecordingProcess();
-        return false;
-      }
+      const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micStreamRef.current = micStream;
 
       const audioContext = new AudioContext();
       const destination = audioContext.createMediaStreamDestination();
-
-      screenStream.getAudioTracks().forEach(track => {
-        const source = audioContext.createMediaStreamSource(new MediaStream([track]));
-        source.connect(destination);
-      });
-
-      micStream.getAudioTracks().forEach(track => {
-        const source = audioContext.createMediaStreamSource(new MediaStream([track]));
-        source.connect(destination);
-      });
-
-      const combinedStream = new MediaStream();
-      screenStream.getVideoTracks().forEach(track => combinedStream.addTrack(track));
-      destination.stream.getAudioTracks().forEach(track => combinedStream.addTrack(track));
-
-      if (combinedStream.getTracks().length === 0) {
-        showError("Yozib olish uchun hech qanday stream topilmadi. Iltimos, ekran va mikrofon ruxsatnomalarini tekshiring.");
-        stopRecordingProcess();
-        return false;
+      if (screenStream.getAudioTracks().length > 0) {
+        audioContext.createMediaStreamSource(new MediaStream([screenStream.getAudioTracks()[0]])).connect(destination);
+      }
+      if (micStream.getAudioTracks().length > 0) {
+        audioContext.createMediaStreamSource(new MediaStream([micStream.getAudioTracks()[0]])).connect(destination);
       }
 
-      mediaRecorderRef.current = new MediaRecorder(combinedStream, {
-        mimeType: MIME_TYPE,
-      });
+      const combinedStream = new MediaStream([
+        ...screenStream.getVideoTracks(),
+        ...destination.stream.getAudioTracks(),
+      ]);
+
+      mediaRecorderRef.current = new MediaRecorder(combinedStream, { mimeType: MIME_TYPE });
 
       mediaRecorderRef.current.ondataavailable = (event) => {
-        if (event.data && event.data.size > 0) {
-          recordedChunksRef.current.push(event.data);
-        }
+        if (event.data.size > 0) recordedChunksRef.current.push(event.data);
       };
 
       mediaRecorderRef.current.onstop = async () => {
-        console.log("Recorder: MediaRecorder onstop event triggered.");
         clearRecordingTimeout();
         if (recordedChunksRef.current.length === 0) {
-          showError("Yozib olishda hech qanday ma'lumot yig'ilmadi. Iltimos, qayta urinib ko'ring.");
-          stopRecordingProcess();
+          showError("Yozib olishda hech qanday ma'lumot yig'ilmadi.");
           return;
         }
 
@@ -178,33 +109,51 @@ export const useRecorder = () => {
         const endTime = Date.now();
         const duration = Math.round((endTime - startTimeRef.current) / 1000);
 
-        const newRecording: StoredRecording = {
-          timestamp: new Date().toISOString(),
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          showError("Yozuvni saqlash uchun tizimga kiring.");
+          return;
+        }
+
+        const filePath = `${user.id}/${uuidv4()}.webm`;
+        showSuccess("Video yuklanmoqda, iltimos kuting...");
+
+        const { error: uploadError } = await supabase.storage
+          .from('recordings')
+          .upload(filePath, blob);
+
+        if (uploadError) {
+          showError(`Videoni yuklashda xatolik: ${uploadError.message}`);
+          return;
+        }
+
+        const { data: publicUrlData } = supabase.storage
+          .from('recordings')
+          .getPublicUrl(filePath);
+
+        const newRecording = {
+          user_id: user.id,
           duration,
-          studentInfo,
-          videoBlob: blob,
+          student_id: studentInfo?.id,
+          student_name: studentInfo?.name,
+          student_phone: studentInfo?.phone,
+          video_url: publicUrlData.publicUrl,
         };
-        
-        try {
-          await addRecordingToDB(newRecording);
-          showSuccess("Yozib olingan video brauzer xotirasiga saqlandi!");
-          console.log("Recorder: Recording successfully processed and saved to IndexedDB.");
-        } catch (error) {
-          console.error("Recorder: Failed to save recording to IndexedDB", error);
-          showError("Yozib olingan videoni saqlashda xatolik yuz berdi.");
+
+        const { error: dbError } = await supabase.from('recordings').insert([newRecording]);
+
+        if (dbError) {
+          showError(`Yozuv ma'lumotlarini saqlashda xatolik: ${dbError.message}`);
+        } else {
+          showSuccess("Yozib olingan video muvaffaqiyatli saqlandi!");
         }
 
         recordedChunksRef.current = [];
         setIsRecording(false);
-
-        screenStreamRef.current?.getTracks().forEach(track => track.stop());
-        screenStreamRef.current = null;
-        micStreamRef.current?.getTracks().forEach(track => track.stop());
-        micStreamRef.current = null;
+        stopRecordingProcess();
       };
 
       mediaRecorderRef.current.onerror = (event: Event) => {
-        console.error("Recorder: MediaRecorder error:", event);
         showError("Yozib olishda xatolik yuz berdi: " + ((event as any).error?.message || "Noma'lum xato"));
         stopRecordingProcess();
       };
@@ -212,18 +161,16 @@ export const useRecorder = () => {
       mediaRecorderRef.current.start(1000);
       startTimeRef.current = Date.now();
       setIsRecording(true);
-      showSuccess("Recording started!");
+      showSuccess("Yozib olish boshlandi!");
 
       recordingTimeoutRef.current = setTimeout(() => {
-        console.log("Recorder: Auto-stopping recording after max duration.");
         stopRecordingProcess();
-        showSuccess("Yozib olish maksimal vaqtga yetgani uchun avtomatik to'xtatildi.");
+        showSuccess("Yozib olish maksimal vaqtga yetgani uchun to'xtatildi.");
       }, MAX_RECORDING_DURATION_MS);
 
       return true;
     } catch (err) {
-      console.error("Recorder: General error starting recording:", err);
-      showError("Yozib olishni boshlashda kutilmagan xatolik yuz berdi. Ruxsatnomalarni tekshiring.");
+      showError("Yozib olishni boshlashda xatolik yuz berdi. Ruxsatnomalarni tekshiring.");
       setIsRecording(false);
       stopRecordingProcess();
       return false;
@@ -232,33 +179,11 @@ export const useRecorder = () => {
 
   useEffect(() => {
     return () => {
-      console.log("Recorder: Component unmounting, performing cleanup.");
       clearRecordingTimeout();
-
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-        mediaRecorderRef.current.stop();
-      }
-
-      if (webcamStream) {
-        webcamStream.getTracks().forEach(track => track.stop());
-        setWebcamStream(null);
-      }
-
-      if (screenStreamRef.current) {
-        screenStreamRef.current.getTracks().forEach(track => track.stop());
-      }
-
-      if (micStreamRef.current) {
-        micStreamRef.current.getTracks().forEach(track => track.stop());
-      }
+      if (mediaRecorderRef.current?.state !== "inactive") mediaRecorderRef.current?.stop();
+      stopAllStreams();
     };
-  }, [clearRecordingTimeout, webcamStream]);
+  }, [clearRecordingTimeout, stopAllStreams]);
 
-  return {
-    isRecording,
-    startRecording,
-    stopRecording: stopRecordingProcess,
-    stopAllStreams,
-    webcamStream,
-  };
+  return { isRecording, startRecording, stopRecording: stopRecordingProcess, stopAllStreams, webcamStream };
 };

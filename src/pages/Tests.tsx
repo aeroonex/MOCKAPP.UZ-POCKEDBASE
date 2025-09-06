@@ -44,7 +44,7 @@ const Tests: React.FC = () => {
             <div className="flex flex-col">
               <p className="text-sm font-semibold">Savollar:</p>
               <ul className="list-disc list-inside text-xs">
-                {part1_1Q.subQuestions.map((subQ, i) => (
+                {part1_1Q.sub_questions.map((subQ, i) => (
                   <li key={i}>{subQ}</li>
                 ))}
               </ul>
@@ -56,14 +56,14 @@ const Tests: React.FC = () => {
         return (
           <div className="flex flex-col sm:flex-row sm:items-center flex-grow mb-2 sm:mb-0 sm:mr-4">
             <div className="flex gap-2 mr-4 mb-2 sm:mb-0">
-              {part1_2Q.imageUrls.map((url, idx) => (
+              {part1_2Q.image_urls.map((url, idx) => (
                 <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-16 object-contain rounded-md" />
               ))}
             </div>
             <div className="flex flex-col">
               <p className="text-sm font-semibold">Savollar:</p>
               <ul className="list-disc list-inside text-xs">
-                {part1_2Q.subQuestions.map((subQ, i) => (
+                {part1_2Q.sub_questions.map((subQ, i) => (
                   <li key={i}>{subQ}</li>
                 ))}
               </ul>
@@ -75,20 +75,20 @@ const Tests: React.FC = () => {
         return (
           <div className="flex flex-col sm:flex-row sm:items-center flex-grow mb-2 sm:mb-0 sm:mr-4">
             <div className="flex gap-2 mr-4 mb-2 sm:mb-0">
-              {part2Q.imageUrls.map((url, idx) => (
+              {part2Q.image_urls.map((url, idx) => (
                 <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-16 object-contain rounded-md" />
               ))}
             </div>
-            <p className="text-sm">{part2Q.question}</p>
+            <p className="text-sm">{part2Q.question_text}</p>
           </div>
         );
       case "part3":
         const part3Q = q as Part3Question;
         return (
           <div className="flex flex-col sm:flex-row sm:items-center flex-grow mb-2 sm:mb-0 sm:mr-4">
-            <p className="text-sm mr-4">{part3Q.question}</p>
+            <p className="text-sm mr-4">{part3Q.question_text}</p>
             <div className="flex gap-2">
-              {part3Q.imageUrls.map((url, idx) => (
+              {part3Q.image_urls.map((url, idx) => (
                 <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-16 object-contain rounded-md" />
               ))}
             </div>
