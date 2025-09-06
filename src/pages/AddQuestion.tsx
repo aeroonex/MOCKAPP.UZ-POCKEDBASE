@@ -424,9 +424,12 @@ const SpeakingQuestionManager: React.FC = () => {
       <main className="flex-grow container mx-auto p-4">
         <Card className="max-w-3xl mx-auto">
           <CardHeader>
-            <CardTitle className="text-3xl font-bold text-center">Speaking savollarini boshqarish</CardTitle>
+            <CardTitle className="text-3xl font-bold text-center text-purple-600">!!! TEST UCHUN SAVOLLARNI BOSHQARISH !!!</CardTitle>
           </CardHeader>
           <CardContent>
+            <div className="bg-yellow-200 text-yellow-800 p-3 rounded-md mb-6 text-center font-bold text-xl">
+              BU YERDA O'ZGARISHLAR KO'RINISHI KERAK!
+            </div>
             <Tabs value={currentTab} onValueChange={(value) => {
               setCurrentTab(value as SpeakingPart);
               setQuestionText("");
