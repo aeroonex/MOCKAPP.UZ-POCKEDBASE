@@ -9,7 +9,6 @@ import MoodJournal from "./pages/MoodJournal";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import AddQuestion from "./pages/AddQuestion";
-import Tests from "./pages/Tests";
 import MockTest from "./pages/MockTest";
 import Settings from "./pages/Settings";
 import UserProfile from "./pages/UserProfile";
@@ -65,7 +64,6 @@ const App = () => {
             <Route element={<ProtectedRoute session={session} allowedPaths={["/mock-test", "/records"]} />}>
               <Route path="/home" element={<Home />} />
               <Route path="/add-question" element={<AddQuestion />} />
-              <Route path="/tests" element={<Tests />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/user-profile" element={<UserProfile />} />
               <Route path="/questions" element={<Questions />} />

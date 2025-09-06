@@ -13,7 +13,6 @@ const allNavLinks = [
   { name: "Home", path: "/home", icon: HomeIcon, protected: true },
   { name: "Questions", path: "/questions", icon: BookOpen, protected: true },
   { name: "Add Question", path: "/add-question", icon: ImagePlus, protected: true },
-  { name: "Tests", path: "/tests", icon: ListChecks, protected: true },
   { name: "Mock Test", path: "/mock-test", icon: ListChecks, protected: false }, // Mock Test har doim ochiq
   { name: "Records", path: "/records", icon: Video, protected: false }, // Records ham guest mode'da ochiq
   { name: "Settings", path: "/settings", icon: Settings, protected: true },
