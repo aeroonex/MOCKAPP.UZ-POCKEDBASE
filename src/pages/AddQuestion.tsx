@@ -72,6 +72,24 @@ const SpeakingQuestionManager: React.FC = () => {
 
   useEffect(() => {
     fetchQuestions();
+
+    // Jonli yangilanishlar uchun Supabase subscription'ni sozlash
+    const channel = supabase
+      .channel('speaking_questions_add_page')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'speaking_questions' },
+        (payload) => {
+          console.log('O`zgarish qabul qilindi!', payload);
+          fetchQuestions(); // O'zgarish bo'lganda savollarni qayta yuklash
+        }
+      )
+      .subscribe();
+
+    // Komponent o'chirilganda subscription'ni tozalash
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [fetchQuestions]);
 
   const uploadImageToSupabase = async (file: File): Promise<string | null> => {
@@ -154,7 +172,7 @@ const SpeakingQuestionManager: React.FC = () => {
       showError(`Savolni saqlashda xatolik: ${error.message}`);
     } else {
       showSuccess(`Savol ${part} ga qo'shildi!`);
-      fetchQuestions(); // Refresh the list
+      // fetchQuestions() is no longer needed here, the real-time subscription will handle it.
       // Reset fields
       setQuestionText("");
       setImageFiles([]);
@@ -186,7 +204,7 @@ const SpeakingQuestionManager: React.FC = () => {
       showError(`Savolni o'chirishda xatolik: ${error.message}`);
     } else {
       showSuccess("Savol muvaffaqiyatli o'chirildi!");
-      fetchQuestions();
+      // fetchQuestions() is no longer needed here, the real-time subscription will handle it.
     }
   };
 
@@ -203,7 +221,7 @@ const SpeakingQuestionManager: React.FC = () => {
       showError(`Cooldown'larni tiklashda xatolik: ${error.message}`);
     } else {
       showSuccess("Barcha savollar cooldown'lari tiklandi!");
-      fetchQuestions();
+      // fetchQuestions() is no longer needed here, the real-time subscription will handle it.
     }
   };
 

@@ -45,6 +45,24 @@ const Questions: React.FC = () => {
 
   useEffect(() => {
     fetchQuestions();
+
+    // Jonli yangilanishlar uchun Supabase subscription'ni sozlash
+    const channel = supabase
+      .channel('speaking_questions_view_page')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'speaking_questions' },
+        (payload) => {
+          console.log('O`zgarish qabul qilindi!', payload);
+          fetchQuestions(); // O'zgarish bo'lganda savollarni qayta yuklash
+        }
+      )
+      .subscribe();
+
+    // Komponent o'chirilganda subscription'ni tozalash
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [fetchQuestions]);
 
   const renderQuestionContent = (q: SpeakingQuestion) => {
