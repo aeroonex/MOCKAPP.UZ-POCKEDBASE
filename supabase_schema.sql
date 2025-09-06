@@ -1,62 +1,74 @@
--- Jadvallar allaqachon mavjud bo'lsa, ularni o'chirish (faqat rivojlanish uchun)
-DROP TABLE IF EXISTS public.speaking_questions;
-DROP TABLE IF EXISTS public.mood_entries;
-DROP TABLE IF EXISTS public.recordings;
-
--- speaking_questions jadvalini yaratish
-CREATE TABLE public.speaking_questions (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id uuid REFERENCES auth.users(id) NOT NULL,
-    type text NOT NULL,
-    date timestamp with time zone DEFAULT now() NOT NULL,
-    last_used timestamp with time zone,
-    question_text text,
-    sub_questions jsonb, -- Array of strings for Part 1.1, Part 1.2
-    image_urls jsonb -- Array of strings for image URLs
-);
-
+-- Enable Row Level Security for all tables
 ALTER TABLE public.speaking_questions ENABLE ROW LEVEL SECURITY;
-
--- RLS siyosatlari: Faqat o'zining savollarini boshqarish
-CREATE POLICY "Allow read access for authenticated users to their own questions" ON public.speaking_questions FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Allow insert access for authenticated users to their own questions" ON public.speaking_questions FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Allow update access for authenticated users to their own questions" ON public.speaking_questions FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Allow delete access for authenticated users to their own questions" ON public.speaking_questions FOR DELETE USING (auth.uid() = user_id);
-
-
--- mood_entries jadvalini yaratish
-CREATE TABLE public.mood_entries (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id uuid REFERENCES auth.users(id) NOT NULL,
-    mood text NOT NULL,
-    text text NOT NULL,
-    date timestamp with time zone DEFAULT now() NOT NULL
-);
-
+ALTER TABLE public.recordings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.mood_entries ENABLE ROW LEVEL SECURITY;
 
--- RLS siyosatlari: Faqat o'zining kayfiyat yozuvlarini boshqarish
-CREATE POLICY "Allow read access for authenticated users to their own mood entries" ON public.mood_entries FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Allow insert access for authenticated users to their own mood entries" ON public.mood_entries FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Allow update access for authenticated users to their own mood entries" ON public.mood_entries FOR UPDATE USING (auth.uid() = user_id);
-CREATE POLICY "Allow delete access for authenticated users to their own mood entries" ON public.mood_entries FOR DELETE USING (auth.uid() = user_id);
+-- Drop existing policies to avoid conflicts
+DROP POLICY IF EXISTS "Allow authenticated users to manage their own questions" ON public.speaking_questions;
+DROP POLICY IF EXISTS "Allow authenticated users to manage their own recordings" ON public.recordings;
+DROP POLICY IF EXISTS "Allow authenticated users to manage their own mood entries" ON public.mood_entries;
+DROP POLICY IF EXISTS "Allow public read access to question images" ON storage.objects;
+DROP POLICY IF EXISTS "Allow authenticated users to upload question images" ON storage.objects;
+DROP POLICY IF EXISTS "Allow authenticated users to delete their own question images" ON storage.objects;
+DROP POLICY IF EXISTS "Allow authenticated users to manage their own recordings storage" ON storage.objects;
 
 
--- recordings jadvalini yaratish
-CREATE TABLE public.recordings (
-    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id uuid REFERENCES auth.users(id) NOT NULL,
-    timestamp timestamp with time zone DEFAULT now() NOT NULL,
-    duration integer NOT NULL, -- in seconds
-    student_id text,
-    student_name text,
-    student_phone text,
-    video_url text NOT NULL -- URL from Supabase Storage
+-- Policies for 'speaking_questions' table
+CREATE POLICY "Allow authenticated users to manage their own questions"
+ON public.speaking_questions
+FOR ALL
+TO authenticated
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
+
+-- Policies for 'recordings' table
+CREATE POLICY "Allow authenticated users to manage their own recordings"
+ON public.recordings
+FOR ALL
+TO authenticated
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
+
+-- Policies for 'mood_entries' table
+CREATE POLICY "Allow authenticated users to manage their own mood entries"
+ON public.mood_entries
+FOR ALL
+TO authenticated
+USING (auth.uid() = user_id)
+WITH CHECK (auth.uid() = user_id);
+
+
+-- Policies for 'question-images' bucket in Storage
+CREATE POLICY "Allow public read access to question images"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'question-images');
+
+CREATE POLICY "Allow authenticated users to upload question images"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (
+  bucket_id = 'question-images' AND
+  auth.uid() = (storage.foldername(name))[1]::uuid
 );
 
-ALTER TABLE public.recordings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow authenticated users to delete their own question images"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (
+  bucket_id = 'question-images' AND
+  auth.uid() = (storage.foldername(name))[1]::uuid
+);
 
--- RLS siyosatlari: Faqat o'zining yozuvlarini boshqarish
-CREATE POLICY "Allow read access for authenticated users to their own recordings" ON public.recordings FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Allow insert access for authenticated users to their own recordings" ON public.recordings FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Allow delete access for authenticated users to their own recordings" ON public.recordings FOR DELETE USING (auth.uid() = user_id);
+-- Policies for 'recordings' bucket in Storage
+CREATE POLICY "Allow authenticated users to manage their own recordings storage"
+ON storage.objects FOR ALL
+TO authenticated
+USING (
+  bucket_id = 'recordings' AND
+  auth.uid() = (storage.foldername(name))[1]::uuid
+)
+WITH CHECK (
+  bucket_id = 'recordings' AND
+  auth.uid() = (storage.foldername(name))[1]::uuid
+);
