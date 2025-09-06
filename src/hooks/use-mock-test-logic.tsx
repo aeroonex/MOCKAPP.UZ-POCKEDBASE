@@ -101,95 +101,95 @@ export const useMockTestLogic = ({
 
   // This function now only determines the NEXT state, it doesn't start countdowns directly
   const advanceTest = useCallback(() => {
-    console.log("--- advanceTest START ---");
-    console.log("Initial state in advanceTest:", { currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, currentPhase });
+    // console.log("--- advanceTest START ---"); // Removed debug log
+    // console.log("Initial state in advanceTest:", { currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, currentPhase }); // Removed debug log
     const currentPartName = allSpeakingParts[currentPartIndex];
     const currentQ = getCurrentQuestion();
-    console.log("Current Question in advanceTest:", currentQ ? { id: currentQ.id, type: currentQ.type } : "None");
+    // console.log("Current Question in advanceTest:", currentQ ? { id: currentQ.id, type: currentQ.type } : "None"); // Removed debug log
 
     if (!currentQ) {
-      console.log("No more questions in current part. Attempting to move to next part.");
+      // console.log("No more questions in current part. Attempting to move to next part."); // Removed debug log
       if (currentPartIndex < allSpeakingParts.length - 1) {
-        console.log(`Advancing to next part from index ${currentPartIndex} to ${currentPartIndex + 1}`);
+        // console.log(`Advancing to next part from index ${currentPartIndex} to ${currentPartIndex + 1}`); // Removed debug log
         setCurrentPhase("part_finished_announcement"); // Announce current part finished
       } else {
-        console.log("All parts finished. Stopping streams and ending test.");
+        // console.log("All parts finished. Stopping streams and ending test."); // Removed debug log
         stopAllStreams();
         setIsTestStarted(false);
         setCurrentPhase("finished");
         showSuccess("Mock test yakunlandi!");
       }
-      console.log("--- advanceTest END (no currentQ) ---");
+      // console.log("--- advanceTest END (no currentQ) ---"); // Removed debug log
       return;
     }
 
     switch (currentQ.type) {
       case "part1.1": {
-        console.log("Handling Part 1.1. Current sub-question index:", currentSubQuestionIndex);
+        // console.log("Handling Part 1.1. Current sub-question index:", currentSubQuestionIndex); // Removed debug log
         const part1_1Q = currentQ as Part1_1Question;
         if (currentSubQuestionIndex < part1_1Q.subQuestions.length - 1) {
-          console.log("Moving to next sub-question in Part 1.1");
+          // console.log("Moving to next sub-question in Part 1.1"); // Removed debug log
           setCurrentSubQuestionIndex(prev => prev + 1);
           setCurrentPhase("question_display");
         } else {
-          console.log("All sub-questions in Part 1.1 finished. Moving to next question or part.");
+          // console.log("All sub-questions in Part 1.1 finished. Moving to next question or part."); // Removed debug log
           if (currentQuestionIndex < questions[currentPartName].length - 1) {
-            console.log("Moving to next question in Part 1.1");
+            // console.log("Moving to next question in Part 1.1"); // Removed debug log
             setCurrentQuestionIndex(prev => prev + 1);
             setCurrentSubQuestionIndex(0);
             setCurrentPhase("question_display");
           } else {
-            console.log("All questions in Part 1.1 finished. Moving to next part.");
+            // console.log("All questions in Part 1.1 finished. Moving to next part."); // Removed debug log
             setCurrentPhase("part_finished_announcement"); // Announce current part finished
           }
         }
         break;
       }
       case "part1.2": {
-        console.log("Handling Part 1.2. Current sub-question index:", currentSubQuestionIndex);
+        // console.log("Handling Part 1.2. Current sub-question index:", currentSubQuestionIndex); // Removed debug log
         const part1_2Q = currentQ as Part1_2Question;
         if (currentSubQuestionIndex < part1_2Q.subQuestions.length - 1) {
-          console.log("Moving to next sub-question in Part 1.2");
+          // console.log("Moving to next sub-question in Part 1.2"); // Removed debug log
           setCurrentSubQuestionIndex(prev => prev + 1);
           setCurrentPhase("question_display");
         } else {
-          console.log("All sub-questions in Part 1.2 finished. Moving to next question or part.");
+          // console.log("All sub-questions in Part 1.2 finished. Moving to next question or part."); // Removed debug log
           if (currentQuestionIndex < questions[currentPartName].length - 1) {
-            console.log("Moving to next question in Part 1.2");
+            // console.log("Moving to next question in Part 1.2"); // Removed debug log
             setCurrentQuestionIndex(prev => prev + 1);
             setCurrentSubQuestionIndex(0);
             setCurrentPhase("question_display");
           } else {
-            console.log("All questions in Part 1.2 finished. Moving to next part.");
+            // console.log("All questions in Part 1.2 finished. Moving to next part."); // Removed debug log
             setCurrentPhase("part_finished_announcement"); // Announce current part finished
           }
         }
         break;
       }
       case "part2": {
-        console.log("Handling Part 2. Current phase:", currentPhase);
+        // console.log("Handling Part 2. Current phase:", currentPhase); // Removed debug log
         if (currentPhase === "question_display") {
-          console.log("Part 2: Transitioning to preparation phase.");
+          // console.log("Part 2: Transitioning to preparation phase."); // Removed debug log
           setCurrentPhase("preparation");
         } else if (currentPhase === "preparation") {
-          console.log("Part 2: Transitioning to speaking phase.");
+          // console.log("Part 2: Transitioning to speaking phase."); // Removed debug log
           setCurrentPhase("speaking");
         } else if (currentPhase === "speaking") {
-          console.log("Part 2: Speaking phase finished. Moving to next part.");
+          // console.log("Part 2: Speaking phase finished. Moving to next part."); // Removed debug log
           setCurrentPhase("part_finished_announcement"); // Announce current part finished
         }
         break;
       }
       case "part3": {
-        console.log("Handling Part 3. Current phase:", currentPhase);
+        // console.log("Handling Part 3. Current phase:", currentPhase); // Removed debug log
         if (currentPhase === "question_display") {
-          console.log("Part 3: Transitioning to preparation phase.");
+          // console.log("Part 3: Transitioning to preparation phase."); // Removed debug log
           setCurrentPhase("preparation");
         } else if (currentPhase === "preparation") {
-          console.log("Part 3: Transitioning to speaking phase.");
+          // console.log("Part 3: Transitioning to speaking phase."); // Removed debug log
           setCurrentPhase("speaking");
         } else if (currentPhase === "speaking") {
-          console.log("Part 3: Speaking phase finished. Moving to next part (or ending test).");
+          // console.log("Part 3: Speaking phase finished. Moving to next part (or ending test)."); // Removed debug log
           setCurrentPhase("part_finished_announcement"); // Announce current part finished
         }
         break;
@@ -199,7 +199,7 @@ export const useMockTestLogic = ({
         setCurrentPhase("part_finished_announcement"); // Treat as part finished to advance
         break;
     }
-    console.log("--- advanceTest END ---");
+    // console.log("--- advanceTest END ---"); // Removed debug log
   }, [currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, questions, currentPhase, stopAllStreams, getCurrentQuestion]);
 
   // Function to load ALL questions from localStorage into the ref
@@ -215,7 +215,7 @@ export const useMockTestLogic = ({
       }
     });
     allAvailableQuestionsRef.current = loadedQuestions;
-    console.log("MockTest: All available questions loaded from localStorage:", loadedQuestions);
+    // console.log("MockTest: All available questions loaded from localStorage:", loadedQuestions); // Removed debug log
   }, []);
 
   // Initial load on mount
@@ -226,15 +226,15 @@ export const useMockTestLogic = ({
 
   // Effect to manage countdowns based on current test state
   useEffect(() => {
-    console.log("--- Countdown useEffect START ---");
-    console.log("State in Countdown useEffect:", { isTestStarted, currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, currentPhase });
+    // console.log("--- Countdown useEffect START ---"); // Removed debug log
+    // console.log("State in Countdown useEffect:", { isTestStarted, currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, currentPhase }); // Removed debug log
 
     if (!isTestStarted || currentPhase === "idle" || currentPhase === "finished") {
       if (countdownIntervalRef.current) {
         clearInterval(countdownIntervalRef.current);
         countdownIntervalRef.current = null;
       }
-      console.log("Countdown useEffect: Test not started, idle, or finished. Returning.");
+      // console.log("Countdown useEffect: Test not started, idle, or finished. Returning."); // Removed debug log
       return;
     }
 
@@ -244,7 +244,7 @@ export const useMockTestLogic = ({
     if (currentPhase === "pre_test_countdown") {
       duration = TIMINGS.PRE_TEST_COUNTDOWN;
       nextAction = () => {
-        console.log("Pre-test countdown finished. Setting phase to idle to trigger test start.");
+        // console.log("Pre-test countdown finished. Setting phase to idle to trigger test start."); // Removed debug log
         setCurrentPhase("idle"); // This will trigger the other useEffect to start the actual test flow
       };
     } else if (currentPhase === "part_finished_announcement") {
@@ -273,7 +273,7 @@ export const useMockTestLogic = ({
             }
           } else {
             // If no questions in this part, try to advance again (skip this empty part)
-            console.log(`No questions found for ${nextPartName}. Advancing to next part.`);
+            // console.log(`No questions found for ${nextPartName}. Advancing to next part.`); // Removed debug log
             advanceTest(); // This will trigger part_finished_announcement for the current (empty) part
           }
         };
@@ -289,12 +289,12 @@ export const useMockTestLogic = ({
     } else {
       const currentPartName = allSpeakingParts[currentPartIndex];
       const currentQ = questions[currentPartName]?.[currentQuestionIndex];
-      console.log("Countdown useEffect: Current Question:", currentQ ? { id: currentQ.id, type: currentQ.type } : "None");
+      // console.log("Countdown useEffect: Current Question:", currentQ ? { id: currentQ.id, type: currentQ.type } : "None"); // Removed debug log
 
       if (!currentQ) {
-        console.log("Countdown useEffect: No current question found, attempting to advance.");
+        // console.log("Countdown useEffect: No current question found, attempting to advance."); // Removed debug log
         advanceTest();
-        console.log("Countdown useEffect: After advanceTest call (no currentQ).");
+        // console.log("Countdown useEffect: After advanceTest call (no currentQ)."); // Removed debug log
         return;
       }
 
@@ -322,7 +322,7 @@ export const useMockTestLogic = ({
     }
 
     if (duration > 0) {
-      console.log(`Countdown useEffect: Starting countdown for Phase: ${currentPhase} with duration ${duration}s.`);
+      // console.log(`Countdown useEffect: Starting countdown for Phase: ${currentPhase} with duration ${duration}s.`); // Removed debug log
       startCountdown(duration, nextAction);
     } else {
       console.warn("Countdown useEffect: Duration is 0 for current phase, advancing immediately.");
@@ -333,7 +333,7 @@ export const useMockTestLogic = ({
       if (countdownIntervalRef.current) {
         clearInterval(countdownIntervalRef.current);
         countdownIntervalRef.current = null;
-        console.log("Countdown useEffect: Cleanup - interval cleared.");
+        // console.log("Countdown useEffect: Cleanup - interval cleared."); // Removed debug log
       }
     };
   }, [isTestStarted, currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, currentPhase, questions, startCountdown, advanceTest, stopAllStreams]);
@@ -341,7 +341,7 @@ export const useMockTestLogic = ({
   // Effect to start the test flow when isTestStarted becomes true and phase is idle
   useEffect(() => {
     if (isTestStarted && currentPhase === "idle") {
-      console.log("MockTest: Starting test flow from idle. Current questions state:", questions);
+      // console.log("MockTest: Starting test flow from idle. Current questions state:", questions); // Removed debug log
 
       const totalQuestions = allSpeakingParts.reduce((sum, part) => sum + questions[part].length, 0);
       if (totalQuestions === 0) {
@@ -394,7 +394,7 @@ export const useMockTestLogic = ({
         }
 
         if (textToSpeak) {
-          console.log(`Speaking question: "${textToSpeak}"`);
+          // console.log(`Speaking question: "${textToSpeak}"`); // Removed debug log
           speakText(textToSpeak, 'en-US'); 
         }
       } else {
@@ -405,11 +405,11 @@ export const useMockTestLogic = ({
 
 
   const handleStartTestClick = () => {
-    console.log("handleStartTestClick: Tugma bosildi.");
+    // console.log("handleStartTestClick: Tugma bosildi."); // Removed debug log
     
     // Har safar test boshlanganda savollarni localStorage'dan qayta yuklash
     loadAllQuestions();
-    console.log("handleStartTestClick: allAvailableQuestionsRef.current (reloaded):", allAvailableQuestionsRef.current);
+    // console.log("handleStartTestClick: allAvailableQuestionsRef.current (reloaded):", allAvailableQuestionsRef.current); // Removed debug log
 
     const selectedQuestionsForTest: Record<SpeakingPart, SpeakingQuestion[]> = {
       "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
@@ -423,27 +423,28 @@ export const useMockTestLogic = ({
       "Part 3": 1,
     };
 
-    const twoHoursAgo = new Date();
-    twoHoursAgo.setHours(twoHoursAgo.getHours() - 2); // Oxirgi 2 soat ichida ishlatilgan savollarni chiqarib tashlash uchun vaqt
-    console.log("handleStartTestClick: twoHoursAgo (ISO):", twoHoursAgo.toISOString());
+    const now = new Date(); // Get current time once
+    const twoHoursInMs = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+    // console.log("handleStartTestClick: Current time (ISO):", now.toISOString()); // Removed debug log
 
     let hasEnoughQuestions = true;
     let missingParts: string[] = [];
 
     allSpeakingParts.forEach(part => {
-      console.log(`--- Filtering for ${part} ---`);
+      // console.log(`--- Filtering for ${part} ---`); // Removed debug log
       const eligibleQuestions = allAvailableQuestionsRef.current[part].filter(q => {
         if (!q.lastUsed) {
-          console.log(`Question ${q.id.substring(0, 8)}... in ${part}: No lastUsed, eligible.`);
+          // console.log(`Question ${q.id.substring(0, 8)}... in ${part}: No lastUsed, eligible.`); // Removed debug log
           return true; // Agar hech qachon ishlatilmagan bo'lsa, u mos keladi
         }
         const lastUsedDate = new Date(q.lastUsed);
-        const isEligible = lastUsedDate < twoHoursAgo; // Agar 2 soatdan oldin ishlatilgan bo'lsa, u mos keladi
-        console.log(`Question ${q.id.substring(0, 8)}... in ${part}: lastUsed: ${q.lastUsed}, isEligible: ${isEligible}`);
+        const timeSinceLastUse = now.getTime() - lastUsedDate.getTime();
+        const isEligible = timeSinceLastUse > twoHoursInMs; // Eligible if used more than 2 hours ago
+        // console.log(`Question ${q.id.substring(0, 8)}... in ${part}: lastUsed: ${q.lastUsed}, timeSinceLastUse (ms): ${timeSinceLastUse}, isEligible: ${isEligible}`); // Removed debug log
         return isEligible;
       });
 
-      console.log(`Part ${part}: Eligible questions count: ${eligibleQuestions.length}`);
+      // console.log(`Part ${part}: Eligible questions count: ${eligibleQuestions.length}`); // Removed debug log
       
       const available = eligibleQuestions.length;
       const required = minQuestions[part];
@@ -453,7 +454,7 @@ export const useMockTestLogic = ({
       }
       // Tanlangan savollarni eligibleQuestions ichidan olish
       selectedQuestionsForTest[part] = getRandomElements(eligibleQuestions as any[], required);
-      console.log(`Part ${part}: Selected questions for test:`, selectedQuestionsForTest[part].map(q => q.id.substring(0, 8) + '...'));
+      // console.log(`Part ${part}: Selected questions for test:`, selectedQuestionsForTest[part].map(q => q.id.substring(0, 8) + '...')); // Removed debug log
     });
 
     if (!hasEnoughQuestions) {
@@ -462,36 +463,36 @@ export const useMockTestLogic = ({
     }
 
     // Tanlangan savollarning lastUsed xususiyatini yangilash va localStorage'ga saqlash
-    const now = new Date().toISOString();
+    const nowISO = now.toISOString(); // Use the same 'now' for updating lastUsed
     const updatedAllQuestions: Record<SpeakingPart, SpeakingQuestion[]> = { ...allAvailableQuestionsRef.current };
 
     allSpeakingParts.forEach(part => {
       selectedQuestionsForTest[part].forEach(selectedQ => {
         const indexInAll = updatedAllQuestions[part].findIndex(q => q.id === selectedQ.id);
         if (indexInAll !== -1) {
-          updatedAllQuestions[part][indexInAll] = { ...updatedAllQuestions[part][indexInAll], lastUsed: now };
-          console.log(`Updated lastUsed for question ${selectedQ.id.substring(0, 8)}... in ${part} to ${now}`);
+          updatedAllQuestions[part][indexInAll] = { ...updatedAllQuestions[part][indexInAll], lastUsed: nowISO };
+          // console.log(`Updated lastUsed for question ${selectedQ.id.substring(0, 8)}... in ${part} to ${nowISO}`); // Removed debug log
         }
       });
       // Yangilangan ro'yxatni localStorage'ga saqlash
       localStorage.setItem(getSpeakingQuestionStorageKey(part), JSON.stringify(updatedAllQuestions[part]));
-      console.log(`Saved updated questions for ${part} to localStorage. Current state of questions for ${part}:`, updatedAllQuestions[part].map(q => ({id: q.id.substring(0,8)+'...', lastUsed: q.lastUsed})));
+      // console.log(`Saved updated questions for ${part} to localStorage. Current state of questions for ${part}:`, updatedAllQuestions[part].map(q => ({id: q.id.substring(0,8)+'...', lastUsed: q.lastUsed}))); // Removed debug log
     });
 
     setQuestions(selectedQuestionsForTest); // Tanlangan savollarni state'ga o'rnatish
-    console.log("MockTest: Randomly selected questions for this test (final state):", selectedQuestionsForTest);
+    // console.log("MockTest: Randomly selected questions for this test (final state):", selectedQuestionsForTest); // Removed debug log
 
     setIsStudentInfoFormOpen(true);
-    console.log("handleStartTestClick: isStudentInfoFormOpen set to true.");
+    // console.log("handleStartTestClick: isStudentInfoFormOpen set to true."); // Removed debug log
   };
 
   const handleStudentInfoSave = async (id: string, name: string, phone: string) => {
-    console.log("handleStudentInfoSave: Ma'lumotlar saqlanmoqda:", { id, name, phone });
+    // console.log("handleStudentInfoSave: Ma'lumotlar saqlanmoqda:", { id, name, phone }); // Removed debug log
     const newStudentInfo: StudentInfo = { id, name, phone };
     setStudentInfo(newStudentInfo);
 
     const recordingStartedSuccessfully = await startRecording(newStudentInfo);
-    console.log("handleStudentInfoSave: Yozib olish muvaffaqiyatli boshlandimi:", recordingStartedSuccessfully);
+    // console.log("handleStudentInfoSave: Yozib olish muvaffaqiyatli boshlandimi:", recordingStartedSuccessfully); // Removed debug log
 
     if (!recordingStartedSuccessfully) {
       setStudentInfo(null);
