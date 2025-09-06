@@ -27,7 +27,7 @@ import {
   deleteLocalQuestion,
   resetLocalQuestionCooldowns,
 } from "@/lib/local-db";
-import { supabase } from "@/lib/supabase"; // Supabase klientini import qilish
+import { supabase } from "../integrations/supabase/client"; // Supabase klientini import qilish
 import { v4 as uuidv4 } from 'uuid'; // Noyob fayl nomlari uchun
 
 const SpeakingQuestionManager: React.FC = () => {
