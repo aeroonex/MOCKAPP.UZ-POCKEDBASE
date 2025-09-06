@@ -26,7 +26,6 @@ import {
   addLocalQuestion,
   deleteLocalQuestion,
   resetLocalQuestionCooldowns,
-  saveLocalQuestions
 } from "@/lib/local-db";
 import { fileToBase64 } from "@/utils/imageUtils";
 
@@ -35,7 +34,7 @@ const SpeakingQuestionManager: React.FC = () => {
   const [questionText, setQuestionText] = useState<string>("");
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [subQuestionsText, setSubQuestionsText] = useState<string>("");
-  const [isUploading, setIsUploading] = useState<boolean>(false); // Rasmlarni yuklash holati
+  const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const [questions, setQuestions] = useState<Record<SpeakingPart, SpeakingQuestion[]>>({
@@ -62,8 +61,6 @@ const SpeakingQuestionManager: React.FC = () => {
 
   useEffect(() => {
     fetchQuestions();
-    // Lokal rejimda real-time subscription yo'q, shuning uchun faqat bir marta yuklaymiz
-    // Yoki har bir o'zgarishdan keyin fetchQuestions() ni chaqiramiz.
   }, [fetchQuestions]);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
@@ -109,15 +106,17 @@ const SpeakingQuestionManager: React.FC = () => {
     } else if (part === "Part 3") {
       if (finalImageUrls.length === 0 || !questionText.trim()) return showError("Rasm va asosiy savol bo'sh bo'lishi mumkin emas.");
       newQuestionData = { type: "part3", image_urls: finalImageUrls, question_text: questionText.trim() } as Omit<Part3Question, 'id' | 'date' | 'user_id'>;
-    } else {
-      return;
     }
 
     if (newQuestionData) {
-      addLocalQuestion(newQuestionData);
+      const newQuestion = addLocalQuestion(newQuestionData);
       showSuccess(`Savol ${part} ga qo'shildi!`);
-      fetchQuestions(); // Ro'yxatni yangilash
-      // Reset fields
+      
+      setQuestions(prevQuestions => ({
+        ...prevQuestions,
+        [part]: [...prevQuestions[part], newQuestion].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+      }));
+
       setQuestionText("");
       setImagePreviewUrls([]);
       setSubQuestionsText("");
@@ -127,13 +126,17 @@ const SpeakingQuestionManager: React.FC = () => {
   const handleDeleteQuestion = (part: SpeakingPart, id: string) => {
     deleteLocalQuestion(id);
     showSuccess("Savol muvaffaqiyatli o'chirildi!");
-    fetchQuestions(); // Ro'yxatni yangilash
+    
+    setQuestions(prevQuestions => ({
+      ...prevQuestions,
+      [part]: prevQuestions[part].filter(q => q.id !== id),
+    }));
   };
 
   const handleResetAllCooldowns = () => {
     resetLocalQuestionCooldowns();
     showSuccess("Barcha savollar cooldown'lari tiklandi!");
-    fetchQuestions(); // Ro'yxatni yangilash
+    fetchQuestions();
   };
 
   const renderQuestionInput = (part: SpeakingPart) => {
