@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showSuccess, showError } from "@/utils/toast";
-import { AlertTriangle, Trash2 } from "lucide-react";
+import { AlertTriangle, Trash2, Pencil, X } from "lucide-react";
 import { format } from "date-fns";
 import {
   Tooltip,
@@ -32,7 +32,8 @@ import {
   addLocalQuestion,
   deleteLocalQuestion,
   resetLocalQuestionCooldowns,
-  saveLocalQuestions, // Import saveLocalQuestions
+  saveLocalQuestions,
+  updateLocalQuestion,
 } from "@/lib/local-db";
 import { supabase } from "../integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
@@ -41,7 +42,6 @@ const loadInitialQuestions = (): Record<SpeakingPart, SpeakingQuestion[]> => {
   const allLocalQuestions = getLocalQuestions();
   let questionsModified = false;
 
-  // Ensure all questions have a unique ID
   const questionsWithIds = allLocalQuestions.map(q => {
     if (!q.id) {
       questionsModified = true;
@@ -50,7 +50,6 @@ const loadInitialQuestions = (): Record<SpeakingPart, SpeakingQuestion[]> => {
     return q;
   });
 
-  // If we added any IDs, save the updated list back to localStorage
   if (questionsModified) {
     saveLocalQuestions(questionsWithIds);
   }
@@ -59,7 +58,6 @@ const loadInitialQuestions = (): Record<SpeakingPart, SpeakingQuestion[]> => {
     "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
   };
   
-  // Use the cleaned-up data
   questionsWithIds.forEach((q: SpeakingQuestion) => {
     if (q && q.type && groupedQuestions[q.type as SpeakingPart]) {
       groupedQuestions[q.type as SpeakingPart].push(q);
@@ -81,8 +79,40 @@ const SpeakingQuestionManager: React.FC = () => {
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [subQuestionsText, setSubQuestionsText] = useState<string>("");
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
   
   const [questions, setQuestions] = useState(loadInitialQuestions);
+
+  const resetForm = () => {
+    setQuestionText("");
+    setImagePreviewUrls([]);
+    setSubQuestionsText("");
+    setEditingQuestionId(null);
+  };
+
+  const handleEditClick = (question: SpeakingQuestion) => {
+    setEditingQuestionId(question.id);
+    setCurrentTab(question.type);
+    
+    switch (question.type) {
+      case "Part 1.1":
+      case "Part 1.2":
+        setSubQuestionsText(question.sub_questions.join('\n'));
+        break;
+      case "Part 2":
+      case "Part 3":
+        setQuestionText(question.question_text);
+        break;
+    }
+
+    if ('image_urls' in question) {
+      setImagePreviewUrls(question.image_urls || []);
+    } else {
+      setImagePreviewUrls([]);
+    }
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     if (e.target.files && e.target.files[0]) {
@@ -122,74 +152,65 @@ const SpeakingQuestionManager: React.FC = () => {
     }
   };
 
-  const handleAddQuestion = (part: SpeakingPart) => {
+  const handleSubmitQuestion = (part: SpeakingPart) => {
     if (isUploading) {
       showError("Rasmlar yuklanmoqda. Iltimos kuting.");
       return;
     }
 
     const finalImageUrls = imagePreviewUrls.filter(Boolean);
-    let questionAdded = false;
+    let questionData: Omit<SpeakingQuestion, 'id' | 'date' | 'user_id'> | null = null;
 
     switch (part) {
       case "Part 1.1": {
         const subQ = subQuestionsText.split('\n').map(q => q.trim()).filter(Boolean);
-        if (subQ.length === 0) {
-          showError("Kamida bitta kichik savol kiriting.");
-          return;
-        }
-        const newQuestion: Omit<Part1_1Question, 'id' | 'date' | 'user_id'> = { type: part, sub_questions: subQ };
-        addLocalQuestion(newQuestion);
-        questionAdded = true;
+        if (subQ.length === 0) { showError("Kamida bitta kichik savol kiriting."); return; }
+        questionData = { type: part, sub_questions: subQ };
         break;
       }
       case "Part 1.2": {
         const subQ = subQuestionsText.split('\n').map(q => q.trim()).filter(Boolean);
-        if (finalImageUrls.length === 0 || subQ.length === 0) {
-          showError("Rasm va kichik savollar bo'sh bo'lishi mumkin emas.");
-          return;
-        }
-        const newQuestion: Omit<Part1_2Question, 'id' | 'date' | 'user_id'> = { type: part, image_urls: finalImageUrls, sub_questions: subQ };
-        addLocalQuestion(newQuestion);
-        questionAdded = true;
+        if (finalImageUrls.length === 0 || subQ.length === 0) { showError("Rasm va kichik savollar bo'sh bo'lishi mumkin emas."); return; }
+        questionData = { type: part, image_urls: finalImageUrls, sub_questions: subQ };
         break;
       }
       case "Part 2": {
-        if (finalImageUrls.length === 0 || !questionText.trim()) {
-          showError("Rasm va asosiy savol bo'sh bo'lishi mumkin emas.");
-          return;
-        }
-        const newQuestion: Omit<Part2Question, 'id' | 'date' | 'user_id'> = { type: part, image_urls: finalImageUrls, question_text: questionText.trim() };
-        addLocalQuestion(newQuestion);
-        questionAdded = true;
+        if (finalImageUrls.length === 0 || !questionText.trim()) { showError("Rasm va asosiy savol bo'sh bo'lishi mumkin emas."); return; }
+        questionData = { type: part, image_urls: finalImageUrls, question_text: questionText.trim() };
         break;
       }
       case "Part 3": {
-        if (finalImageUrls.length === 0 || !questionText.trim()) {
-          showError("Rasm va asosiy savol bo'sh bo'lishi mumkin emas.");
-          return;
-        }
-        const newQuestion: Omit<Part3Question, 'id' | 'date' | 'user_id'> = { type: part, image_urls: finalImageUrls, question_text: questionText.trim() };
-        addLocalQuestion(newQuestion);
-        questionAdded = true;
+        if (finalImageUrls.length === 0 || !questionText.trim()) { showError("Rasm va asosiy savol bo'sh bo'lishi mumkin emas."); return; }
+        questionData = { type: part, image_urls: finalImageUrls, question_text: questionText.trim() };
         break;
       }
     }
 
-    if (questionAdded) {
-      showSuccess(`Savol ${part} ga qo'shildi!`);
+    if (questionData) {
+      if (editingQuestionId) {
+        const allQuestions = getLocalQuestions();
+        const questionIndex = allQuestions.findIndex(q => q.id === editingQuestionId);
+        if (questionIndex > -1) {
+          const updatedQuestion = { ...allQuestions[questionIndex], ...questionData, type: part };
+          updateLocalQuestion(updatedQuestion);
+          showSuccess("Savol muvaffaqiyatli yangilandi!");
+        }
+      } else {
+        addLocalQuestion(questionData);
+        showSuccess(`Savol ${part} ga qo'shildi!`);
+      }
       setQuestions(loadInitialQuestions());
-
-      setQuestionText("");
-      setImagePreviewUrls([]);
-      setSubQuestionsText("");
+      resetForm();
     }
   };
 
-  const handleDeleteQuestion = (part: SpeakingPart, id: string) => {
+  const handleDeleteQuestion = (id: string) => {
     deleteLocalQuestion(id);
     showSuccess("Savol muvaffaqiyatli o'chirildi!");
     setQuestions(loadInitialQuestions());
+    if (id === editingQuestionId) {
+      resetForm();
+    }
   };
 
   const handleResetAllCooldowns = () => {
@@ -271,11 +292,11 @@ const SpeakingQuestionManager: React.FC = () => {
       case "Part 1.2":
         return (
           <div className="flex flex-col items-start">
-            {q.image_urls?.length > 0 && (
+            {q.image_urls?.length > 0 ? (
               <div className="flex gap-2 mb-2">
                 {q.image_urls.map((url, idx) => <img key={idx} src={url} alt="" className="max-h-24 object-contain rounded-md" />)}
               </div>
-            )}
+            ) : <p className="text-xs text-yellow-500 mb-1">(Rasm yo'q)</p>}
             <ul className="list-disc list-inside text-sm">
               {Array.isArray(q.sub_questions) && q.sub_questions.length > 0
                 ? q.sub_questions.map((subQ, i) => <li key={i}>{subQ}</li>)
@@ -286,11 +307,11 @@ const SpeakingQuestionManager: React.FC = () => {
       case "Part 2":
         return (
           <div className="flex flex-col items-start">
-            {q.image_urls?.length > 0 && (
+            {q.image_urls?.length > 0 ? (
               <div className="flex gap-2 mb-2">
                 {q.image_urls.map((url, idx) => <img key={idx} src={url} alt="" className="max-h-24 object-contain rounded-md" />)}
               </div>
-            )}
+            ) : <p className="text-xs text-yellow-500 mb-1">(Rasm yo'q)</p>}
             <p className="text-sm">{q.question_text ?? <span className="text-yellow-600">Savol matni yo'q</span>}</p>
           </div>
         );
@@ -298,11 +319,11 @@ const SpeakingQuestionManager: React.FC = () => {
         return (
           <div className="flex flex-col items-start">
             <p className="text-sm mb-2">{q.question_text ?? <span className="text-yellow-600">Savol matni yo'q</span>}</p>
-            {q.image_urls?.length > 0 && (
+            {q.image_urls?.length > 0 ? (
               <div className="flex gap-2">
                 {q.image_urls.map((url, idx) => <img key={idx} src={url} alt="" className="max-h-24 object-contain rounded-md" />)}
               </div>
-            )}
+            ) : <p className="text-xs text-yellow-500 mb-1">(Rasm yo'q)</p>}
           </div>
         );
       default:
@@ -319,48 +340,48 @@ const SpeakingQuestionManager: React.FC = () => {
             <CardTitle className="text-3xl font-bold text-center">Savollarni Boshqarish</CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as SpeakingPart)} className="w-full">
+            <Tabs value={currentTab} onValueChange={(value) => { setCurrentTab(value as SpeakingPart); resetForm(); }} className="w-full">
               <TabsList className="grid w-full grid-cols-4">
                 {allSpeakingParts.map(part => <TabsTrigger key={part} value={part}>{part}</TabsTrigger>)}
               </TabsList>
               {allSpeakingParts.map(part => (
                 <TabsContent key={part} value={part} className="mt-4">
-                  <div className="space-y-4 mb-6 p-4 border rounded-lg bg-card">
+                  <div className="space-y-4 mb-6 p-4 border rounded-lg bg-card relative">
+                    <h3 className="text-lg font-semibold">{editingQuestionId ? `Savolni Tahrirlash (ID: ...${editingQuestionId.slice(-6)})` : `Yangi ${part} Savoli Qo'shish`}</h3>
                     {renderQuestionInput(part)}
-                    <Button onClick={() => handleAddQuestion(part)} className="w-full" disabled={isUploading}>
-                      Savolni {part} ga qo'shish
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button onClick={() => handleSubmitQuestion(part)} className="w-full" disabled={isUploading}>
+                        {editingQuestionId ? "O'zgarishlarni Saqlash" : `Savolni ${part} ga qo'shish`}
+                      </Button>
+                      {editingQuestionId && (
+                        <Button variant="outline" onClick={resetForm} className="w-full">
+                          <X className="h-4 w-4 mr-2" /> Bekor qilish
+                        </Button>
+                      )}
+                    </div>
                   </div>
                   <div className="space-y-3">
                     {questions[part].length === 0 ? (
                       <p className="text-center text-muted-foreground">Hali savollar qo'shilmagan.</p>
                     ) : (
-                      questions[part].map((q, index) => {
-                        const canBeDeleted = !!q.id;
-                        return (
-                          <div key={q.id || `q-${part}-${index}`} className="flex items-center justify-between p-3 border rounded-md bg-secondary text-secondary-foreground">
-                            <div className="flex-grow mr-4">{renderQuestionCardContent(q)}</div>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              {!canBeDeleted && (
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger>
-                                      <AlertTriangle className="h-4 w-4 text-yellow-500" />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>Bu savolni o'chirib bo'lmaydi (ID mavjud emas).</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              )}
-                              <span>{q.last_used ? `Oxirgi: ${format(new Date(q.last_used), "MMM dd, HH:mm")}` : "Ishlatilmagan"}</span>
-                              <Button variant="ghost" size="icon" onClick={() => canBeDeleted && handleDeleteQuestion(part, q.id)} disabled={!canBeDeleted}>
-                                <Trash2 className={`h-4 w-4 ${canBeDeleted ? 'text-destructive' : 'text-gray-400'}`} />
+                      questions[part].map((q) => (
+                        <div key={q.id} className="flex items-start justify-between p-3 border rounded-md bg-secondary text-secondary-foreground">
+                          <div className="flex-grow mr-4">{renderQuestionCardContent(q)}</div>
+                          <div className="flex flex-col items-end gap-2">
+                            <div className="flex items-center gap-2">
+                              <Button variant="ghost" size="icon" onClick={() => handleEditClick(q)}>
+                                <Pencil className="h-4 w-4 text-blue-500" />
+                              </Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleDeleteQuestion(q.id)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>
                             </div>
+                            <div className="text-xs text-muted-foreground text-right">
+                              <span>{q.last_used ? `Oxirgi: ${format(new Date(q.last_used), "MMM dd, HH:mm")}` : "Ishlatilmagan"}</span>
+                            </div>
                           </div>
-                        );
-                      })
+                        </div>
+                      ))
                     )}
                   </div>
                 </TabsContent>
