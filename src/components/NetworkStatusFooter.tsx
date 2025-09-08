@@ -94,3 +94,6 @@ const NetworkStatusFooter: React.FC = () => {
       </div>
     </footer>
   );
+};
+
+export default NetworkStatusFooter;
