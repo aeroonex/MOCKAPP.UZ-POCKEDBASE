@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,66 +9,51 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showSuccess, showError } from "@/utils/toast";
 import { CefrCentreFooter } from "@/components/CefrCentreFooter";
+import { supabase } from "@/integrations/supabase/client";
 
-interface LoginProps {
-  setIsLoggedIn: (isLoggedIn: boolean) => void;
-}
-
-const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
+const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Oddiy lokal login/ro'yxatdan o'tish uchun mock funksiyalar
-  const mockUsers = JSON.parse(localStorage.getItem("mockUsers") || "{}");
-
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (mockUsers[email] && mockUsers[email] === password) {
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.removeItem("isGuestMode");
-      setIsLoggedIn(true);
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      showError(error.message);
+    } else {
       showSuccess("Tizimga muvaffaqiyatli kirdingiz!");
       navigate("/home");
-    } else {
-      showError("Noto'g'ri email yoki parol.");
     }
+    setLoading(false);
   };
 
-  const handleSignUp = (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newEmail.trim() || !newPassword.trim() || !confirmPassword.trim()) {
-      showError("Iltimos, barcha maydonlarni to'ldiring.");
-      return;
-    }
     if (newPassword !== confirmPassword) {
       showError("Parollar mos kelmadi.");
       return;
     }
-    if (newPassword.length < 6) {
-      showError("Parol kamida 6 ta belgidan iborat bo'lishi kerak.");
-      return;
+    setLoading(true);
+    const { error } = await supabase.auth.signUp({
+      email: newEmail,
+      password: newPassword,
+    });
+    if (error) {
+      showError(error.message);
+    } else {
+      showSuccess("Muvaffaqiyatli ro'yxatdan o'tdingiz! Iltimos, emailingizni tasdiqlang.");
     }
-    if (mockUsers[newEmail]) {
-      showError("Bu email allaqachon ro'yxatdan o'tgan.");
-      return;
-    }
-
-    mockUsers[newEmail] = newPassword;
-    localStorage.setItem("mockUsers", JSON.stringify(mockUsers));
-    showSuccess("Muvaffaqiyatli ro'yxatdan o'tdingiz! Endi tizimga kirishingiz mumkin.");
-    setNewEmail("");
-    setNewPassword("");
-    setConfirmPassword("");
+    setLoading(false);
   };
 
   const handleStartTestWithoutLogin = () => {
     localStorage.setItem("isGuestMode", "true");
-    localStorage.removeItem("isLoggedIn");
-    setIsLoggedIn(false);
     navigate("/mock-test");
   };
 
@@ -96,6 +81,7 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    disabled={loading}
                   />
                 </div>
                 <div>
@@ -107,10 +93,11 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    disabled={loading}
                   />
                 </div>
-                <Button type="submit" className="w-full">
-                  Login
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Kirilmoqda..." : "Login"}
                 </Button>
               </form>
             </TabsContent>
@@ -125,6 +112,7 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
                     required
+                    disabled={loading}
                   />
                 </div>
                 <div>
@@ -136,6 +124,7 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
+                    disabled={loading}
                   />
                 </div>
                 <div>
@@ -147,16 +136,17 @@ const Login: React.FC<LoginProps> = ({ setIsLoggedIn }) => {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
+                    disabled={loading}
                   />
                 </div>
-                <Button type="submit" className="w-full">
-                  Ro'yxatdan o'tish
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Bajarilmoqda..." : "Ro'yxatdan o'tish"}
                 </Button>
               </form>
             </TabsContent>
           </Tabs>
           <div className="mt-6 text-center">
-            <Button variant="secondary" className="w-full" onClick={handleStartTestWithoutLogin}>
+            <Button variant="secondary" className="w-full" onClick={handleStartTestWithoutLogin} disabled={loading}>
               Loginsiz testni boshlash
             </Button>
           </div>

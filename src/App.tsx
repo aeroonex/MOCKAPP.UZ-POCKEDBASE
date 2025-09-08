@@ -15,65 +15,38 @@ import UserProfile from "./pages/UserProfile";
 import Questions from "./pages/Questions";
 import Records from "./pages/Records";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { useState, useEffect } from "react";
+import { AuthProvider } from "./context/AuthProvider";
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Lokal login holatini tekshirish
-    const loggedInStatus = localStorage.getItem("isLoggedIn") === "true";
-    setIsLoggedIn(loggedInStatus);
-    setLoading(false);
-
-    // localStorage o'zgarishlarini kuzatish
-    const handleStorageChange = () => {
-      const newLoggedInStatus = localStorage.getItem("isLoggedIn") === "true";
-      setIsLoggedIn(newLoggedInStatus);
-    };
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-        <p className="text-xl text-muted-foreground">Yuklanmoqda...</p>
-      </div>
-    );
-  }
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
-            <Route path="/mock-test" element={<MockTest />} />
-            
-            {/* Himoyalangan marshrutlar guruhi */}
-            <Route element={<ProtectedRoute isLoggedIn={isLoggedIn} />}>
-              <Route path="/home" element={<Home />} />
-              <Route path="/add-question" element={<AddQuestion />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/user-profile" element={<UserProfile />} />
-              <Route path="/questions" element={<Questions />} />
-              <Route path="/records" element={<Records />} />
-              <Route path="/mood-journal" element={<MoodJournal />} />
-            </Route>
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/mock-test" element={<MockTest />} />
+              
+              {/* Himoyalangan marshrutlar guruhi */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/home" element={<Home />} />
+                <Route path="/add-question" element={<AddQuestion />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/user-profile" element={<UserProfile />} />
+                <Route path="/questions" element={<Questions />} />
+                <Route path="/records" element={<Records />} />
+                <Route path="/mood-journal" element={<MoodJournal />} />
+              </Route>
 
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

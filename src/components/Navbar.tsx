@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu, LogOut, User, Settings, Home as HomeIcon, ListChecks, ImagePlus, BookOpen, Video } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { showSuccess } from "@/utils/toast";
+import { useAuth } from "@/context/AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
 
 const allNavLinks = [
   { name: "Home", path: "/home", icon: HomeIcon, protected: true },
@@ -21,30 +23,14 @@ const allNavLinks = [
 const Navbar: React.FC = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isGuestMode, setIsGuestMode] = useState(false);
+  const { session } = useAuth();
+  const isGuestMode = localStorage.getItem("isGuestMode") === "true";
 
-  useEffect(() => {
-    const checkAuthStatus = () => {
-      setIsLoggedIn(localStorage.getItem("isLoggedIn") === "true");
-      setIsGuestMode(localStorage.getItem("isGuestMode") === "true");
-    };
-
-    checkAuthStatus();
-
-    // localStorage o'zgarishlarini kuzatish
-    window.addEventListener('storage', checkAuthStatus);
-
-    return () => {
-      window.removeEventListener('storage', checkAuthStatus);
-    };
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
+  const handleLogout = async () => {
+    if (session) {
+      await supabase.auth.signOut();
+    }
     localStorage.removeItem("isGuestMode");
-    setIsLoggedIn(false);
-    setIsGuestMode(false);
     showSuccess("Tizimdan chiqdingiz!");
     navigate("/login");
   };
@@ -52,9 +38,10 @@ const Navbar: React.FC = () => {
   const renderNavLinks = () => {
     let filteredLinks = allNavLinks;
 
-    if (isGuestMode && !isLoggedIn) {
+    if (isGuestMode && !session) {
       filteredLinks = allNavLinks.filter(link => !link.protected);
-    } else if (!isLoggedIn && !isGuestMode) {
+    } else if (!session && !isGuestMode) {
+      // This case might not be reachable if ProtectedRoute is working correctly, but it's good for safety.
       filteredLinks = allNavLinks.filter(link => link.path === "/mock-test");
     }
 
@@ -68,14 +55,14 @@ const Navbar: React.FC = () => {
             </Link>
           </Button>
         ))}
-        {(isLoggedIn || isGuestMode) && (
+        {(session || isGuestMode) && (
           <Button
             variant="ghost"
             className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive"
             onClick={handleLogout}
           >
             <LogOut className="h-4 w-4 mr-2" />
-            {isGuestMode ? "Guest Mode'dan chiqish" : "Logout"}
+            {isGuestMode && !session ? "Guest Mode'dan chiqish" : "Logout"}
           </Button>
         )}
       </>

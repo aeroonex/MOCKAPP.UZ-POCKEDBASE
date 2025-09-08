@@ -2,23 +2,24 @@
 
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "@/context/AuthProvider";
 
-interface ProtectedRouteProps {
-  isLoggedIn: boolean; // Lokal login holatini prop sifatida qabul qilamiz
-}
-
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isLoggedIn }) => {
+const ProtectedRoute: React.FC = () => {
+  const { session, loading } = useAuth();
   const isGuestMode = localStorage.getItem("isGuestMode") === "true";
-  const currentPath = window.location.pathname;
 
-  // MockTest va Records har doim ochiq bo'lishi kerak, shuning uchun ularni bu yerda tekshirmaymiz
-  // Ular App.tsx da alohida Route sifatida belgilangan.
-
-  if (isLoggedIn || isGuestMode) {
-    return <Outlet />; // Agar foydalanuvchi login bo'lgan bo'lsa yoki guest mode'da bo'lsa, ruxsat berish
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+        <p className="text-xl text-muted-foreground">Yuklanmoqda...</p>
+      </div>
+    );
   }
 
-  // Agar na login, na guest mode bo'lmasa, login sahifasiga yo'naltirish
+  if (session || isGuestMode) {
+    return <Outlet />;
+  }
+
   return <Navigate to="/login" replace />;
 };
 
