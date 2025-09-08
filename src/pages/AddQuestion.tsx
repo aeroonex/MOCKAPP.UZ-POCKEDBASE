@@ -10,8 +10,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showSuccess, showError } from "@/utils/toast";
-import { Trash2 } from "lucide-react";
+import { AlertTriangle, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   SpeakingQuestion,
   SpeakingPart,
@@ -27,8 +33,8 @@ import {
   deleteLocalQuestion,
   resetLocalQuestionCooldowns,
 } from "@/lib/local-db";
-import { supabase } from "../integrations/supabase/client"; // Supabase klientini import qilish
-import { v4 as uuidv4 } from 'uuid'; // Noyob fayl nomlari uchun
+import { supabase } from "../integrations/supabase/client";
+import { v4 as uuidv4 } from 'uuid';
 
 const loadInitialQuestions = (): Record<SpeakingPart, SpeakingQuestion[]> => {
   const allLocalQuestions = getLocalQuestions();
@@ -36,13 +42,15 @@ const loadInitialQuestions = (): Record<SpeakingPart, SpeakingQuestion[]> => {
     "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
   };
   allLocalQuestions.forEach((q: SpeakingQuestion) => {
-    if (groupedQuestions[q.type as SpeakingPart]) {
+    if (q && q.type && groupedQuestions[q.type as SpeakingPart]) {
       groupedQuestions[q.type as SpeakingPart].push(q);
     }
   });
-  // Sort each part by date descending
   for (const part in groupedQuestions) {
-    groupedQuestions[part as SpeakingPart].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    groupedQuestions[part as SpeakingPart].sort((a, b) => {
+      if (!a.date || !b.date) return 0;
+      return new Date(b.date).getTime() - new Date(a.date).getTime()
+    });
   }
   return groupedQuestions;
 };
@@ -150,7 +158,7 @@ const SpeakingQuestionManager: React.FC = () => {
 
     if (questionAdded) {
       showSuccess(`Savol ${part} ga qo'shildi!`);
-      setQuestions(loadInitialQuestions()); // Re-load all questions from storage
+      setQuestions(loadInitialQuestions());
 
       setQuestionText("");
       setImagePreviewUrls([]);
@@ -161,13 +169,13 @@ const SpeakingQuestionManager: React.FC = () => {
   const handleDeleteQuestion = (part: SpeakingPart, id: string) => {
     deleteLocalQuestion(id);
     showSuccess("Savol muvaffaqiyatli o'chirildi!");
-    setQuestions(loadInitialQuestions()); // Re-load all questions from storage
+    setQuestions(loadInitialQuestions());
   };
 
   const handleResetAllCooldowns = () => {
     resetLocalQuestionCooldowns();
     showSuccess("Barcha savollar cooldown'lari tiklandi!");
-    setQuestions(loadInitialQuestions()); // Re-load all questions from storage
+    setQuestions(loadInitialQuestions());
   };
 
   const renderQuestionInput = (part: SpeakingPart) => {
@@ -215,7 +223,7 @@ const SpeakingQuestionManager: React.FC = () => {
 
         {["Part 2", "Part 3"].includes(part) && (
           <>
-            <Label htmlFor={`question-text-${part}`} className="text-base">Asiy savol</Label>
+            <Label htmlFor={`question-text-${part}`} className="text-base">Asosiy savol</Label>
             <Textarea
               id={`question-text-${part}`}
               placeholder={`${part} uchun savol kiriting...`}
@@ -235,40 +243,50 @@ const SpeakingQuestionManager: React.FC = () => {
       case "Part 1.1":
         return (
           <ul className="list-disc list-inside text-sm">
-            {q.sub_questions.map((subQ, i) => <li key={i}>{subQ}</li>)}
+            {Array.isArray(q.sub_questions) && q.sub_questions.length > 0
+              ? q.sub_questions.map((subQ, i) => <li key={i}>{subQ}</li>)
+              : <li className="text-yellow-600">Kichik savollar yo'q</li>}
           </ul>
         );
       case "Part 1.2":
         return (
           <div className="flex flex-col items-start">
-            <div className="flex gap-2 mb-2">
-              {q.image_urls.map((url, idx) => <img key={idx} src={url} alt="" className="max-h-24 object-contain rounded-md" />)}
-            </div>
+            {q.image_urls?.length > 0 && (
+              <div className="flex gap-2 mb-2">
+                {q.image_urls.map((url, idx) => <img key={idx} src={url} alt="" className="max-h-24 object-contain rounded-md" />)}
+              </div>
+            )}
             <ul className="list-disc list-inside text-sm">
-              {q.sub_questions.map((subQ, i) => <li key={i}>{subQ}</li>)}
+              {Array.isArray(q.sub_questions) && q.sub_questions.length > 0
+                ? q.sub_questions.map((subQ, i) => <li key={i}>{subQ}</li>)
+                : <li className="text-yellow-600">Kichik savollar yo'q</li>}
             </ul>
           </div>
         );
       case "Part 2":
         return (
           <div className="flex flex-col items-start">
-            <div className="flex gap-2 mb-2">
-              {q.image_urls.map((url, idx) => <img key={idx} src={url} alt="" className="max-h-24 object-contain rounded-md" />)}
-            </div>
-            <p className="text-sm">{q.question_text}</p>
+            {q.image_urls?.length > 0 && (
+              <div className="flex gap-2 mb-2">
+                {q.image_urls.map((url, idx) => <img key={idx} src={url} alt="" className="max-h-24 object-contain rounded-md" />)}
+              </div>
+            )}
+            <p className="text-sm">{q.question_text ?? <span className="text-yellow-600">Savol matni yo'q</span>}</p>
           </div>
         );
       case "Part 3":
         return (
           <div className="flex flex-col items-start">
-            <p className="text-sm mb-2">{q.question_text}</p>
-            <div className="flex gap-2">
-              {q.image_urls.map((url, idx) => <img key={idx} src={url} alt="" className="max-h-24 object-contain rounded-md" />)}
-            </div>
+            <p className="text-sm mb-2">{q.question_text ?? <span className="text-yellow-600">Savol matni yo'q</span>}</p>
+            {q.image_urls?.length > 0 && (
+              <div className="flex gap-2">
+                {q.image_urls.map((url, idx) => <img key={idx} src={url} alt="" className="max-h-24 object-contain rounded-md" />)}
+              </div>
+            )}
           </div>
         );
       default:
-        return <p className="text-sm">Noma'lum savol turi</p>;
+        return <p className="text-sm text-red-500">Noma'lum savol turi</p>;
     }
   };
 
@@ -297,17 +315,32 @@ const SpeakingQuestionManager: React.FC = () => {
                     {questions[part].length === 0 ? (
                       <p className="text-center text-muted-foreground">Hali savollar qo'shilmagan.</p>
                     ) : (
-                      questions[part].map((q) => (
-                        <div key={q.id} className="flex items-center justify-between p-3 border rounded-md bg-secondary text-secondary-foreground">
-                          <div className="flex-grow mr-4">{renderQuestionCardContent(q)}</div>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span>{q.last_used ? `Oxirgi: ${format(new Date(q.last_used), "MMM dd, HH:mm")}` : "Ishlatilmagan"}</span>
-                            <Button variant="ghost" size="icon" onClick={() => handleDeleteQuestion(part, q.id)}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
+                      questions[part].map((q, index) => {
+                        const canBeDeleted = !!q.id;
+                        return (
+                          <div key={q.id || `q-${part}-${index}`} className="flex items-center justify-between p-3 border rounded-md bg-secondary text-secondary-foreground">
+                            <div className="flex-grow mr-4">{renderQuestionCardContent(q)}</div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              {!canBeDeleted && (
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger>
+                                      <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Bu savolni o'chirib bo'lmaydi (ID mavjud emas).</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              )}
+                              <span>{q.last_used ? `Oxirgi: ${format(new Date(q.last_used), "MMM dd, HH:mm")}` : "Ishlatilmagan"}</span>
+                              <Button variant="ghost" size="icon" onClick={() => canBeDeleted && handleDeleteQuestion(part, q.id)} disabled={!canBeDeleted}>
+                                <Trash2 className={`h-4 w-4 ${canBeDeleted ? 'text-destructive' : 'text-gray-400'}`} />
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      ))
+                        );
+                      })
                     )}
                   </div>
                 </TabsContent>
