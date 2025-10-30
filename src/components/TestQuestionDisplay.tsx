@@ -87,7 +87,7 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
           <h3 className="text-xl font-semibold text-muted-foreground">
             {currentPartName} - Savol {currentQuestionIndex + 1}
           </h3>
-          <CountdownBar />
+          <CountdownBar label={currentPhase === "reading_question" ? "O'qish:" : "Javob:"} />
           <div className="min-h-[100px] flex flex-col items-center justify-center p-4 border rounded-md bg-secondary text-foreground">
             <p className="text-xl font-medium mb-2">Savol {currentSubQuestionIndex + 1}:</p>
             <p className="text-2xl font-medium text-center">{part1_1Q.sub_questions[currentSubQuestionIndex]}</p>
@@ -106,7 +106,7 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
               <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-64 object-contain rounded-lg shadow-md" />
             ))}
           </div>
-          <CountdownBar />
+          <CountdownBar label={currentPhase === "reading_question" ? "O'qish:" : "Javob:"} />
           <div className="min-h-[100px] flex flex-col items-center justify-center p-4 border rounded-md bg-secondary text-foreground">
             <p className="text-xl font-medium mb-2">Savol {currentSubQuestionIndex + 1}:</p>
             <p className="text-2xl font-medium text-center">{part1_2Q.sub_questions[currentSubQuestionIndex]}</p>

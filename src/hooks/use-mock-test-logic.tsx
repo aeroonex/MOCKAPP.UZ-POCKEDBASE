@@ -17,8 +17,9 @@ import { getSupabaseQuestions, updateSupabaseQuestion } from "@/lib/local-db";
 
 const TIMINGS = {
   PRE_TEST_COUNTDOWN: 5,
-  PART1_1_QUESTION: 30,
-  PART1_2_QUESTION: 30,
+  PART1_READ_QUESTION: 5, // New: 5 seconds for reading Part 1.1/1.2 questions
+  PART1_1_ANSWER: 30, // Renamed from PART1_1_QUESTION
+  PART1_2_ANSWER: 30, // Renamed from PART1_2_QUESTION
   PART2_PREP: 60,
   PART2_SPEAK: 120,
   PART3_PREP: 60,
@@ -27,7 +28,7 @@ const TIMINGS = {
   ANNOUNCEMENT_SPEAK_DURATION: 2,
 };
 
-export type TestPhase = "idle" | "pre_test_countdown" | "preparation" | "speaking" | "question_display" | "part_finished_announcement" | "next_part_announcement" | "finished";
+export type TestPhase = "idle" | "pre_test_countdown" | "reading_question" | "preparation" | "speaking" | "part_finished_announcement" | "next_part_announcement" | "finished";
 
 interface UseMockTestLogicProps {
   startRecording: (studentInfo: StudentInfo) => Promise<boolean>;
@@ -106,25 +107,37 @@ export const useMockTestLogic = ({
       case "Part 1.1":
       case "Part 1.2": {
         const subQCount = (currentQ as Part1_1Question | Part1_2Question).sub_questions.length;
-        if (currentSubQuestionIndex < subQCount - 1) {
-          setCurrentSubQuestionIndex(prev => prev + 1);
-          setCurrentPhase("question_display");
-        } else {
-          if (currentQuestionIndex < questions[currentPartName].length - 1) {
-            setCurrentQuestionIndex(prev => prev + 1);
-            setCurrentSubQuestionIndex(0);
-            setCurrentPhase("question_display");
+        if (currentPhase === "reading_question") {
+          // Finished reading, now start speaking
+          setCurrentPhase("speaking");
+        } else if (currentPhase === "speaking") {
+          // Finished speaking, move to next sub-question or next question/part
+          if (currentSubQuestionIndex < subQCount - 1) {
+            setCurrentSubQuestionIndex(prev => prev + 1);
+            setCurrentPhase("reading_question"); // Start reading for the next sub-question
           } else {
-            setCurrentPhase("part_finished_announcement");
+            if (currentQuestionIndex < questions[currentPartName].length - 1) {
+              setCurrentQuestionIndex(prev => prev + 1);
+              setCurrentSubQuestionIndex(0);
+              setCurrentPhase("reading_question"); // Start reading for the next question
+            } else {
+              setCurrentPhase("part_finished_announcement");
+            }
           }
+        } else {
+          // Initial entry for a new Part 1.1/1.2 question/sub-question
+          setCurrentPhase("reading_question");
         }
         break;
       }
       case "Part 2":
       case "Part 3": {
-        if (currentPhase === "question_display") setCurrentPhase("preparation");
-        else if (currentPhase === "preparation") setCurrentPhase("speaking");
+        if (currentPhase === "preparation") setCurrentPhase("speaking");
         else if (currentPhase === "speaking") setCurrentPhase("part_finished_announcement");
+        else {
+          // Initial entry for a new Part 2/3 question
+          setCurrentPhase("preparation");
+        }
         break;
       }
       default:
@@ -159,9 +172,30 @@ export const useMockTestLogic = ({
     let duration = 0;
     let nextAction: () => void = advanceTest;
 
+    const currentQ = getCurrentQuestion();
+
     if (currentPhase === "pre_test_countdown") {
       duration = TIMINGS.PRE_TEST_COUNTDOWN;
-      nextAction = () => setCurrentPhase("idle");
+      nextAction = () => {
+        const firstPartWithQuestionsIndex = allSpeakingParts.findIndex(part => questions[part].length > 0);
+        if (firstPartWithQuestionsIndex !== -1) {
+          setCurrentPartIndex(firstPartWithQuestionsIndex);
+          setCurrentQuestionIndex(0);
+          setCurrentSubQuestionIndex(0);
+          const firstPartName = allSpeakingParts[firstPartWithQuestionsIndex];
+          if (firstPartName === "Part 1.1" || firstPartName === "Part 1.2") {
+            setCurrentPhase("reading_question"); // Start with reading for the first question
+          } else {
+            setCurrentPhase("preparation"); // Start with preparation for Part 2/3
+          }
+        } else {
+          // No questions available at all
+          stopAllStreams();
+          setIsTestStarted(false);
+          setCurrentPhase("finished");
+          showError("Mock testni boshlash uchun savollar mavjud emas.");
+        }
+      };
     } else if (currentPhase === "part_finished_announcement") {
       speakText(`${allSpeakingParts[currentPartIndex]} finished.`, 'en-US');
       duration = TIMINGS.ANNOUNCEMENT_DELAY;
@@ -178,9 +212,13 @@ export const useMockTestLogic = ({
         duration = TIMINGS.ANNOUNCEMENT_SPEAK_DURATION;
         nextAction = () => {
           if (questions[nextPartName]?.length > 0) {
-            setCurrentPhase("question_display");
+            if (nextPartName === "Part 1.1" || nextPartName === "Part 1.2") {
+              setCurrentPhase("reading_question");
+            } else {
+              setCurrentPhase("preparation");
+            }
           } else {
-            advanceTest();
+            advanceTest(); // Skip this part if no questions
           }
         };
       } else {
@@ -190,26 +228,30 @@ export const useMockTestLogic = ({
         showSuccess("Mock test yakunlandi!");
         return;
       }
+    } else if (currentQ) {
+      switch (currentPhase) {
+        case "reading_question":
+          duration = TIMINGS.PART1_READ_QUESTION;
+          nextAction = () => setCurrentPhase("speaking"); // After reading, start speaking
+          break;
+        case "speaking":
+          if (currentQ.type === "Part 1.1") duration = TIMINGS.PART1_1_ANSWER;
+          else if (currentQ.type === "Part 1.2") duration = TIMINGS.PART1_2_ANSWER;
+          else if (currentQ.type === "Part 2") duration = TIMINGS.PART2_SPEAK;
+          else if (currentQ.type === "Part 3") duration = TIMINGS.PART3_SPEAK;
+          break;
+        case "preparation":
+          if (currentQ.type === "Part 2") duration = TIMINGS.PART2_PREP;
+          else if (currentQ.type === "Part 3") duration = TIMINGS.PART3_PREP;
+          break;
+        default:
+          duration = 0; // Should not happen if phases are handled correctly
+          break;
+      }
     } else {
-      const currentQ = getCurrentQuestion();
-      if (!currentQ) {
-        advanceTest();
-        return;
-      }
-      switch (currentQ.type) {
-        case "Part 1.1": duration = TIMINGS.PART1_1_QUESTION; break;
-        case "Part 1.2": duration = TIMINGS.PART1_2_QUESTION; break;
-        case "Part 2":
-          if (currentPhase === "preparation") duration = TIMINGS.PART2_PREP;
-          else if (currentPhase === "speaking") duration = TIMINGS.PART2_SPEAK;
-          else duration = 0;
-          break;
-        case "Part 3":
-          if (currentPhase === "preparation") duration = TIMINGS.PART3_PREP;
-          else if (currentPhase === "speaking") duration = TIMINGS.PART3_SPEAK;
-          else duration = 0;
-          break;
-      }
+      // No current question, advance test to find next part or finish
+      advanceTest();
+      return;
     }
 
     if (duration > 0) startCountdown(duration, nextAction);
@@ -221,34 +263,21 @@ export const useMockTestLogic = ({
   }, [isTestStarted, currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, currentPhase, questions, startCountdown, advanceTest, stopAllStreams, getCurrentQuestion]);
 
   useEffect(() => {
-    if (isTestStarted && currentPhase === "idle") {
-      const totalQuestions = allSpeakingParts.reduce((sum, part) => sum + questions[part].length, 0);
-      if (totalQuestions === 0) {
-        showError("Mock testni boshlash uchun savollar mavjud emas.");
-        setIsTestStarted(false);
-        return;
-      }
-      const firstPartWithQuestionsIndex = allSpeakingParts.findIndex(part => questions[part].length > 0);
-      if (firstPartWithQuestionsIndex !== -1) {
-        setCurrentPartIndex(firstPartWithQuestionsIndex);
-        setCurrentQuestionIndex(0);
-        setCurrentSubQuestionIndex(0);
-        setCurrentPhase("question_display");
-      }
-    }
-  }, [isTestStarted, currentPhase, questions]);
-
-  useEffect(() => {
-    if (isTestStarted && currentPhase === "question_display") {
+    if (isTestStarted && currentPhase === "reading_question") { // Speak only when entering reading_question
       const currentQ = getCurrentQuestion();
       if (currentQ) {
         let textToSpeak = "";
         if (currentQ.type === "Part 1.1" || currentQ.type === "Part 1.2") {
           textToSpeak = (currentQ as Part1_1Question | Part1_2Question).sub_questions[currentSubQuestionIndex];
-        } else if (currentQ.type === "Part 2" || currentQ.type === "Part 3") {
-          textToSpeak = (currentQ as Part2Question | Part3Question).question_text;
         }
         if (textToSpeak) speakText(textToSpeak, 'en-US');
+      }
+    }
+    // Part 2/3 questions are spoken during preparation phase
+    if (isTestStarted && currentPhase === "preparation") {
+      const currentQ = getCurrentQuestion();
+      if (currentQ && (currentQ.type === "Part 2" || currentQ.type === "Part 3")) {
+        speakText((currentQ as Part2Question | Part3Question).question_text, 'en-US');
       }
     }
   }, [isTestStarted, currentPhase, currentSubQuestionIndex, getCurrentQuestion]);
