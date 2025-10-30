@@ -343,6 +343,13 @@ export const useMockTestLogic = ({
       setCurrentPhase("pre_test_countdown");
       showSuccess("Test boshlanmoqda!");
       setIsStudentInfoFormOpen(false);
+      // To'liq ekran rejimiga o'tish
+      try {
+        await document.documentElement.requestFullscreen();
+      } catch (err) {
+        console.error("To'liq ekran rejimiga o'tishda xatolik:", err);
+        showError("To'liq ekran rejimiga o'tishda xatolik yuz berdi.");
+      }
     } else {
       setStudentInfo(null);
     }
@@ -356,6 +363,10 @@ export const useMockTestLogic = ({
     if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
     activeCountdownPhaseRef.current = null; // Test tugaganda refni tozalash
     showSuccess("Mock test tugatildi.");
+    // To'liq ekran rejimdan chiqish
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    }
   };
 
   const handleResetTest = () => {
@@ -368,6 +379,10 @@ export const useMockTestLogic = ({
     setQuestions({ "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [] });
     loadAllQuestions();
     activeCountdownPhaseRef.current = null; // Test qayta boshlanganda refni tozalash
+    // To'liq ekran rejimdan chiqish
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    }
   };
 
   return {
