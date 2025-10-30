@@ -33,23 +33,25 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
 }) => {
   // CountdownBar komponentini ichki holat bilan silliq animatsiya uchun
   const CountdownBar = ({ label }: { label?: string }) => {
-    const [currentWidth, setCurrentWidth] = useState(100); // Barning boshlang'ich kengligi
-    const [currentDuration, setCurrentDuration] = useState(0); // Animatsiya davomiyligi
+    const [barWidth, setBarWidth] = useState(100); // Barning boshlang'ich kengligi
+    const [transitionDuration, setTransitionDuration] = useState(0); // Animatsiya davomiyligi
 
     useEffect(() => {
       // initialCountdown o'zgarganda (yangi hisoblash boshlanganda) animatsiyani qayta boshlash
       if (initialCountdown > 0) {
-        setCurrentWidth(100); // Kenglikni 100% ga o'rnatish
-        setCurrentDuration(initialCountdown); // Animatsiya davomiyligini belgilash
+        setBarWidth(100); // Kenglikni 100% ga o'rnatish
+        setTransitionDuration(initialCountdown); // Animatsiya davomiyligini belgilash
+
         // Kichik kechikishdan so'ng kenglikni 0% ga o'rnatish, bu CSS transitionni ishga tushiradi
-        const timer = setTimeout(() => {
-          setCurrentWidth(0);
+        const startTransitionTimer = setTimeout(() => {
+          setBarWidth(0);
         }, 50); // 50ms kechikish, 100% kenglik avval render qilinishini ta'minlash uchun
-        return () => clearTimeout(timer);
+
+        return () => clearTimeout(startTransitionTimer);
       } else {
         // Hisoblash faol bo'lmaganda holatni tiklash
-        setCurrentWidth(100);
-        setCurrentDuration(0);
+        setBarWidth(0); // Tugagan holatda 0% kenglik
+        setTransitionDuration(0); // Animatsiya yo'q
       }
     }, [initialCountdown]); // initialCountdown ga bog'liq, shunda har yangi hisoblashda animatsiya qayta boshlanadi
 
@@ -58,10 +60,10 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
         {label && <p className="text-xl font-semibold">{label}</p>}
         <div className="relative w-full h-10 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden shadow-inner">
           <div
-            className="absolute top-0 right-0 h-full bg-primary"
+            className="absolute top-0 left-0 h-full bg-primary" // Chap tomondan boshlanadi
             style={{
-              width: `${currentWidth}%`,
-              transition: `width ${currentDuration}s linear`,
+              width: `${barWidth}%`,
+              transition: `width ${transitionDuration}s linear`,
             }}
           />
           <span className="absolute inset-0 flex items-center justify-center text-3xl font-bold text-white mix-blend-difference pointer-events-none">
