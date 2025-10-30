@@ -54,7 +54,23 @@ const Records: React.FC = () => {
 
       const a = document.createElement("a");
       a.href = url;
-      a.download = `recording_${recording.id}.webm`;
+      
+      // Fayl nomini o'quvchi ismi va telefon raqami bilan shakllantirish
+      let filename = `recording_${recording.id}.webm`; // Default nom
+      if (recording.student_name && recording.student_phone) {
+        // Ism va telefon raqamidagi bo'shliqlarni va maxsus belgilarni almashtirish
+        const cleanName = recording.student_name.replace(/[^a-zA-Z0-9]/g, '_');
+        const cleanPhone = recording.student_phone.replace(/[^0-9]/g, '');
+        filename = `${cleanName}_${cleanPhone}.webm`;
+      } else if (recording.student_name) {
+        const cleanName = recording.student_name.replace(/[^a-zA-Z0-9]/g, '_');
+        filename = `${cleanName}.webm`;
+      } else if (recording.student_phone) {
+        const cleanPhone = recording.student_phone.replace(/[^0-9]/g, '');
+        filename = `${cleanPhone}.webm`;
+      }
+      
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
