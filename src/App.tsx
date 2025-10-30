@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+// import Index from "./pages/Index"; // Index importini olib tashladim
 import NotFound from "./pages/NotFound";
 import MoodJournal from "./pages/MoodJournal";
 import Login from "./pages/Login";
@@ -29,9 +29,8 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <div className="pb-10 bg-background text-foreground min-h-screen">
-              {/* VAQTINCHALIK DEBUG ELEMENTI OLIB TASHLANDI */}
               <Routes>
-                <Route path="/" element={<Index />} />
+                <Route path="/" element={<Login />} /> {/* Asosiy marshrutni Login sahifasiga o'zgartirdim */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/mock-test" element={<MockTest />} />
                 
