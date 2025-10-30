@@ -169,6 +169,11 @@ export const useMockTestLogic = ({
       return;
     }
 
+    // Agar hisoblash allaqachon ishlayotgan bo'lsa, uni qayta boshlamang.
+    if (countdownIntervalRef.current) {
+        return;
+    }
+
     let duration = 0;
     let nextAction: () => void = advanceTest;
 
@@ -254,8 +259,11 @@ export const useMockTestLogic = ({
       return;
     }
 
-    if (duration > 0) startCountdown(duration, nextAction);
-    else nextAction();
+    if (duration > 0) {
+        startCountdown(duration, nextAction);
+    } else {
+        nextAction();
+    }
 
     return () => {
       if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
