@@ -11,6 +11,17 @@ import { RecordedSession } from "@/lib/types";
 import { showError, showSuccess } from "@/utils/toast";
 import { getLocalRecordings, deleteLocalRecording } from "@/lib/local-db";
 import { Link } from "react-router-dom";
+import { // AlertDialog komponentlari import qilindi
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const Records: React.FC = () => {
   const [recordings, setRecordings] = useState<RecordedSession[]>([]);
@@ -137,9 +148,25 @@ const Records: React.FC = () => {
                         <Button onClick={() => handleDownload(recording)} variant="outline" size="sm" className="flex items-center gap-1">
                           <Download className="h-4 w-4" /> Download
                         </Button>
-                        <Button onClick={() => handleDelete(recording)} variant="destructive" size="sm" className="flex items-center gap-1">
-                          <Trash2 className="h-4 w-4" /> Delete
-                        </Button>
+                        <AlertDialog> {/* AlertDialog qo'shildi */}
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm" className="flex items-center gap-1">
+                              <Trash2 className="h-4 w-4" /> Delete
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Yozuvni o'chirishga ishonchingiz komilmi?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Bu harakatni qaytarib bo'lmaydi. Ushbu yozuv butunlay o'chiriladi.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDelete(recording)}>O'chirish</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
                     {recording.student_name && (

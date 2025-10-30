@@ -25,6 +25,17 @@ import { supabase } from "../integrations/supabase/client";
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from "@/context/AuthProvider";
 import { Link } from "react-router-dom";
+import { // AlertDialog komponentlari import qilindi
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const SpeakingQuestionManager: React.FC = () => {
   const { session } = useAuth();
@@ -382,9 +393,25 @@ const SpeakingQuestionManager: React.FC = () => {
                                 <Button variant="ghost" size="icon" onClick={() => handleEditClick(q)}>
                                   <Pencil className="h-4 w-4 text-blue-500" />
                                 </Button>
-                                <Button variant="ghost" size="icon" onClick={() => handleDeleteQuestion(q.id)}>
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
+                                <AlertDialog> {/* AlertDialog qo'shildi */}
+                                  <AlertDialogTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                      <Trash2 className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Savolni o'chirishga ishonchingiz komilmi?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        Bu harakatni qaytarib bo'lmaydi. Ushbu savol butunlay o'chiriladi.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Bekor qilish</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleDeleteQuestion(q.id)}>O'chirish</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
                               </div>
                               <div className="text-xs text-muted-foreground text-right">
                                 <span>{q.last_used ? `Oxirgi: ${format(new Date(q.last_used), "MMM dd, HH:mm")}` : "Ishlatilmagan"}</span>

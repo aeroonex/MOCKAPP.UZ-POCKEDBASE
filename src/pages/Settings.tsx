@@ -2,14 +2,21 @@
 
 import React from "react";
 import Navbar from "@/components/Navbar";
-import { CefrCentreFooter } from "@/components/CefrCentreFooter"; // Updated import
+import { CefrCentreFooter } from "@/components/CefrCentreFooter";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useTheme } from "next-themes"; // useTheme hookini import qilish
 
 const Settings: React.FC = () => {
+  const { theme, setTheme } = useTheme(); // useTheme hookidan foydalanish
+
+  const handleThemeChange = (checked: boolean) => {
+    setTheme(checked ? "dark" : "light");
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950">
       <Navbar />
@@ -22,7 +29,11 @@ const Settings: React.FC = () => {
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
               <Label htmlFor="dark-mode" className="text-base">Dark Mode</Label>
-              <Switch id="dark-mode" />
+              <Switch 
+                id="dark-mode" 
+                checked={theme === "dark"} // Joriy temaga qarab holatni belgilash
+                onCheckedChange={handleThemeChange} // O'zgarishlarni boshqarish
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="username-setting" className="text-base">Username</Label>
@@ -36,7 +47,7 @@ const Settings: React.FC = () => {
           </CardContent>
         </Card>
       </main>
-      <CefrCentreFooter /> {/* Replaced MadeWithDyad */}
+      <CefrCentreFooter />
     </div>
   );
 };
