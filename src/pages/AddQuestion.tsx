@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { showSuccess, showError } from "@/utils/toast";
 import { Trash2, Pencil, X, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
-import { SpeakingQuestion, SpeakingPart } from "@/lib/types";
+import { SpeakingQuestion, SpeakingPart, Part1_1Question, Part1_2Question, Part2Question, Part3Question } from "@/lib/types";
 import { allSpeakingParts } from "@/lib/constants";
 import {
   getSupabaseQuestions,
@@ -145,23 +145,23 @@ const SpeakingQuestionManager: React.FC = () => {
       case "Part 1.1": {
         const subQ = subQuestionsText.split('\n').map(q => q.trim()).filter(Boolean);
         if (subQ.length === 0) { showError("Kamida bitta kichik savol kiriting."); return; }
-        questionData = { type: part, sub_questions: subQ };
+        questionData = { type: part, sub_questions: subQ } as Omit<Part1_1Question, 'id' | 'date' | 'user_id'>;
         break;
       }
       case "Part 1.2": {
         const subQ = subQuestionsText.split('\n').map(q => q.trim()).filter(Boolean);
         if (finalImageUrls.length === 0 || subQ.length === 0) { showError("Rasm va kichik savollar bo'sh bo'lishi mumkin emas."); return; }
-        questionData = { type: part, image_urls: finalImageUrls, sub_questions: subQ };
+        questionData = { type: part, image_urls: finalImageUrls, sub_questions: subQ } as Omit<Part1_2Question, 'id' | 'date' | 'user_id'>;
         break;
       }
       case "Part 2": {
         if (finalImageUrls.length === 0 || !questionText.trim()) { showError("Rasm va asosiy savol bo'sh bo'lishi mumkin emas."); return; }
-        questionData = { type: part, image_urls: finalImageUrls, question_text: questionText.trim() };
+        questionData = { type: part, image_urls: finalImageUrls, question_text: questionText.trim() } as Omit<Part2Question, 'id' | 'date' | 'user_id'>;
         break;
       }
       case "Part 3": {
         if (finalImageUrls.length === 0 || !questionText.trim()) { showError("Rasm va asosiy savol bo'sh bo'lishi mumkin emas."); return; }
-        questionData = { type: part, image_urls: finalImageUrls, question_text: questionText.trim() };
+        questionData = { type: part, image_urls: finalImageUrls, question_text: questionText.trim() } as Omit<Part3Question, 'id' | 'date' | 'user_id'>;
         break;
       }
     }
@@ -170,7 +170,25 @@ const SpeakingQuestionManager: React.FC = () => {
       if (editingQuestionId) {
         const existingQuestion = questions[part].find(q => q.id === editingQuestionId);
         if (existingQuestion) {
-          const updatedQuestion = { ...existingQuestion, ...questionData, type: part };
+          let updatedQuestion: SpeakingQuestion;
+
+          switch (part) {
+            case "Part 1.1":
+              updatedQuestion = { ...existingQuestion as Part1_1Question, ...questionData as Omit<Part1_1Question, 'id' | 'date' | 'user_id'> };
+              break;
+            case "Part 1.2":
+              updatedQuestion = { ...existingQuestion as Part1_2Question, ...questionData as Omit<Part1_2Question, 'id' | 'date' | 'user_id'> };
+              break;
+            case "Part 2":
+              updatedQuestion = { ...existingQuestion as Part2Question, ...questionData as Omit<Part2Question, 'id' | 'date' | 'user_id'> };
+              break;
+            case "Part 3":
+              updatedQuestion = { ...existingQuestion as Part3Question, ...questionData as Omit<Part3Question, 'id' | 'date' | 'user_id'> };
+              break;
+            default:
+              showError("Noma'lum savol turi.");
+              return;
+          }
           await updateSupabaseQuestion(updatedQuestion);
           showSuccess("Savol muvaffaqiyatli yangilandi!");
         }
