@@ -263,22 +263,19 @@ export const useMockTestLogic = ({
   }, [isTestStarted, currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, currentPhase, questions, startCountdown, advanceTest, stopAllStreams, getCurrentQuestion]);
 
   useEffect(() => {
-    if (isTestStarted && currentPhase === "reading_question") { // Speak only when entering reading_question
-      const currentQ = getCurrentQuestion();
-      if (currentQ) {
-        let textToSpeak = "";
-        if (currentQ.type === "Part 1.1" || currentQ.type === "Part 1.2") {
-          textToSpeak = (currentQ as Part1_1Question | Part1_2Question).sub_questions[currentSubQuestionIndex];
-        }
-        if (textToSpeak) speakText(textToSpeak, 'en-US');
-      }
-    }
-    // Part 2/3 questions are spoken during preparation phase
-    if (isTestStarted && currentPhase === "preparation") {
-      const currentQ = getCurrentQuestion();
-      if (currentQ && (currentQ.type === "Part 2" || currentQ.type === "Part 3")) {
-        speakText((currentQ as Part2Question | Part3Question).question_text, 'en-US');
-      }
+    if (!isTestStarted) return;
+
+    const currentQ = getCurrentQuestion();
+    if (!currentQ) return;
+
+    if (currentPhase === "reading_question" && (currentQ.type === "Part 1.1" || currentQ.type === "Part 1.2")) {
+      const textToSpeak = (currentQ as Part1_1Question | Part1_2Question).sub_questions[currentSubQuestionIndex];
+      if (textToSpeak) speakText(textToSpeak, 'en-US');
+    } else if (currentPhase === "preparation" && (currentQ.type === "Part 2" || currentQ.type === "Part 3")) {
+      speakText((currentQ as Part2Question | Part3Question).question_text, 'en-US');
+    } else if (currentPhase === "speaking" && currentQ.type === "Part 2") {
+      // New: Announce "Please speak" when Part 2 speaking phase starts
+      speakText("Please speak", 'en-US');
     }
   }, [isTestStarted, currentPhase, currentSubQuestionIndex, getCurrentQuestion]);
 
