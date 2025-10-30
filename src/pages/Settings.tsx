@@ -13,8 +13,12 @@ import { useTheme } from "next-themes"; // useTheme hookini import qilish
 const Settings: React.FC = () => {
   const { theme, setTheme } = useTheme(); // useTheme hookidan foydalanish
 
+  console.log("Current theme from useTheme:", theme); // Debug log
+
   const handleThemeChange = (checked: boolean) => {
-    setTheme(checked ? "dark" : "light");
+    const newTheme = checked ? "dark" : "light";
+    console.log("Attempting to set theme to:", newTheme); // Debug log
+    setTheme(newTheme);
   };
 
   return (
