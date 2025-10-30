@@ -19,9 +19,9 @@ const Home: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-white dark:bg-gray-950">
       <Navbar />
       <main className="flex-grow container mx-auto p-4 flex flex-col items-center justify-center text-center">
-        <div className="h-28 w-28 rounded-lg flex items-center justify-center bg-red-50 dark:bg-red-900/20 animate-logo-pulse mb-6 shadow-lg border border-red-200">
+        {/* <div className="h-28 w-28 rounded-lg flex items-center justify-center bg-red-50 dark:bg-red-900/20 animate-logo-pulse mb-6 shadow-lg border border-red-200">
           <span className="text-4xl font-extrabold text-red-600">CEFR LC</span>
-        </div>
+        </div> */}
         <h1 className="text-5xl font-bold text-red-600 dark:text-red-500 mb-4">
           CEFR LC Speaking Platform
         </h1>

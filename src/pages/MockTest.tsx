@@ -9,7 +9,7 @@ import { Video } from "lucide-react";
 import StudentInfoForm from "@/components/StudentInfoForm"; // Import StudentInfoForm
 import { useMockTestLogic } from "@/hooks/use-mock-test-logic";
 import TestQuestionDisplay from "@/components/TestQuestionDisplay";
-import TestControls from "@/components/TestControls";
+import TestControls from "@/components/TestControls"; // TestControls komponentini import qilish
 
 const MockTest: React.FC = () => {
   const { isRecording, startRecording, stopAllStreams, webcamStream } = useRecorder();
@@ -81,9 +81,6 @@ const MockTest: React.FC = () => {
         
         <Card className="w-full max-w-2xl text-center relative">
           <CardHeader className="flex flex-row items-center justify-center gap-4">
-            <div className="h-20 w-20 rounded-md flex items-center justify-center bg-gray-100 dark:bg-gray-800 animate-logo-pulse">
-              <span className="text-2xl font-extrabold text-red-600">CEFR LC</span>
-            </div>
             <div className="text-left">
               <CardTitle className="text-3xl font-bold">Mock Speaking Test</CardTitle>
               <CardDescription>Practice your speaking skills with generated questions.</CardDescription>
