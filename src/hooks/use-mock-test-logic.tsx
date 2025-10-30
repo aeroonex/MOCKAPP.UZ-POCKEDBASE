@@ -64,6 +64,7 @@ export const useMockTestLogic = ({
   const [studentInfo, setStudentInfo] = useState<StudentInfo | null>(null);
 
   const countdownIntervalRef = useRef<number | null>(null);
+  const activeCountdownPhaseRef = useRef<TestPhase | null>(null); // Yangi ref qo'shildi
 
   const getCurrentQuestion = useCallback(() => {
     const currentPartName = allSpeakingParts[currentPartIndex];
@@ -79,13 +80,14 @@ export const useMockTestLogic = ({
         if (prev <= 1) {
           clearInterval(countdownIntervalRef.current!);
           countdownIntervalRef.current = null;
+          activeCountdownPhaseRef.current = null; // Hisoblash tugaganda refni tozalash
           nextAction();
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
-  }, []);
+  }, [setInitialCountdown, setCountdown]); // setInitialCountdown va setCountdown ni dependency qilib qo'shish
 
   const advanceTest = useCallback(() => {
     const currentPartName = allSpeakingParts[currentPartIndex];
@@ -108,24 +110,21 @@ export const useMockTestLogic = ({
       case "Part 1.2": {
         const subQCount = (currentQ as Part1_1Question | Part1_2Question).sub_questions.length;
         if (currentPhase === "reading_question") {
-          // Finished reading, now start speaking
           setCurrentPhase("speaking");
         } else if (currentPhase === "speaking") {
-          // Finished speaking, move to next sub-question or next question/part
           if (currentSubQuestionIndex < subQCount - 1) {
             setCurrentSubQuestionIndex(prev => prev + 1);
-            setCurrentPhase("reading_question"); // Start reading for the next sub-question
+            setCurrentPhase("reading_question");
           } else {
             if (currentQuestionIndex < questions[currentPartName].length - 1) {
               setCurrentQuestionIndex(prev => prev + 1);
               setCurrentSubQuestionIndex(0);
-              setCurrentPhase("reading_question"); // Start reading for the next question
+              setCurrentPhase("reading_question");
             } else {
               setCurrentPhase("part_finished_announcement");
             }
           }
         } else {
-          // Initial entry for a new Part 1.1/1.2 question/sub-question
           setCurrentPhase("reading_question");
         }
         break;
@@ -135,7 +134,6 @@ export const useMockTestLogic = ({
         if (currentPhase === "preparation") setCurrentPhase("speaking");
         else if (currentPhase === "speaking") setCurrentPhase("part_finished_announcement");
         else {
-          // Initial entry for a new Part 2/3 question
           setCurrentPhase("preparation");
         }
         break;
@@ -166,11 +164,13 @@ export const useMockTestLogic = ({
   useEffect(() => {
     if (!isTestStarted || currentPhase === "idle" || currentPhase === "finished") {
       if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+      setInitialCountdown(0);
+      activeCountdownPhaseRef.current = null; // Test tugaganda refni tozalash
       return;
     }
 
-    // Agar hisoblash allaqachon ishlayotgan bo'lsa, uni qayta boshlamang.
-    if (countdownIntervalRef.current) {
+    // Agar joriy faza uchun hisoblash allaqachon boshlangan bo'lsa, qayta boshlamang.
+    if (activeCountdownPhaseRef.current === currentPhase) {
         return;
     }
 
@@ -189,12 +189,11 @@ export const useMockTestLogic = ({
           setCurrentSubQuestionIndex(0);
           const firstPartName = allSpeakingParts[firstPartWithQuestionsIndex];
           if (firstPartName === "Part 1.1" || firstPartName === "Part 1.2") {
-            setCurrentPhase("reading_question"); // Start with reading for the first question
+            setCurrentPhase("reading_question");
           } else {
-            setCurrentPhase("preparation"); // Start with preparation for Part 2/3
+            setCurrentPhase("preparation");
           }
         } else {
-          // No questions available at all
           stopAllStreams();
           setIsTestStarted(false);
           setCurrentPhase("finished");
@@ -223,7 +222,7 @@ export const useMockTestLogic = ({
               setCurrentPhase("preparation");
             }
           } else {
-            advanceTest(); // Skip this part if no questions
+            advanceTest();
           }
         };
       } else {
@@ -237,7 +236,7 @@ export const useMockTestLogic = ({
       switch (currentPhase) {
         case "reading_question":
           duration = TIMINGS.PART1_READ_QUESTION;
-          nextAction = () => setCurrentPhase("speaking"); // After reading, start speaking
+          nextAction = () => setCurrentPhase("speaking");
           break;
         case "speaking":
           if (currentQ.type === "Part 1.1") duration = TIMINGS.PART1_1_ANSWER;
@@ -250,19 +249,20 @@ export const useMockTestLogic = ({
           else if (currentQ.type === "Part 3") duration = TIMINGS.PART3_PREP;
           break;
         default:
-          duration = 0; // Should not happen if phases are handled correctly
+          duration = 0;
           break;
       }
     } else {
-      // No current question, advance test to find next part or finish
       advanceTest();
       return;
     }
 
     if (duration > 0) {
+        activeCountdownPhaseRef.current = currentPhase; // Joriy fazani faol deb belgilash
         startCountdown(duration, nextAction);
     } else {
         nextAction();
+        activeCountdownPhaseRef.current = null; // Agar hisoblash bo'lmasa, refni tozalash
     }
 
     return () => {
@@ -282,7 +282,6 @@ export const useMockTestLogic = ({
     } else if (currentPhase === "preparation" && (currentQ.type === "Part 2" || currentQ.type === "Part 3")) {
       speakText((currentQ as Part2Question | Part3Question).question_text, 'en-US');
     } else if (currentPhase === "speaking" && currentQ.type === "Part 2") {
-      // New: Announce "Please speak" when Part 2 speaking phase starts
       speakText("Please speak", 'en-US');
     }
   }, [isTestStarted, currentPhase, currentSubQuestionIndex, getCurrentQuestion]);
@@ -316,7 +315,6 @@ export const useMockTestLogic = ({
       return;
     }
 
-    // Update last_used in Supabase
     const questionsToUpdate = Object.values(selectedQuestionsForTest).flat();
     for (const q of questionsToUpdate) {
       await updateSupabaseQuestion({ ...q, last_used: now.toISOString() });
@@ -346,6 +344,7 @@ export const useMockTestLogic = ({
     setCurrentPhase("finished");
     setStudentInfo(null);
     if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+    activeCountdownPhaseRef.current = null; // Test tugaganda refni tozalash
     showSuccess("Mock test tugatildi.");
   };
 
@@ -358,6 +357,7 @@ export const useMockTestLogic = ({
     setCurrentSubQuestionIndex(0);
     setQuestions({ "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [] });
     loadAllQuestions();
+    activeCountdownPhaseRef.current = null; // Test qayta boshlanganda refni tozalash
   };
 
   return {
