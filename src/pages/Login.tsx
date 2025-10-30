@@ -39,8 +39,8 @@ const Login: React.FC = () => {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-1"> {/* Only one column for login tab */}
-              <TabsTrigger value="login">Login</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-1">
+              <TabsTrigger value="login">Faqat admin uchun</TabsTrigger>
             </TabsList>
             <TabsContent value="login" className="mt-4">
               <form onSubmit={handleLogin} className="space-y-4">
