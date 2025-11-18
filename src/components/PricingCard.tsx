@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useTranslation } from 'react-i18next'; // useTranslation import qilish
+import { useTranslation } from 'react-i18next';
 
 interface PriceOption {
   price: number;
@@ -22,7 +22,7 @@ const prices: { [key: number]: PriceOption } = {
 const PricingCard: React.FC = () => {
   const [currentOption, setCurrentOption] = useState<number>(1);
   const [totalPrice, setTotalPrice] = useState<PriceOption>(prices[1]);
-  const { t } = useTranslation(); // useTranslation hookini ishlatish
+  const { t } = useTranslation();
 
   useEffect(() => {
     setTotalPrice(prices[currentOption]);
@@ -34,7 +34,7 @@ const PricingCard: React.FC = () => {
 
   return (
     <div className="bg-white p-6 border border-gray-200 rounded-xl shadow-2xl sticky top-20 animated-card" style={{ animationDelay: '1.5s' }}>
-      <h2 className="text-xl font-bold text-gray-800 mb-6">{t("landing_page.select_tariff")}</h2> {/* Tarjima qilingan matn */}
+      <h2 className="text-xl font-bold text-gray-800 mb-6">{t("landing_page.select_tariff")}</h2>
 
       <div id="pricing-options" className="space-y-3 mb-6">
         {Object.keys(prices).map((key) => {
@@ -48,7 +48,7 @@ const PricingCard: React.FC = () => {
               className={`price-option p-4 flex justify-between items-center ${currentOption === option ? 'price-option-active' : ''}`}
             >
               <div>
-                <p className="font-semibold text-gray-800">{option} {t("landing_page.monthly")}</p> {/* Tarjima qilingan matn */}
+                <p className="font-semibold text-gray-800">{option} {t("landing_page.monthly")}</p>
                 {priceData.originalPrice && (
                   <span className="text-xs text-red-500 line-through">{priceData.originalPrice.toLocaleString('uz-UZ')} so'm</span>
                 )}
@@ -67,18 +67,18 @@ const PricingCard: React.FC = () => {
       </div>
 
       <div className="mb-6 p-3 border border-gray-300 rounded-xl flex justify-between items-center bg-white">
-        <Input type="text" placeholder={t("landing_page.enter_promo_code")} className="w-full outline-none text-sm bg-transparent border-none focus-visible:ring-0" /> {/* Tarjima qilingan matn */}
-        <Button variant="ghost" className="text-lime-500 font-semibold text-sm hover:text-lime-600 p-0 h-auto">{t("landing_page.promo_code")}</Button> {/* Tarjima qilingan matn */}
+        <Input type="text" placeholder={t("landing_page.enter_promo_code")} className="w-full outline-none text-sm bg-transparent border-none focus-visible:ring-0" />
+        <Button variant="ghost" className="text-lime-500 font-semibold text-sm hover:text-lime-600 p-0 h-auto">{t("landing_page.promo_code")}</Button>
       </div>
 
       <div className="flex justify-between items-center border-t pt-4">
-        <p className="text-lg font-bold text-gray-800">{t("landing_page.total")}</p> {/* Tarjima qilingan matn */}
+        <p className="text-lg font-bold text-gray-800">{t("landing_page.total")}</p>
         <p id="total-price" className="text-2xl font-extrabold text-lime-600">{totalPrice.display}</p>
       </div>
 
       <Button asChild className="w-full mt-4 py-4 bg-lime-500 text-white font-bold text-lg rounded-xl hover:bg-lime-600 transition duration-150 shadow-md">
         <a href="https://t.me/aero_one" target="_blank" rel="noopener noreferrer">
-          {t("landing_page.pay_for")} {totalPrice.display} {/* Tarjima qilingan matn */}
+          {t("landing_page.pay_for")} {totalPrice.display}
         </a>
       </Button>
     </div>

@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { SpeakingQuestion, MoodEntry, RecordedSession } from './types';
 import { supabase } from '@/integrations/supabase/client';
 import { showError } from '@/utils/toast';
-import i18n from '@/i18n'; // i18n instansiyasini import qilish
+import i18n from '@/i18n';
 
 const DB_NAME = 'edumock_uz_db';
 const DB_VERSION = 1;
@@ -46,7 +46,7 @@ export const getSupabaseQuestions = async (): Promise<SpeakingQuestion[]> => {
   const { data, error } = await query;
 
   if (error) {
-    showError(i18n.t("add_question_page.error_loading_entries", { message: error.message })); // Tarjima qilingan xabar
+    showError(i18n.t("add_question_page.error_loading_entries", { message: error.message }));
     return [];
   }
   return data as SpeakingQuestion[];
@@ -70,7 +70,7 @@ export const addSupabaseQuestion = async (question: Omit<SpeakingQuestion, 'id' 
     .single();
 
   if (error) {
-    showError(i18n.t("add_question_page.error_saving_entry", { message: error.message })); // Tarjima qilingan xabar
+    showError(i18n.t("add_question_page.error_saving_entry", { message: error.message }));
     return null;
   }
   return data as SpeakingQuestion;
@@ -89,7 +89,7 @@ export const updateSupabaseQuestion = async (updatedQuestion: SpeakingQuestion):
     .single();
 
   if (error) {
-    showError(i18n.t("add_question_page.error_saving_entry", { message: error.message })); // Tarjima qilingan xabar
+    showError(i18n.t("add_question_page.error_saving_entry", { message: error.message }));
     return null;
   }
   return data as SpeakingQuestion;
@@ -106,7 +106,7 @@ export const deleteSupabaseQuestion = async (id: string): Promise<boolean> => {
     .eq('user_id', userId);
 
   if (error) {
-    showError(i18n.t("add_question_page.error_deleting_entry", { message: error.message })); // Tarjima qilingan xabar
+    showError(i18n.t("add_question_page.error_deleting_entry", { message: error.message }));
     return false;
   }
   return true;
@@ -122,7 +122,7 @@ export const resetSupabaseQuestionCooldowns = async (): Promise<boolean> => {
     .eq('user_id', userId);
 
   if (error) {
-    showError(i18n.t("add_question_page.error_saving_entry", { message: error.message })); // Tarjima qilingan xabar
+    showError(i18n.t("add_question_page.error_saving_entry", { message: error.message }));
     return false;
   }
   return true;

@@ -36,7 +36,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useTranslation } from 'react-i18next'; // useTranslation import qilish
+import { useTranslation } from 'react-i18next';
 
 const SpeakingQuestionManager: React.FC = () => {
   const { session } = useAuth();
@@ -50,7 +50,7 @@ const SpeakingQuestionManager: React.FC = () => {
   const [questions, setQuestions] = useState<Record<SpeakingPart, SpeakingQuestion[]>>({
     "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
   });
-  const { t } = useTranslation(); // useTranslation hookini ishlatish
+  const { t } = useTranslation();
 
   const loadQuestions = useCallback(async () => {
     setIsLoading(true);
@@ -111,7 +111,7 @@ const SpeakingQuestionManager: React.FC = () => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setIsUploading(true);
-      showSuccess(t("add_question_page.success_video_saving")); // Tarjima qilingan xabar
+      showSuccess(t("add_question_page.success_video_saving"));
 
       const fileName = `${uuidv4()}-${file.name}`;
       const filePath = `public/${fileName}`;
@@ -130,15 +130,15 @@ const SpeakingQuestionManager: React.FC = () => {
           .getPublicUrl(filePath);
 
         if (!data.publicUrl) {
-          throw new Error(t("add_question_page.error_no_public_url")); // Tarjima qilingan xabar
+          throw new Error(t("add_question_page.error_no_public_url"));
         }
 
         const newImagePreviewUrls = [...imagePreviewUrls];
         newImagePreviewUrls[index] = data.publicUrl;
         setImagePreviewUrls(newImagePreviewUrls);
-        showSuccess(t("add_question_page.success_video_saved")); // Tarjima qilingan xabar
+        showSuccess(t("add_question_page.success_video_saved"));
       } catch (error: any) {
-        showError(`${t("add_question_page.error_uploading_image")} ${error.message}`); // Tarjima qilingan xabar
+        showError(`${t("add_question_page.error_uploading_image")} ${error.message}`);
       } finally {
         setIsUploading(false);
       }
@@ -147,7 +147,7 @@ const SpeakingQuestionManager: React.FC = () => {
 
   const handleSubmitQuestion = async (part: SpeakingPart) => {
     if (isUploading) {
-      showError(t("add_question_page.error_image_uploading_in_progress")); // Tarjima qilingan xabar
+      showError(t("add_question_page.error_image_uploading_in_progress"));
       return;
     }
 
@@ -157,23 +157,23 @@ const SpeakingQuestionManager: React.FC = () => {
     switch (part) {
       case "Part 1.1": {
         const subQ = subQuestionsText.split('\n').map(q => q.trim()).filter(Boolean);
-        if (subQ.length === 0) { showError(t("add_question_page.error_enter_at_least_one_sub_question")); return; } // Tarjima qilingan xabar
+        if (subQ.length === 0) { showError(t("add_question_page.error_enter_at_least_one_sub_question")); return; }
         questionData = { type: part, sub_questions: subQ } as Omit<Part1_1Question, 'id' | 'date' | 'user_id'>;
         break;
       }
       case "Part 1.2": {
         const subQ = subQuestionsText.split('\n').map(q => q.trim()).filter(Boolean);
-        if (finalImageUrls.length === 0 || subQ.length === 0) { showError(t("add_question_page.error_image_and_sub_questions_empty")); return; } // Tarjima qilingan xabar
+        if (finalImageUrls.length === 0 || subQ.length === 0) { showError(t("add_question_page.error_image_and_sub_questions_empty")); return; }
         questionData = { type: part, image_urls: finalImageUrls, sub_questions: subQ } as Omit<Part1_2Question, 'id' | 'date' | 'user_id'>;
         break;
       }
       case "Part 2": {
-        if (finalImageUrls.length === 0 || !questionText.trim()) { showError(t("add_question_page.error_image_and_main_question_empty")); return; } // Tarjima qilingan xabar
+        if (finalImageUrls.length === 0 || !questionText.trim()) { showError(t("add_question_page.error_image_and_main_question_empty")); return; }
         questionData = { type: part, image_urls: finalImageUrls, question_text: questionText.trim() } as Omit<Part2Question, 'id' | 'date' | 'user_id'>;
         break;
       }
       case "Part 3": {
-        if (finalImageUrls.length === 0 || !questionText.trim()) { showError(t("add_question_page.error_image_and_main_question_empty")); return; } // Tarjima qilingan xabar
+        if (finalImageUrls.length === 0 || !questionText.trim()) { showError(t("add_question_page.error_image_and_main_question_empty")); return; }
         questionData = { type: part, image_urls: finalImageUrls, question_text: questionText.trim() } as Omit<Part3Question, 'id' | 'date' | 'user_id'>;
         break;
       }
@@ -199,15 +199,15 @@ const SpeakingQuestionManager: React.FC = () => {
               updatedQuestion = { ...existingQuestion as Part3Question, ...questionData as Omit<Part3Question, 'id' | 'date' | 'user_id'> };
               break;
             default:
-              showError(t("add_question_page.error_unknown_question_type")); // Tarjima qilingan xabar
+              showError(t("add_question_page.error_unknown_question_type"));
               return;
           }
           await updateSupabaseQuestion(updatedQuestion);
-          showSuccess(t("add_question_page.success_question_updated")); // Tarjima qilingan xabar
+          showSuccess(t("add_question_page.success_question_updated"));
         }
       } else {
         await addSupabaseQuestion(questionData);
-        showSuccess(t("add_question_page.success_question_added_to_part", { part })); // Tarjima qilingan xabar
+        showSuccess(t("add_question_page.success_question_added_to_part", { part }));
       }
       await loadQuestions();
       resetForm();
@@ -217,7 +217,7 @@ const SpeakingQuestionManager: React.FC = () => {
   const handleDeleteQuestion = async (id: string) => {
     const success = await deleteSupabaseQuestion(id);
     if (success) {
-      showSuccess(t("add_question_page.success_question_deleted")); // Tarjima qilingan xabar
+      showSuccess(t("add_question_page.success_question_deleted"));
       await loadQuestions();
       if (id === editingQuestionId) {
         resetForm();
@@ -228,7 +228,7 @@ const SpeakingQuestionManager: React.FC = () => {
   const handleResetAllCooldowns = async () => {
     const success = await resetSupabaseQuestionCooldowns();
     if (success) {
-      showSuccess(t("add_question_page.success_cooldowns_reset")); // Tarjima qilingan xabar
+      showSuccess(t("add_question_page.success_cooldowns_reset"));
       await loadQuestions();
     }
   };
@@ -239,10 +239,10 @@ const SpeakingQuestionManager: React.FC = () => {
       <>
         {isImageRequiredPart && (
           <div className="space-y-4 mb-4">
-            <Label className="text-base">{t("add_question_page.upload_images")}</Label> {/* Tarjima qilingan matn */}
+            <Label className="text-base">{t("add_question_page.upload_images")}</Label>
             {[0, 1].map((idx) => (
               <div key={idx} className="space-y-2 border p-2 rounded-md">
-                <Label htmlFor={`image-upload-${part}-${idx}`} className="text-sm">{t("add_question_page.upload_image", { index: idx + 1 })}</Label> {/* Tarjima qilingan matn */}
+                <Label htmlFor={`image-upload-${part}-${idx}`} className="text-sm">{t("add_question_page.upload_image", { index: idx + 1 })}</Label>
                 <Input
                   id={`image-upload-${part}-${idx}`}
                   type="file"
@@ -253,7 +253,7 @@ const SpeakingQuestionManager: React.FC = () => {
                 />
                 {imagePreviewUrls[idx] && (
                   <div className="mt-2">
-                    <p className="text-sm text-muted-foreground mb-1">{t("add_question_page.image_preview")}</p> {/* Tarjima qilingan matn */}
+                    <p className="text-sm text-muted-foreground mb-1">{t("add_question_page.image_preview")}</p>
                     <img src={imagePreviewUrls[idx]} alt={`Image Preview ${idx + 1}`} className="max-h-32 object-contain rounded-md border p-1" />
                   </div>
                 )}
@@ -264,7 +264,7 @@ const SpeakingQuestionManager: React.FC = () => {
 
         {["Part 1.1", "Part 1.2"].includes(part) && (
           <>
-            <Label htmlFor={`sub-questions-${part}`} className="text-base">{t("add_question_page.sub_questions")}</Label> {/* Tarjima qilingan matn */}
+            <Label htmlFor={`sub-questions-${part}`} className="text-base">{t("add_question_page.sub_questions")}</Label>
             <Textarea
               id={`sub-questions-${part}`}
               placeholder="1-savol&#10;2-savol&#10;3-savol"
@@ -278,10 +278,10 @@ const SpeakingQuestionManager: React.FC = () => {
 
         {["Part 2", "Part 3"].includes(part) && (
           <>
-            <Label htmlFor={`question-text-${part}`} className="text-base">{t("add_question_page.main_question")}</Label> {/* Tarjima qilingan matn */}
+            <Label htmlFor={`question-text-${part}`} className="text-base">{t("add_question_page.main_question")}</Label>
             <Textarea
               id={`question-text-${part}`}
-              placeholder={t("add_question_page.enter_question_for_part", { part })} {/* Tarjima qilingan matn */}
+              placeholder={t("add_question_page.enter_question_for_part", { part })}
               value={questionText}
               onChange={(e) => setQuestionText(e.target.value)}
               rows={3}
@@ -300,7 +300,7 @@ const SpeakingQuestionManager: React.FC = () => {
           <ul className="list-disc list-inside text-sm">
             {Array.isArray(q.sub_questions) && q.sub_questions.length > 0
               ? q.sub_questions.map((subQ, i) => <li key={i}>{subQ}</li>)
-              : <li className="text-yellow-600">{t("add_question_page.no_sub_questions")}</li>} {/* Tarjima qilingan matn */}
+              : <li className="text-yellow-600">{t("add_question_page.no_sub_questions")}</li>}
           </ul>
         );
       case "Part 1.2":
@@ -310,11 +310,11 @@ const SpeakingQuestionManager: React.FC = () => {
               <div className="flex gap-2 mb-2">
                 {q.image_urls.map((url, idx) => <img key={idx} src={url} alt="" className="max-h-24 object-contain rounded-md" />)}
               </div>
-            ) : <p className="text-xs text-yellow-500 mb-1">{t("add_question_page.no_image")}</p>} {/* Tarjima qilingan matn */}
+            ) : <p className="text-xs text-yellow-500 mb-1">{t("add_question_page.no_image")}</p>}
             <ul className="list-disc list-inside text-sm">
               {Array.isArray(q.sub_questions) && q.sub_questions.length > 0
                 ? q.sub_questions.map((subQ, i) => <li key={i}>{subQ}</li>)
-                : <li className="text-yellow-600">{t("add_question_page.no_sub_questions")}</li>} {/* Tarjima qilingan matn */}
+                : <li className="text-yellow-600">{t("add_question_page.no_sub_questions")}</li>}
             </ul>
           </div>
         );
@@ -325,23 +325,23 @@ const SpeakingQuestionManager: React.FC = () => {
               <div className="flex gap-2 mb-2">
                 {q.image_urls.map((url, idx) => <img key={idx} src={url} alt="" className="max-h-24 object-contain rounded-md" />)}
               </div>
-            ) : <p className="text-xs text-yellow-500 mb-1">{t("add_question_page.no_image")}</p>} {/* Tarjima qilingan matn */}
-            <p className="text-sm">{q.question_text ?? <span className="text-yellow-600">{t("add_question_page.no_question_text")}</span>}</p> {/* Tarjima qilingan matn */}
+            ) : <p className="text-xs text-yellow-500 mb-1">{t("add_question_page.no_image")}</p>}
+            <p className="text-sm">{q.question_text ?? <span className="text-yellow-600">{t("add_question_page.no_question_text")}</span>}</p>
           </div>
         );
       case "Part 3":
         return (
           <div className="flex flex-col items-start">
-            <p className="text-sm mb-2">{q.question_text ?? <span className="text-yellow-600">{t("add_question_page.no_question_text")}</span>}</p> {/* Tarjima qilingan matn */}
+            <p className="text-sm mb-2">{q.question_text ?? <span className="text-yellow-600">{t("add_question_page.no_question_text")}</span>}</p>
             {q.image_urls?.length > 0 ? (
               <div className="flex gap-2">
                 {q.image_urls.map((url, idx) => <img key={idx} src={url} alt="" className="max-h-24 object-contain rounded-md" />)}
               </div>
-            ) : <p className="text-xs text-yellow-500 mb-1">{t("add_question_page.no_image")}</p>} {/* Tarjima qilingan matn */}
+            ) : <p className="text-xs text-yellow-500 mb-1">{t("add_question_page.no_image")}</p>}
           </div>
         );
       default:
-        return <p className="text-sm text-red-500">{t("add_question_page.error_unknown_question_type")}</p>; // Tarjima qilingan matn
+        return <p className="text-sm text-red-500">{t("add_question_page.error_unknown_question_type")}</p>;
     }
   };
 
@@ -355,10 +355,10 @@ const SpeakingQuestionManager: React.FC = () => {
               <Link to="/home" className="absolute left-0 top-1/2 -translate-y-1/2">
                 <Button variant="outline">
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  {t("common.back")} {/* Tarjima qilingan matn */}
+                  {t("common.back")}
                 </Button>
               </Link>
-              <CardTitle className="text-3xl font-bold">{t("add_question_page.question_management")}</CardTitle> {/* Tarjima qilingan matn */}
+              <CardTitle className="text-3xl font-bold">{t("add_question_page.question_management")}</CardTitle>
             </div>
           </CardHeader>
           <CardContent>
@@ -370,24 +370,24 @@ const SpeakingQuestionManager: React.FC = () => {
                 <TabsContent key={part} value={part} className="mt-4">
                   <div className="space-y-4 mb-6 p-4 border rounded-lg bg-card relative">
                     <h3 className="text-lg font-semibold">
-                      {editingQuestionId ? t("add_question_page.edit_question_title", { id_suffix: editingQuestionId.slice(-6) }) : t("add_question_page.add_new_question_title", { part })} {/* Tarjima qilingan matn */}
+                      {editingQuestionId ? t("add_question_page.edit_question_title", { id_suffix: editingQuestionId.slice(-6) }) : t("add_question_page.add_new_question_title", { part })}
                     </h3>
                     {renderQuestionInput(part)}
                     <div className="flex gap-2">
                       <Button onClick={() => handleSubmitQuestion(part)} className="w-full" disabled={isUploading}>
-                        {editingQuestionId ? t("add_question_page.save_changes") : t("add_question_page.add_question_to_part", { part })} {/* Tarjima qilingan matn */}
+                        {editingQuestionId ? t("add_question_page.save_changes") : t("add_question_page.add_question_to_part", { part })}
                       </Button>
                       {editingQuestionId && (
                         <Button variant="outline" onClick={resetForm} className="w-full">
-                          <X className="h-4 w-4 mr-2" /> {t("add_question_page.cancel")} {/* Tarjima qilingan matn */}
+                          <X className="h-4 w-4 mr-2" /> {t("add_question_page.cancel")}
                         </Button>
                       )}
                     </div>
                   </div>
-                  {isLoading ? <p className="text-center">{t("add_question_page.questions_loading")}</p> : ( {/* Tarjima qilingan matn */}
+                  {isLoading ? <p className="text-center">{t("add_question_page.questions_loading")}</p> : (
                     <div className="space-y-3">
                       {questions[part].length === 0 ? (
-                        <p className="text-center text-muted-foreground">{t("add_question_page.no_questions_added")}</p> {/* Tarjima qilingan matn */}
+                        <p className="text-center text-muted-foreground">{t("add_question_page.no_questions_added")}</p>
                       ) : (
                         questions[part].map((q) => (
                           <div key={q.id} className="flex items-start justify-between p-3 border rounded-md bg-secondary text-secondary-foreground">
@@ -405,20 +405,20 @@ const SpeakingQuestionManager: React.FC = () => {
                                   </AlertDialogTrigger>
                                   <AlertDialogContent>
                                     <AlertDialogHeader>
-                                      <AlertDialogTitle>{t("add_question_page.delete_question_confirm_title")}</AlertDialogTitle> {/* Tarjima qilingan matn */}
+                                      <AlertDialogTitle>{t("add_question_page.delete_question_confirm_title")}</AlertDialogTitle>
                                       <AlertDialogDescription>
-                                        {t("add_question_page.delete_question_confirm_description")} {/* Tarjima qilingan matn */}
+                                        {t("add_question_page.delete_question_confirm_description")}
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                      <AlertDialogCancel>{t("add_question_page.cancel")}</AlertDialogCancel> {/* Tarjima qilingan matn */}
-                                      <AlertDialogAction onClick={() => handleDeleteQuestion(q.id)}>{t("add_question_page.delete")}</AlertDialogAction> {/* Tarjima qilingan matn */}
+                                      <AlertDialogCancel>{t("add_question_page.cancel")}</AlertDialogCancel>
+                                      <AlertDialogAction onClick={() => handleDeleteQuestion(q.id)}>{t("add_question_page.delete")}</AlertDialogAction>
                                     </AlertDialogFooter>
                                   </AlertDialogContent>
                                 </AlertDialog>
                               </div>
                               <div className="text-xs text-muted-foreground text-right">
-                                <span>{q.last_used ? t("add_question_page.last_used", { date: format(new Date(q.last_used), "MMM dd, HH:mm") }) : t("add_question_page.not_used")}</span> {/* Tarjima qilingan matn */}
+                                <span>{q.last_used ? t("add_question_page.last_used", { date: format(new Date(q.last_used), "MMM dd, HH:mm") }) : t("add_question_page.not_used")}</span>
                               </div>
                             </div>
                           </div>
@@ -431,7 +431,7 @@ const SpeakingQuestionManager: React.FC = () => {
             </Tabs>
             <div className="mt-6 text-center">
               <Button onClick={handleResetAllCooldowns} variant="outline" className="w-full">
-                {t("add_question_page.reset_all_cooldowns")} {/* Tarjima qilingan matn */}
+                {t("add_question_page.reset_all_cooldowns")}
               </Button>
             </div>
           </CardContent>

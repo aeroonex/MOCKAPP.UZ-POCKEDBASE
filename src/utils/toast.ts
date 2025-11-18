@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import i18n from '@/i18n'; // i18n instansiyasini import qilish
+import i18n from '@/i18n';
 
 export const showSuccess = (message: string) => {
   toast.success(message);

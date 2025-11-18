@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { showSuccess, showError } from "@/utils/toast";
 import { StudentInfo } from "@/lib/types";
 import { addLocalRecording } from "@/lib/local-db";
-import { useTranslation } from 'react-i18next'; // useTranslation import qilish
+import { useTranslation } from 'react-i18next';
 
 const MAX_RECORDING_DURATION_MS = 60 * 60 * 1000;
 const MIME_TYPE = "video/webm; codecs=vp8,opus";
@@ -20,7 +20,7 @@ export const useRecorder = () => {
   const webcamStreamRef = useRef<MediaStream | null>(null);
   const startTimeRef = useRef<number>(0);
   const recordingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { t } = useTranslation(); // useTranslation hookini ishlatish
+  const { t } = useTranslation();
 
   const clearRecordingTimeout = useCallback(() => {
     if (recordingTimeoutRef.current) {
@@ -57,7 +57,7 @@ export const useRecorder = () => {
         webcamStreamRef.current = stream;
         setWebcamStream(stream);
       } catch (err) {
-        showError(t("add_question_page.error_webcam_stream")); // Tarjima qilingan xabar
+        showError(t("add_question_page.error_webcam_stream"));
       }
     };
     getWebcamPreview();
@@ -66,7 +66,7 @@ export const useRecorder = () => {
   const startRecording = useCallback(async (studentInfo?: StudentInfo): Promise<boolean> => {
     recordedChunksRef.current = [];
     if (!MediaRecorder.isTypeSupported(MIME_TYPE)) {
-      showError(t("add_question_page.error_recording_format_not_supported", { mimeType: MIME_TYPE })); // Tarjima qilingan xabar
+      showError(t("add_question_page.error_recording_format_not_supported", { mimeType: MIME_TYPE }));
       return false;
     }
 
@@ -74,7 +74,7 @@ export const useRecorder = () => {
       const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
       screenStreamRef.current = screenStream;
       screenStream.addEventListener('ended', () => {
-        showError(t("add_question_page.error_screen_sharing_stopped")); // Tarjima qilingan xabar
+        showError(t("add_question_page.error_screen_sharing_stopped"));
         stopRecordingProcess();
       });
 
@@ -104,7 +104,7 @@ export const useRecorder = () => {
       mediaRecorderRef.current.onstop = async () => {
         clearRecordingTimeout();
         if (recordedChunksRef.current.length === 0) {
-          showError(t("add_question_page.error_no_data_recorded")); // Tarjima qilingan xabar
+          showError(t("add_question_page.error_no_data_recorded"));
           return;
         }
 
@@ -112,7 +112,7 @@ export const useRecorder = () => {
         const endTime = Date.now();
         const duration = Math.round((endTime - startTimeRef.current) / 1000);
 
-        showSuccess(t("add_question_page.success_video_saving")); // Tarjima qilingan xabar
+        showSuccess(t("add_question_page.success_video_saving"));
 
         try {
           await addLocalRecording({
@@ -122,9 +122,9 @@ export const useRecorder = () => {
             student_phone: studentInfo?.phone,
             videoBlob: blob,
           });
-          showSuccess(t("add_question_page.success_video_saved")); // Tarjima qilingan xabar
+          showSuccess(t("add_question_page.success_video_saved"));
         } catch (dbError: any) {
-          showError(`${t("add_question_page.error_saving_record_data")} ${dbError.message}`); // Tarjima qilingan xabar
+          showError(`${t("add_question_page.error_saving_record_data")} ${dbError.message}`);
         }
 
         recordedChunksRef.current = [];
@@ -133,23 +133,23 @@ export const useRecorder = () => {
       };
 
       mediaRecorderRef.current.onerror = (event: Event) => {
-        showError(`${t("add_question_page.error_recording_failed")} ${((event as any).error?.message || "Noma'lum xato")}`); // Tarjima qilingan xabar
+        showError(`${t("add_question_page.error_recording_failed")} ${((event as any).error?.message || "Noma'lum xato")}`);
         stopRecordingProcess();
       };
 
       mediaRecorderRef.current.start(1000);
       startTimeRef.current = Date.now();
       setIsRecording(true);
-      showSuccess(t("add_question_page.success_recording_started")); // Tarjima qilingan xabar
+      showSuccess(t("add_question_page.success_recording_started"));
 
       recordingTimeoutRef.current = setTimeout(() => {
         stopRecordingProcess();
-        showSuccess(t("add_question_page.success_recording_max_time")); // Tarjima qilingan xabar
+        showSuccess(t("add_question_page.success_recording_max_time"));
       }, MAX_RECORDING_DURATION_MS);
 
       return true;
     } catch (err) {
-      showError(t("add_question_page.error_recording_failed")); // Tarjima qilingan xabar
+      showError(t("add_question_page.error_recording_failed"));
       setIsRecording(false);
       stopRecordingProcess();
       return false;

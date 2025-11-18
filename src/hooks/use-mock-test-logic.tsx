@@ -14,7 +14,7 @@ import {
 } from "@/lib/types";
 import { allSpeakingParts } from "@/lib/constants";
 import { getSupabaseQuestions, updateSupabaseQuestion } from "@/lib/local-db";
-import { useTranslation } from 'react-i18next'; // useTranslation import qilish
+import { useTranslation } from 'react-i18next';
 
 const TIMINGS = {
   PRE_TEST_COUNTDOWN: 5,
@@ -66,7 +66,7 @@ export const useMockTestLogic = ({
 
   const countdownIntervalRef = useRef<number | null>(null);
   const activeCountdownPhaseRef = useRef<TestPhase | null>(null);
-  const { t } = useTranslation(); // useTranslation hookini ishlatish
+  const { t } = useTranslation();
 
   const getCurrentQuestion = useCallback(() => {
     const currentPartName = allSpeakingParts[currentPartIndex];
@@ -102,7 +102,7 @@ export const useMockTestLogic = ({
         stopAllStreams();
         setIsTestStarted(false);
         setCurrentPhase("finished");
-        showSuccess(t("add_question_page.success_mock_test_finished")); // Tarjima qilingan xabar
+        showSuccess(t("add_question_page.success_mock_test_finished"));
       }
       return;
     }
@@ -198,11 +198,11 @@ export const useMockTestLogic = ({
           stopAllStreams();
           setIsTestStarted(false);
           setCurrentPhase("finished");
-          showError(t("add_question_page.error_no_questions_available_to_start")); // Tarjima qilingan xabar
+          showError(t("add_question_page.error_no_questions_available_to_start"));
         }
       };
     } else if (currentPhase === "part_finished_announcement") {
-      speakText(`${allSpeakingParts[currentPartIndex]} ${t("add_question_page.part_finished")}`, 'en-US'); // Tarjima qilingan matn
+      speakText(`${allSpeakingParts[currentPartIndex]} ${t("add_question_page.part_finished")}`, 'en-US');
       duration = TIMINGS.ANNOUNCEMENT_DELAY;
       nextAction = () => {
         setCurrentPartIndex(prev => prev + 1);
@@ -230,7 +230,7 @@ export const useMockTestLogic = ({
         stopAllStreams();
         setIsTestStarted(false);
         setCurrentPhase("finished");
-        showSuccess(t("add_question_page.success_mock_test_finished")); // Tarjima qilingan xabar
+        showSuccess(t("add_question_page.success_mock_test_finished"));
         return;
       }
     } else if (currentQ) {
@@ -292,7 +292,7 @@ export const useMockTestLogic = ({
     } else if (currentPhase === "preparation" && (currentQ.type === "Part 2" || currentQ.type === "Part 3")) {
       speakText((currentQ as Part2Question | Part3Question).question_text, 'en-US');
     } else if (currentPhase === "speaking" && currentQ.type === "Part 2") {
-      speakText(t("add_question_page.speak_text"), 'en-US'); // Tarjima qilingan matn
+      speakText(t("add_question_page.speak_text"), 'en-US');
     }
   }, [isTestStarted, currentPhase, currentSubQuestionIndex, getCurrentQuestion, t]);
 
@@ -321,7 +321,7 @@ export const useMockTestLogic = ({
     });
 
     if (!hasEnoughQuestions) {
-      showError(t("add_question_page.error_not_enough_questions", { missingParts: missingParts.join(", ") })); // Tarjima qilingan xabar
+      showError(t("add_question_page.error_not_enough_questions", { missingParts: missingParts.join(", ") }));
       return;
     }
 
@@ -341,13 +341,13 @@ export const useMockTestLogic = ({
     if (recordingStarted) {
       setIsTestStarted(true);
       setCurrentPhase("pre_test_countdown");
-      showSuccess(t("add_question_page.success_test_starting")); // Tarjima qilingan xabar
+      showSuccess(t("add_question_page.success_test_starting"));
       setIsStudentInfoFormOpen(false);
       try {
         await document.documentElement.requestFullscreen();
       } catch (err) {
         console.error("To'liq ekran rejimiga o'tishda xatolik:", err);
-        showError(t("add_question_page.error_fullscreen_failed")); // Tarjima qilingan xabar
+        showError(t("add_question_page.error_fullscreen_failed"));
       }
     } else {
       setStudentInfo(null);
@@ -361,7 +361,7 @@ export const useMockTestLogic = ({
     setStudentInfo(null);
     if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
     activeCountdownPhaseRef.current = null;
-    showSuccess(t("add_question_page.success_mock_test_ended")); // Tarjima qilingan xabar
+    showSuccess(t("add_question_page.success_mock_test_ended"));
     if (document.fullscreenElement) {
       document.exitFullscreen();
     }

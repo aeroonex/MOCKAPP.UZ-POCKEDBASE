@@ -11,7 +11,7 @@ import {
 } from "@/lib/types";
 import { TestPhase } from "@/hooks/use-mock-test-logic";
 import { Hourglass } from "lucide-react";
-import { useTranslation } from 'react-i18next'; // useTranslation import qilish
+import { useTranslation } from 'react-i18next';
 
 interface TestQuestionDisplayProps {
   currentQ: SpeakingQuestion | undefined;
@@ -32,7 +32,7 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
   countdown,
   initialCountdown,
 }) => {
-  const { t } = useTranslation(); // useTranslation hookini ishlatish
+  const { t } = useTranslation();
 
   const CountdownBar = ({ label, countdown, initialCountdown }: { label?: string; countdown: number; initialCountdown: number }) => {
     const progress = initialCountdown > 0 ? (countdown / initialCountdown) * 100 : 0;
@@ -61,7 +61,7 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
       <div className="space-y-4 flex flex-col items-center justify-center min-h-[250px]">
         <Hourglass className="h-16 w-16 text-primary animate-spin" />
         <h3 className="text-2xl font-bold text-primary dark:text-primary-foreground mt-4">
-          {currentPhase === 'part_finished_announcement' ? t("add_question_page.part_finished") : t("add_question_page.prepare_for_next_part")} {/* Tarjima qilingan matn */}
+          {currentPhase === 'part_finished_announcement' ? t("add_question_page.part_finished") : t("add_question_page.prepare_for_next_part")}
         </h3>
         <CountdownBar countdown={countdown} initialCountdown={initialCountdown} />
       </div>
@@ -71,9 +71,9 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
   if (currentPhase === "pre_test_countdown") {
     return (
       <div className="space-y-4">
-        <h3 className="text-2xl font-bold text-primary dark:text-primary-foreground">{t("add_question_page.please_prepare_yourself")}</h3> {/* Tarjima qilingan matn */}
+        <h3 className="text-2xl font-bold text-primary dark:text-primary-foreground">{t("add_question_page.please_prepare_yourself")}</h3>
         <CountdownBar countdown={countdown} initialCountdown={initialCountdown} />
-        <p className="text-xl text-muted-foreground">{t("add_question_page.test_starts_in", { countdown })}</p> {/* Tarjima qilingan matn */}
+        <p className="text-xl text-muted-foreground">{t("add_question_page.test_starts_in", { countdown })}</p>
       </div>
     );
   }
@@ -81,8 +81,8 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
   if (!currentQ) {
     return (
       <div className="space-y-4">
-        <h3 className="text-2xl font-bold text-orange-600 dark:text-orange-400">{t("add_question_page.no_questions_in_this_part")}</h3> {/* Tarjima qilingan matn */}
-        <p className="text-muted-foreground">{t("add_question_page.add_more_questions_to_continue")}</p> {/* Tarjima qilingan matn */}
+        <h3 className="text-2xl font-bold text-orange-600 dark:text-orange-400">{t("add_question_page.no_questions_in_this_part")}</h3>
+        <p className="text-muted-foreground">{t("add_question_page.add_more_questions_to_continue")}</p>
       </div>
     );
   }
@@ -93,9 +93,9 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
       return (
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-muted-foreground">
-            {currentPartName} - {t("add_question_page.question")} {currentQuestionIndex + 1} {/* Tarjima qilingan matn */}
+            {currentPartName} - {t("add_question_page.question")} {currentQuestionIndex + 1}
           </h3>
-          <CountdownBar label={currentPhase === "reading_question" ? t("add_question_page.reading") : t("add_question_page.answer")} countdown={countdown} initialCountdown={initialCountdown} /> {/* Tarjima qilingan matn */}
+          <CountdownBar label={currentPhase === "reading_question" ? t("add_question_page.reading") : t("add_question_page.answer")} countdown={countdown} initialCountdown={initialCountdown} />
           <div className="min-h-[100px] flex flex-col items-center justify-center p-4 border rounded-md bg-secondary text-foreground">
             <p className="text-2xl font-medium text-center">{part1_1Q.sub_questions[currentSubQuestionIndex]}</p>
           </div>
@@ -106,14 +106,14 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
       return (
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-muted-foreground">
-            {currentPartName} - {t("add_question_page.image")} {currentQuestionIndex + 1} {/* Tarjima qilingan matn */}
+            {currentPartName} - {t("add_question_page.image")} {currentQuestionIndex + 1}
           </h3>
           <div className="flex justify-center gap-4 mb-4">
             {part1_2Q.image_urls.map((url, idx) => (
               <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-64 object-contain rounded-lg shadow-md" />
             ))}
           </div>
-          <CountdownBar label={currentPhase === "reading_question" ? t("add_question_page.reading") : t("add_question_page.answer")} countdown={countdown} initialCountdown={initialCountdown} /> {/* Tarjima qilingan matn */}
+          <CountdownBar label={currentPhase === "reading_question" ? t("add_question_page.reading") : t("add_question_page.answer")} countdown={countdown} initialCountdown={initialCountdown} />
           <div className="min-h-[100px] flex flex-col items-center justify-center p-4 border rounded-md bg-secondary text-foreground">
             <p className="text-2xl font-medium text-center">{part1_2Q.sub_questions[currentSubQuestionIndex]}</p>
           </div>
@@ -124,14 +124,14 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
       return (
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-muted-foreground">
-            {currentPartName} - {t("add_question_page.question")} {currentQuestionIndex + 1} {/* Tarjima qilingan matn */}
+            {currentPartName} - {t("add_question_page.question")} {currentQuestionIndex + 1}
           </h3>
           <div className="flex justify-center gap-4 mb-4">
             {part2Q.image_urls.map((url, idx) => (
               <img key={idx} src={url} alt={`Question image ${idx + 1}`} className="max-h-64 object-contain rounded-lg shadow-md" />
             ))}
           </div>
-          <CountdownBar label={currentPhase === "preparation" ? t("add_question_page.preparation") : t("add_question_page.answer")} countdown={countdown} initialCountdown={initialCountdown} /> {/* Tarjima qilingan matn */}
+          <CountdownBar label={currentPhase === "preparation" ? t("add_question_page.preparation") : t("add_question_page.answer")} countdown={countdown} initialCountdown={initialCountdown} />
           <p className="text-2xl font-medium text-foreground min-h-[100px] flex items-center justify-center p-4 border rounded-md bg-secondary">
             {part2Q.question_text}
           </p>
@@ -142,9 +142,9 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
       return (
         <div className="space-y-4">
           <h3 className="text-xl font-semibold text-muted-foreground">
-            {currentPartName} - {t("add_question_page.question")} {currentQuestionIndex + 1} {/* Tarjima qilingan matn */}
+            {currentPartName} - {t("add_question_page.question")} {currentQuestionIndex + 1}
           </h3>
-          <CountdownBar label={currentPhase === "preparation" ? t("add_question_page.preparation") : t("add_question_page.answer")} countdown={countdown} initialCountdown={initialCountdown} /> {/* Tarjima qilingan matn */}
+          <CountdownBar label={currentPhase === "preparation" ? t("add_question_page.preparation") : t("add_question_page.answer")} countdown={countdown} initialCountdown={initialCountdown} />
           <p className="text-2xl font-medium text-foreground min-h-[100px] flex items-center justify-center p-4 border rounded-md bg-secondary mb-4">
             {part3Q.question_text}
           </p>
@@ -156,7 +156,7 @@ const TestQuestionDisplay: React.FC<TestQuestionDisplayProps> = ({
         </div>
       );
     default:
-      return <p className="text-muted-foreground">{t("add_question_page.unknown_question_type")}</p>; {/* Tarjima qilingan matn */}
+      return <p className="text-muted-foreground">{t("add_question_page.unknown_question_type")}</p>;
   }
 };
 

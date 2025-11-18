@@ -1,10 +1,10 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
-import { useTranslation } from 'react-i18next'; // useTranslation import qilish
+import { useTranslation } from 'react-i18next';
 
 const NotFound = () => {
   const location = useLocation();
-  const { t } = useTranslation(); // useTranslation hookini ishlatish
+  const { t } = useTranslation();
 
   useEffect(() => {
     console.error(
@@ -17,9 +17,9 @@ const NotFound = () => {
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl text-gray-600 dark:text-gray-400 mb-4">{t("common.oops_page_not_found")}</p> {/* Tarjima qilingan matn */}
+        <p className="text-xl text-gray-600 dark:text-gray-400 mb-4">{t("common.oops_page_not_found")}</p>
         <a href="/" className="text-blue-500 hover:text-blue-700 underline">
-          {t("common.return_to_home")} {/* Tarjima qilingan matn */}
+          {t("common.return_to_home")}
         </a>
       </div>
     </div>

@@ -2,14 +2,14 @@
 
 import React from "react";
 import { User } from "lucide-react";
-import { useTranslation } from 'react-i18next'; // useTranslation import qilish
+import { useTranslation } from 'react-i18next';
 
 interface LandingPageHeaderProps {
   onOpenLogin: () => void;
 }
 
 const LandingPageHeader: React.FC<LandingPageHeaderProps> = ({ onOpenLogin }) => {
-  const { t } = useTranslation(); // useTranslation hookini ishlatish
+  const { t } = useTranslation();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 shadow-sm">

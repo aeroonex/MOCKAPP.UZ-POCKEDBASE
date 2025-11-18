@@ -9,8 +9,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { showSuccess } from "@/utils/toast";
 import { useAuth } from "@/context/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
-import { useTranslation } from 'react-i18next'; // useTranslation import qilish
-import LanguageSwitcher from './LanguageSwitcher'; // LanguageSwitcher import qilish
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './LanguageSwitcher';
 
 const allNavLinks = [
   { name: "common.home", path: "/home", icon: HomeIcon, protected: true },
@@ -23,14 +23,14 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const { session } = useAuth();
   const isGuestMode = localStorage.getItem("isGuestMode") === "true";
-  const { t } = useTranslation(); // useTranslation hookini ishlatish
+  const { t } = useTranslation();
 
   const handleLogout = async () => {
     if (session) {
       await supabase.auth.signOut();
     }
     localStorage.removeItem("isGuestMode");
-    showSuccess(t("common.success_logged_in")); // Tarjima qilingan xabar
+    showSuccess(t("common.success_logged_in"));
     navigate("/login");
   };
 
@@ -47,7 +47,7 @@ const Navbar: React.FC = () => {
           <Button key={link.name} variant="ghost" asChild className="w-full justify-start hover:bg-primary/80">
             <Link to={link.path} className="flex items-center gap-2">
               <link.icon className="h-4 w-4" />
-              {t(link.name)} {/* Matnni tarjima qilish */}
+              {t(link.name)}
             </Link>
           </Button>
         ))}
@@ -58,7 +58,7 @@ const Navbar: React.FC = () => {
             onClick={handleLogout}
           >
             <LogOut className="h-4 w-4 mr-2" />
-            {isGuestMode && !session ? t("common.guest_mode_exit") : t("common.logout")} {/* Matnni tarjima qilish */}
+            {isGuestMode && !session ? t("common.guest_mode_exit") : t("common.logout")}
           </Button>
         )}
       </>
@@ -86,14 +86,14 @@ const Navbar: React.FC = () => {
               {renderNavLinks()}
             </div>
             <div className="mt-4">
-              <LanguageSwitcher /> {/* LanguageSwitcher ni qo'shish */}
+              <LanguageSwitcher />
             </div>
           </SheetContent>
         </Sheet>
       ) : (
         <div className="flex items-center gap-4">
           {renderNavLinks()}
-          <LanguageSwitcher /> {/* LanguageSwitcher ni qo'shish */}
+          <LanguageSwitcher />
         </div>
       )}
     </nav>

@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { showSuccess, showError } from "@/utils/toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useTranslation } from 'react-i18next'; // useTranslation import qilish
+import { useTranslation } from 'react-i18next';
 
 interface LoginDialogProps {
   isOpen: boolean;
@@ -22,7 +22,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { t } = useTranslation(); // useTranslation hookini ishlatish
+  const { t } = useTranslation();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +31,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
     if (error) {
       showError(error.message);
     } else {
-      showSuccess(t("common.success_logged_in")); // Tarjima qilingan xabar
+      showSuccess(t("common.success_logged_in"));
       onClose();
       navigate("/home");
     }
@@ -42,23 +42,23 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{t("common.login")}</DialogTitle> {/* Tarjima qilingan matn */}
+          <DialogTitle>{t("common.login")}</DialogTitle>
           <DialogDescription>
-            {t("common.enter_admin_credentials")} {/* Tarjima qilingan matn */}
+            {t("common.enter_admin_credentials")}
           </DialogDescription>
         </DialogHeader>
         <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid w-full grid-cols-1">
-            <TabsTrigger value="login">{t("common.admin_only")}</TabsTrigger> {/* Tarjima qilingan matn */}
+            <TabsTrigger value="login">{t("common.admin_only")}</TabsTrigger>
           </TabsList>
           <TabsContent value="login" className="mt-4">
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <Label htmlFor="email">{t("common.email")}</Label> {/* Tarjima qilingan matn */}
+                <Label htmlFor="email">{t("common.email")}</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder={t("common.enter_your_email")} {/* Tarjima qilingan matn */}
+                  placeholder={t("common.enter_your_email")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -66,11 +66,11 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
                 />
               </div>
               <div>
-                <Label htmlFor="password">{t("common.password")}</Label> {/* Tarjima qilingan matn */}
+                <Label htmlFor="password">{t("common.password")}</Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder={t("common.enter_your_password")} {/* Tarjima qilingan matn */}
+                  placeholder={t("common.enter_your_password")}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -78,7 +78,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
                 />
               </div>
               <Button type="submit" className="w-full bg-lime-500 hover:bg-lime-600" disabled={loading}>
-                {loading ? t("common.logging_in") : t("common.login")} {/* Tarjima qilingan matn */}
+                {loading ? t("common.logging_in") : t("common.login")}
               </Button>
             </form>
           </TabsContent>

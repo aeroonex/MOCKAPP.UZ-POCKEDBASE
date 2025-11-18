@@ -10,12 +10,12 @@ import StudentInfoForm from "@/components/StudentInfoForm";
 import { useMockTestLogic } from "@/hooks/use-mock-test-logic";
 import TestQuestionDisplay from "@/components/TestQuestionDisplay";
 import TestControls from "@/components/TestControls";
-import { useTranslation } from 'react-i18next'; // useTranslation import qilish
+import { useTranslation } from 'react-i18next';
 
 const MockTest: React.FC = () => {
   const { isRecording, startRecording, stopAllStreams, webcamStream } = useRecorder();
   const webcamVideoRef = useRef<HTMLVideoElement>(null);
-  const { t } = useTranslation(); // useTranslation hookini ishlatish
+  const { t } = useTranslation();
 
   const {
     isTestStarted,
@@ -65,9 +65,9 @@ const MockTest: React.FC = () => {
             )}
             {isTestStarted && studentInfo && (
               <div className="bg-black bg-opacity-70 text-white p-2 rounded-md text-sm">
-                <p><strong>{t("mock_test_page.student_id")}:</strong> {studentInfo.id}</p> {/* Tarjima qilingan matn */}
-                <p><strong>{t("mock_test_page.student_name")}:</strong> {studentInfo.name}</p> {/* Tarjima qilingan matn */}
-                <p><strong>{t("mock_test_page.student_phone")}:</strong> {studentInfo.phone}</p> {/* Tarjima qilingan matn */}
+                <p><strong>{t("mock_test_page.student_id")}:</strong> {studentInfo.id}</p>
+                <p><strong>{t("mock_test_page.student_name")}:</strong> {studentInfo.name}</p>
+                <p><strong>{t("mock_test_page.student_phone")}:</strong> {studentInfo.phone}</p>
               </div>
             )}
           </div>
@@ -82,7 +82,7 @@ const MockTest: React.FC = () => {
         <Card className="w-full max-w-2xl text-center relative mt-10">
           <CardHeader className="flex flex-row items-center justify-center gap-4 py-6">
             <div className="text-left">
-              <CardTitle className="text-3xl font-bold">{t("mock_test_page.mock_speaking_test")}</CardTitle> {/* Tarjima qilingan matn */}
+              <CardTitle className="text-3xl font-bold">{t("mock_test_page.mock_speaking_test")}</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">

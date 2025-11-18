@@ -14,7 +14,7 @@ import {
 import { showError, showSuccess } from "@/utils/toast";
 import { getLocalMoodEntries, addLocalMoodEntry, deleteLocalMoodEntry } from "@/lib/local-db";
 import Navbar from "@/components/Navbar";
-import { useTranslation } from 'react-i18next'; // useTranslation import qilish
+import { useTranslation } from 'react-i18next';
 
 interface MoodEntry {
   id: string;
@@ -27,7 +27,7 @@ const MoodJournal: React.FC = () => {
   const [entries, setEntries] = useState<MoodEntry[]>([]);
   const [filterMood, setFilterMood] = useState<string>("All");
   const [isLoading, setIsLoading] = useState(true);
-  const { t } = useTranslation(); // useTranslation hookini ishlatish
+  const { t } = useTranslation();
 
   const moods = [
     { label: t("mood_journal_page.all_moods"), value: "All" },
@@ -44,7 +44,7 @@ const MoodJournal: React.FC = () => {
       const data = getLocalMoodEntries();
       setEntries(data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     } catch (error: any) {
-      showError(`${t("mood_journal_page.error_loading_entries")} ${error.message}`); // Tarjima qilingan xabar
+      showError(`${t("mood_journal_page.error_loading_entries")} ${error.message}`);
     }
     setIsLoading(false);
   }, [t]);
@@ -58,17 +58,17 @@ const MoodJournal: React.FC = () => {
       addLocalMoodEntry({ mood, text });
       fetchEntries();
     } catch (error: any) {
-      showError(`${t("mood_journal_page.error_saving_entry")} ${error.message}`); // Tarjima qilingan xabar
+      showError(`${t("mood_journal_page.error_saving_entry")} ${error.message}`);
     }
   };
 
   const handleDeleteEntry = (id: string) => {
     try {
       deleteLocalMoodEntry(id);
-      showSuccess(t("mood_journal_page.success_entry_deleted")); // Tarjima qilingan xabar
+      showSuccess(t("mood_journal_page.success_entry_deleted"));
       setEntries((prevEntries) => prevEntries.filter((entry) => entry.id !== id));
     } catch (error: any) {
-      showError(`${t("mood_journal_page.error_deleting_entry")} ${error.message}`); // Tarjima qilingan xabar
+      showError(`${t("mood_journal_page.error_deleting_entry")} ${error.message}`);
     }
   };
 
@@ -80,15 +80,15 @@ const MoodJournal: React.FC = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow container mx-auto p-4 max-w-3xl">
-        <h1 className="text-4xl font-bold text-center mb-8">{t("mood_journal_page.mood_journal_tracker")}</h1> {/* Tarjima qilingan matn */}
+        <h1 className="text-4xl font-bold text-center mb-8">{t("mood_journal_page.mood_journal_tracker")}</h1>
         <div className="mb-8">
           <JournalEntryForm onAddEntry={handleAddEntry} />
         </div>
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold">{t("mood_journal_page.your_past_entries")}</h2> {/* Tarjima qilingan matn */}
+          <h2 className="text-2xl font-semibold">{t("mood_journal_page.your_past_entries")}</h2>
           <Select value={filterMood} onValueChange={setFilterMood}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder={t("mood_journal_page.filter_by_mood")} /> {/* Tarjima qilingan matn */}
+              <SelectValue placeholder={t("mood_journal_page.filter_by_mood")} />
             </SelectTrigger>
             <SelectContent>
               {moods.map((mood) => (
@@ -99,9 +99,9 @@ const MoodJournal: React.FC = () => {
             </SelectContent>
           </Select>
         </div>
-        {isLoading ? <p className="text-center">{t("common.loading")}</p> : filteredEntries.length === 0 ? ( {/* Tarjima qilingan matn */}
+        {isLoading ? <p className="text-center">{t("common.loading")}</p> : filteredEntries.length === 0 ? (
           <p className="text-center text-muted-foreground">
-            {filterMood === "All" ? t("mood_journal_page.no_entries_yet") : t("mood_journal_page.no_mood_entries_found", { mood: filterMood })} {/* Tarjima qilingan matn */}
+            {filterMood === "All" ? t("mood_journal_page.no_entries_yet") : t("mood_journal_page.no_mood_entries_found", { mood: filterMood })}
           </p>
         ) : (
           <div className="space-y-4">

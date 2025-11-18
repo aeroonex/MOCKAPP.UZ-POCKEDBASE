@@ -7,11 +7,11 @@ import ContactSection from "@/components/ContactSection";
 import PricingCard from "@/components/PricingCard";
 import FixedLoginButton from "@/components/FixedLoginButton";
 import LoginDialog from "@/components/LoginDialog";
-import { useTranslation } from 'react-i18next'; // useTranslation import qilish
+import { useTranslation } from 'react-i18next';
 
 const Login: React.FC = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
-  const { t } = useTranslation(); // useTranslation hookini ishlatish
+  const { t } = useTranslation();
 
   const openLoginModal = () => {
     setIsLoginDialogOpen(true);

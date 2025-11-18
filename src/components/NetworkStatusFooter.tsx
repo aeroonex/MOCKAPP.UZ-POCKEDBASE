@@ -3,14 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { Wifi, WifiOff, Clock, Signal, ArrowDownCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useTranslation } from 'react-i18next'; // useTranslation import qilish
+import { useTranslation } from 'react-i18next';
 
 const NetworkStatusFooter: React.FC = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [ping, setPing] = useState<number | null>(null);
   const [speed, setSpeed] = useState<number | null>(null);
   const [time, setTime] = useState<string>('');
-  const { t } = useTranslation(); // useTranslation hookini ishlatish
+  const { t } = useTranslation();
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -69,7 +69,7 @@ const NetworkStatusFooter: React.FC = () => {
         )}
       >
         {isOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
-        <span>{isOnline ? t("common.online") : t("common.offline")}</span> {/* Tarjima qilingan matn */}
+        <span>{isOnline ? t("common.online") : t("common.offline")}</span>
       </div>
 
       {isOnline && typeof ping === 'number' && (
@@ -88,7 +88,7 @@ const NetworkStatusFooter: React.FC = () => {
 
       <div className="flex items-center gap-2 px-4 py-1 text-muted-foreground">
         <Clock size={14} />
-        <span>{t("common.tashkent")}: {time}</span> {/* Tarjima qilingan matn */}
+        <span>{t("common.tashkent")}: {time}</span>
       </div>
     </footer>
   );
