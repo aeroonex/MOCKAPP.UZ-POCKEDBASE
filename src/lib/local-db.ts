@@ -4,7 +4,7 @@ import { SpeakingQuestion, MoodEntry, RecordedSession } from './types';
 import { supabase } from '@/integrations/supabase/client';
 import { showError } from '@/utils/toast';
 
-const DB_NAME = 'cefr_lc_db';
+const DB_NAME = 'edumock_uz_db';
 const DB_VERSION = 1;
 const STORE_MOODS = 'mood_entries';
 const STORE_RECORDINGS = 'recordings';
