@@ -33,7 +33,7 @@
     "slogan": "Edumock.uz quality education with your quality app",
     "contact_us": "Contact Us",
     "phone_number": "+998 77 207 71 17",
-    "description": "<strong>Edumock.uz</strong> is an educational platform contributing to the development of training centers in Uzbekistan, which fully undertakes the organization of the Speaking part of CEFR exams in training centers and guarantees students quality preparation.",
+    "description": "<strong class=\"text-primary\">Edumock.uz</strong> is an educational platform contributing to the development of training centers in Uzbekistan, which fully undertakes the organization of the Speaking part of CEFR exams in training centers and guarantees students quality preparation.",
     "select_tariff": "Select Tariff",
     "monthly": "MONTHLY",
     "lifetime": "LIFETIME",

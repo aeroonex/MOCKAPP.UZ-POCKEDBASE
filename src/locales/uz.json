@@ -33,7 +33,7 @@
     "slogan": "Edumock.uz sifatli ta'lim sifatli ilovangiz bilan",
     "contact_us": "Biz bilan bog'lanish",
     "phone_number": "+998 77 207 71 17",
-    "description": "<strong>Edumock.uz</strong> – bu O‘zbekistondagi o‘quv markazlarni rivojlantirishga hissa qo‘shayotgan ta’lim platformasi bo‘lib, o‘quv markazlarda CEFR imtihonlarini tashkil etishda Speaking qismini to‘liq o‘z zimmasiga oladi va o‘quvchilarga sifatli tayyorgarlikni kafolatlaydi.",
+    "description": "<strong class=\"text-primary\">Edumock.uz</strong> – bu O‘zbekistondagi o‘quv markazlarni rivojlantirishga hissa qo‘shayotgan ta’lim platformasi bo‘lib, o‘quv markazlarda CEFR imtihonlarini tashkil etishda Speaking qismini to‘liq o‘z zimmasiga oladi va o‘quvchilarga sifatli tayyorgarlikni kafolatlaydi.",
     "select_tariff": "Tarifni Tanlang",
     "monthly": "OYLIK",
     "lifetime": "BUTUN UMIRGA",
