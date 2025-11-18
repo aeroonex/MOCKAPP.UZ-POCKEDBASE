@@ -33,7 +33,7 @@ const ContactSection: React.FC = () => {
             <span className="text-lime-500 mr-2">
               <Upload className="h-5 w-5" />
             </span>
-            <a href="https://t.me/aero_one" target="_blank" rel="noopener noreferrer" className="text-gray-900 font-semibold font-mono">{t("landing_page.telegram_username")}</a>
+            <a href="https://t.me/aero_one" target="_blank" rel="noopener noreferrer" className="text-gray-900 font-semibold font-mono">Telegram</a>
           </p>
         </div>
       </div>
