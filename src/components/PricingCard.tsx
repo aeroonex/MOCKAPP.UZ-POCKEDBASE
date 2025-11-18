@@ -4,14 +4,20 @@ import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from 'react-i18next';
-import { CheckCircle } from 'lucide-react'; // CheckCircle ikonini import qilish
+import { CheckCircle } from 'lucide-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"; // Accordion komponentlarini import qilish
 
 interface PriceOption {
   price: number;
   display: string;
   originalPrice?: number;
   discount?: string;
-  features: string[]; // Yangi xususiyatlar massivi
+  features: string[];
 }
 
 const prices: { [key: string]: PriceOption } = {
@@ -49,7 +55,7 @@ const prices: { [key: string]: PriceOption } = {
 };
 
 const PricingCard: React.FC = () => {
-  const [currentOption, setCurrentOption] = useState<string>("1");
+  const [currentOption, setCurrentOption] = useState<string>("1"); // Faqat bitta element ochiq bo'lishi uchun string
   const [totalPrice, setTotalPrice] = useState<PriceOption>(prices["1"]);
   const { t } = useTranslation();
 
@@ -57,27 +63,22 @@ const PricingCard: React.FC = () => {
     setTotalPrice(prices[currentOption]);
   }, [currentOption]);
 
-  const selectPrice = (option: string) => {
-    setCurrentOption(option);
-  };
-
   return (
     <div className="bg-white p-6 border border-gray-200 rounded-xl shadow-2xl sticky top-20 animated-card" style={{ animationDelay: '1.5s' }}>
       <h2 className="text-xl font-bold text-gray-800 mb-6">{t("landing_page.select_tariff")}</h2>
 
-      <div id="pricing-options" className="space-y-3 mb-6">
+      <Accordion type="single" collapsible value={currentOption} onValueChange={(value) => setCurrentOption(value)}>
         {Object.keys(prices).map((key) => {
           const option = key;
           const priceData = prices[option];
           return (
-            <div
-              key={option}
-              id={`price-${option}`}
-              onClick={() => selectPrice(option)}
-              className={`price-option p-4 flex flex-col ${currentOption === option ? 'price-option-active' : ''}`}
+            <AccordionItem 
+              key={option} 
+              value={option} 
+              className={`price-option p-4 flex flex-col border-b-0 ${currentOption === option ? 'price-option-active' : ''}`}
             >
-              <div className="flex justify-between items-center mb-2">
-                <div>
+              <AccordionTrigger className="flex justify-between items-center mb-2 p-0 hover:no-underline">
+                <div className="flex-grow text-left">
                   <p className="font-semibold text-gray-800">
                     {option === "lifetime" ? t("landing_page.lifetime") : `${option} ${t("landing_page.monthly")}`}
                   </p>
@@ -93,20 +94,21 @@ const PricingCard: React.FC = () => {
                     <span className="text-xs font-semibold bg-lime-500 text-white rounded-full px-2 mt-1">{priceData.discount}</span>
                   )}
                 </div>
-              </div>
-              {/* Yangi xususiyatlar ro'yxati */}
-              <ul className="mt-2 space-y-1 text-sm text-gray-700">
-                {priceData.features.map((featureKey) => (
-                  <li key={featureKey} className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-lime-500" />
-                    {t(`landing_page.features.${featureKey}`)}
-                  </li>
-                ))}
-              </ul>
-            </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <ul className="mt-2 space-y-1 text-sm text-gray-700">
+                  {priceData.features.map((featureKey) => (
+                    <li key={featureKey} className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-lime-500" />
+                      {t(`landing_page.features.${featureKey}`)}
+                    </li>
+                  ))}
+                </ul>
+              </AccordionContent>
+            </AccordionItem>
           );
         })}
-      </div>
+      </Accordion>
 
       <div className="mb-6 p-3 border border-gray-300 rounded-xl flex justify-between items-center bg-white">
         <Input type="text" placeholder={t("landing_page.enter_promo_code")} className="w-full outline-none text-sm bg-transparent border-none focus-visible:ring-0" />
