@@ -42,12 +42,7 @@ const ProcessSteps: React.FC = () => {
             {step.icon}
             <p className="text-sm font-semibold text-gray-800">{step.text}</p>
           </div>
-          {index < steps.length - 1 && (
-            <div className="hidden md:flex items-center justify-center relative animated-card" style={{ animationDelay: `${parseFloat(step.delay) + 0.15}s` }}>
-              <span className="absolute w-full h-1 bg-gray-300 top-1/2 -translate-y-1/2"></span>
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-lime-500 bg-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-            </div>
-          )}
+          {/* O'q va chiziq elementini olib tashladim */}
         </React.Fragment>
       ))}
     </div>
