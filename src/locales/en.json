@@ -40,7 +40,13 @@
     "promo_code": "Promo Code",
     "total": "Total",
     "pay_for": "Pay for:",
-    "support_service": "24/7 support service"
+    "support_service": "24/7 support service",
+    "features": {
+      "unlimited_attempts": "Unlimited attempts",
+      "unlimited_downloads": "Unlimited downloads",
+      "add_custom_questions": "Add custom questions",
+      "edit_questions": "Edit questions"
+    }
   },
   "home_page": {
     "speaking_platform": "Speaking Platform",

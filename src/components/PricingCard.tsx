@@ -4,20 +4,48 @@ import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from 'react-i18next';
+import { CheckCircle } from 'lucide-react'; // CheckCircle ikonini import qilish
 
 interface PriceOption {
   price: number;
   display: string;
   originalPrice?: number;
   discount?: string;
+  features: string[]; // Yangi xususiyatlar massivi
 }
 
 const prices: { [key: string]: PriceOption } = {
-  "1": { price: 299000, display: "299,000 so'm" },
-  "3": { price: 749000, display: "749,000 so'm", originalPrice: 900000, discount: "-16.7%" },
-  "6": { price: 1299000, display: "1,299,000 so'm", originalPrice: 1800000, discount: "-27.8%" },
-  "12": { price: 2499000, display: "2,499,000 so'm", originalPrice: 3600000, discount: "-30.6%" },
-  "lifetime": { price: 5999000, display: "5,999,000 so'm" },
+  "1": { 
+    price: 299000, 
+    display: "299,000 so'm",
+    features: ["unlimited_attempts", "unlimited_downloads", "add_custom_questions", "edit_questions"]
+  },
+  "3": { 
+    price: 749000, 
+    display: "749,000 so'm", 
+    originalPrice: 900000, 
+    discount: "-16.7%",
+    features: ["unlimited_attempts", "unlimited_downloads", "add_custom_questions", "edit_questions"]
+  },
+  "6": { 
+    price: 1299000, 
+    display: "1,299,000 so'm", 
+    originalPrice: 1800000, 
+    discount: "-27.8%",
+    features: ["unlimited_attempts", "unlimited_downloads", "add_custom_questions", "edit_questions"]
+  },
+  "12": { 
+    price: 2499000, 
+    display: "2,499,000 so'm", 
+    originalPrice: 3600000, 
+    discount: "-30.6%",
+    features: ["unlimited_attempts", "unlimited_downloads", "add_custom_questions", "edit_questions"]
+  },
+  "lifetime": { 
+    price: 5999000, 
+    display: "5,999,000 so'm",
+    features: ["unlimited_attempts", "unlimited_downloads", "add_custom_questions", "edit_questions"]
+  },
 };
 
 const PricingCard: React.FC = () => {
@@ -46,24 +74,35 @@ const PricingCard: React.FC = () => {
               key={option}
               id={`price-${option}`}
               onClick={() => selectPrice(option)}
-              className={`price-option p-4 flex justify-between items-center ${currentOption === option ? 'price-option-active' : ''}`}
+              className={`price-option p-4 flex flex-col ${currentOption === option ? 'price-option-active' : ''}`}
             >
-              <div>
-                <p className="font-semibold text-gray-800">
-                  {option === "lifetime" ? t("landing_page.lifetime") : `${option} ${t("landing_page.monthly")}`}
-                </p>
-                {priceData.originalPrice && (
-                  <span className="text-xs text-red-500 line-through">{priceData.originalPrice.toLocaleString('uz-UZ')} so'm</span>
-                )}
+              <div className="flex justify-between items-center mb-2">
+                <div>
+                  <p className="font-semibold text-gray-800">
+                    {option === "lifetime" ? t("landing_page.lifetime") : `${option} ${t("landing_page.monthly")}`}
+                  </p>
+                  {priceData.originalPrice && (
+                    <span className="text-xs text-red-500 line-through">{priceData.originalPrice.toLocaleString('uz-UZ')} so'm</span>
+                  )}
+                </div>
+                <div className="text-right flex flex-col items-end">
+                  <p className={`text-xl font-bold ${currentOption === option ? 'text-lime-600' : 'text-gray-800'}`}>
+                    {priceData.display}
+                  </p>
+                  {priceData.discount && (
+                    <span className="text-xs font-semibold bg-lime-500 text-white rounded-full px-2 mt-1">{priceData.discount}</span>
+                  )}
+                </div>
               </div>
-              <div className="text-right flex flex-col items-end">
-                <p className={`text-xl font-bold ${currentOption === option ? 'text-lime-600' : 'text-gray-800'}`}>
-                  {priceData.display}
-                </p>
-                {priceData.discount && (
-                  <span className="text-xs font-semibold bg-lime-500 text-white rounded-full px-2 mt-1">{priceData.discount}</span>
-                )}
-              </div>
+              {/* Yangi xususiyatlar ro'yxati */}
+              <ul className="mt-2 space-y-1 text-sm text-gray-700">
+                {priceData.features.map((featureKey) => (
+                  <li key={featureKey} className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-lime-500" />
+                    {t(`landing_page.features.${featureKey}`)}
+                  </li>
+                ))}
+              </ul>
             </div>
           );
         })}

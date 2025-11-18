@@ -40,7 +40,13 @@
     "promo_code": "Promokod",
     "total": "Jami",
     "pay_for": "To'lov uchun:",
-    "support_service": "24/7 qo'llab-quvvatlash xizmati"
+    "support_service": "24/7 qo'llab-quvvatlash xizmati",
+    "features": {
+      "unlimited_attempts": "Cheklanmagan urinishlar",
+      "unlimited_downloads": "Cheklanmagan yuklab olishlar",
+      "add_custom_questions": "Maxsus savollar qo'shish",
+      "edit_questions": "Savollarni tahrirlash"
+    }
   },
   "home_page": {
     "speaking_platform": "Speaking Platform",

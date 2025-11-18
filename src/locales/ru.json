@@ -40,7 +40,13 @@
     "promo_code": "Промокод",
     "total": "Итого",
     "pay_for": "Оплатить:",
-    "support_service": "Круглосуточная служба поддержки"
+    "support_service": "Круглосуточная служба поддержки",
+    "features": {
+      "unlimited_attempts": "Неограниченные попытки",
+      "unlimited_downloads": "Неограниченные загрузки",
+      "add_custom_questions": "Добавление пользовательских вопросов",
+      "edit_questions": "Редактирование вопросов"
+    }
   },
   "home_page": {
     "speaking_platform": "Платформа для разговорной практики",
