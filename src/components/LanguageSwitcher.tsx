@@ -21,7 +21,8 @@ const LanguageSwitcher: React.FC = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="hover:bg-primary/80 text-white">
+        {/* Tugma stilini oq fonda ko'rinadigan qilib o'zgartirdim */}
+        <Button variant="ghost" size="icon" className="text-gray-700 hover:text-lime-500">
           <Globe className="h-5 w-5" />
           <span className="sr-only">Change language</span>
         </Button>

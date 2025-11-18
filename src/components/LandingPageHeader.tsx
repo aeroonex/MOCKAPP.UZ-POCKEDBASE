@@ -3,6 +3,7 @@
 import React from "react";
 import { User } from "lucide-react";
 import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './LanguageSwitcher'; // LanguageSwitcher'ni import qilish
 
 interface LandingPageHeaderProps {
   onOpenLogin: () => void;
@@ -21,7 +22,8 @@ const LandingPageHeader: React.FC<LandingPageHeaderProps> = ({ onOpenLogin }) =>
           <a href="#" className="hidden sm:inline-block px-4 py-2 bg-lime-500 text-white font-semibold rounded-full hover:bg-lime-600 transition duration-150 text-sm">
             Edumock Plus
           </a>
-          <span className="text-sm text-gray-700 hidden sm:inline-block">UZ</span>
+          {/* Static "UZ" span o'rniga LanguageSwitcher komponentini qo'shdim */}
+          <LanguageSwitcher />
           <button onClick={onOpenLogin} className="text-gray-500 hover:text-lime-500">
             <User className="h-6 w-6" />
           </button>
