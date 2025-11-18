@@ -103,13 +103,13 @@
 /* Custom CSS from provided HTML */
 .fixed-login-button {
     transition: all 0.3s ease;
-    background-color: #84cc16; /* Tailwind lime-500 */
-    box-shadow: 0 10px 20px rgba(132, 204, 22, 0.4);
+    background-color: hsl(var(--primary)); /* Tailwind lime-500 */
+    box-shadow: 0 10px 20px hsl(var(--primary) / 0.4);
 }
 .fixed-login-button:hover {
     transform: scale(1.05);
-    background-color: #65a30d; /* Tailwind lime-600 */
-    box-shadow: 0 15px 30px rgba(132, 204, 22, 0.6);
+    background-color: hsl(var(--primary-foreground)); /* Tailwind lime-600 */
+    box-shadow: 0 15px 30px hsl(var(--primary) / 0.6);
 }
 
 .price-option {
@@ -119,8 +119,8 @@
     border: 1px solid #e5e7eb;
 }
 .price-option-active {
-    border: 2px solid #84cc16; /* Tailwind lime-500 */
-    background-color: #f7fee7; /* Tailwind lime-50 */
+    border: 2px solid hsl(var(--primary)); /* Tailwind lime-500 */
+    background-color: hsl(var(--primary) / 0.05); /* Tailwind lime-50 */
 }
 .price-option:hover {
      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
@@ -141,12 +141,12 @@
 
 .process-card:hover {
     transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 10px 20px rgba(132, 204, 22, 0.2);
-    border-color: #65a30d; /* Tailwind lime-600 */
+    box-shadow: 0 10px 20px hsl(var(--primary) / 0.2);
+    border-color: hsl(var(--primary-foreground)); /* Tailwind lime-600 */
 }
 
 .process-card-icon {
-    color: #84cc16; /* Tailwind lime-500 */
+    color: hsl(var(--primary)); /* Tailwind lime-500 */
 }
 
 @keyframes slideInUp {

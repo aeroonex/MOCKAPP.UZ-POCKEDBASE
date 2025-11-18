@@ -100,11 +100,11 @@ const PricingCard: React.FC = () => {
                   )}
                 </div>
                 <div className="text-right flex flex-col items-end">
-                  <p className={`text-xl font-bold ${selectedPriceKey === option ? 'text-lime-600' : 'text-gray-800'}`}>
+                  <p className={`text-xl font-bold ${selectedPriceKey === option ? 'text-primary' : 'text-gray-800'}`}>
                     {priceData.display}
                   </p>
                   {priceData.discount && (
-                    <span className="text-xs font-semibold bg-lime-500 text-white rounded-full px-2 mt-1">{priceData.discount}</span>
+                    <span className="text-xs font-semibold bg-primary text-white rounded-full px-2 mt-1">{priceData.discount}</span>
                   )}
                 </div>
               </AccordionTrigger>
@@ -112,7 +112,7 @@ const PricingCard: React.FC = () => {
                 <ul className="mt-2 space-y-1 text-sm text-gray-700">
                   {priceData.features.map((featureKey) => (
                     <li key={featureKey} className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-lime-500" />
+                      <CheckCircle className="h-4 w-4 text-primary" />
                       {t(`landing_page.features.${featureKey}`)}
                     </li>
                   ))}
@@ -125,15 +125,15 @@ const PricingCard: React.FC = () => {
 
       <div className="mb-6 p-3 border border-gray-300 rounded-xl flex justify-between items-center bg-white">
         <Input type="text" placeholder={t("landing_page.enter_promo_code")} className="w-full outline-none text-sm bg-transparent border-none focus-visible:ring-0" />
-        <Button variant="ghost" className="text-lime-500 font-semibold text-sm hover:text-lime-600 p-0 h-auto">{t("landing_page.promo_code")}</Button>
+        <Button variant="ghost" className="text-primary font-semibold text-sm hover:text-primary/90 p-0 h-auto">{t("landing_page.promo_code")}</Button>
       </div>
 
       <div className="flex justify-between items-center border-t pt-4">
         <p className="text-lg font-bold text-gray-800">{t("landing_page.total")}</p>
-        <p id="total-price" className="text-2xl font-extrabold text-lime-600">{totalPrice.display}</p>
+        <p id="total-price" className="text-2xl font-extrabold text-primary">{totalPrice.display}</p>
       </div>
 
-      <Button asChild className="w-full mt-4 py-4 bg-lime-500 text-white font-bold text-lg rounded-xl hover:bg-lime-600 transition duration-150 shadow-md">
+      <Button asChild className="w-full mt-4 py-4 bg-primary text-white font-bold text-lg rounded-xl hover:bg-primary/90 transition duration-150 shadow-md">
         <a href="https://t.me/aero_one" target="_blank" rel="noopener noreferrer">
           {t("landing_page.pay_for")} {totalPrice.display}
         </a>

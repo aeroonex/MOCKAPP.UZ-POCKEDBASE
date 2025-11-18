@@ -36,7 +36,7 @@ const ProcessSteps: React.FC = () => {
       {steps.map((step, index) => (
         <React.Fragment key={index}>
           <div
-            className={`process-card p-4 rounded-xl text-center shadow-lg ${step.active ? 'border-lime-500 border-2' : ''} animated-card`}
+            className={`process-card p-4 rounded-xl text-center shadow-lg ${step.active ? 'border-primary border-2' : ''} animated-card`}
             style={{ animationDelay: step.delay }}
           >
             {step.icon}
