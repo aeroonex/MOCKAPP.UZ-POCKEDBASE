@@ -12,23 +12,24 @@ interface PriceOption {
   discount?: string;
 }
 
-const prices: { [key: number]: PriceOption } = {
-  1: { price: 300000, display: "300,000 so'm" },
-  3: { price: 750000, display: "750,000 so'm", originalPrice: 900000, discount: "-16.66%" },
-  6: { price: 1380000, display: "1,380,000 so'm", originalPrice: 1800000, discount: "-23.33%" },
-  12: { price: 2520000, display: "2,520,000 so'm", originalPrice: 3600000, discount: "-30%" },
+const prices: { [key: string]: PriceOption } = {
+  "1": { price: 299000, display: "299,000 so'm" },
+  "3": { price: 749000, display: "749,000 so'm", originalPrice: 900000, discount: "-16.7%" },
+  "6": { price: 1299000, display: "1,299,000 so'm", originalPrice: 1800000, discount: "-27.8%" },
+  "12": { price: 2499000, display: "2,499,000 so'm", originalPrice: 3600000, discount: "-30.6%" },
+  "lifetime": { price: 5999000, display: "5,999,000 so'm" },
 };
 
 const PricingCard: React.FC = () => {
-  const [currentOption, setCurrentOption] = useState<number>(1);
-  const [totalPrice, setTotalPrice] = useState<PriceOption>(prices[1]);
+  const [currentOption, setCurrentOption] = useState<string>("1");
+  const [totalPrice, setTotalPrice] = useState<PriceOption>(prices["1"]);
   const { t } = useTranslation();
 
   useEffect(() => {
     setTotalPrice(prices[currentOption]);
   }, [currentOption]);
 
-  const selectPrice = (option: number) => {
+  const selectPrice = (option: string) => {
     setCurrentOption(option);
   };
 
@@ -38,7 +39,7 @@ const PricingCard: React.FC = () => {
 
       <div id="pricing-options" className="space-y-3 mb-6">
         {Object.keys(prices).map((key) => {
-          const option = parseInt(key);
+          const option = key;
           const priceData = prices[option];
           return (
             <div
@@ -48,7 +49,9 @@ const PricingCard: React.FC = () => {
               className={`price-option p-4 flex justify-between items-center ${currentOption === option ? 'price-option-active' : ''}`}
             >
               <div>
-                <p className="font-semibold text-gray-800">{option} {t("landing_page.monthly")}</p>
+                <p className="font-semibold text-gray-800">
+                  {option === "lifetime" ? t("landing_page.lifetime") : `${option} ${t("landing_page.monthly")}`}
+                </p>
                 {priceData.originalPrice && (
                   <span className="text-xs text-red-500 line-through">{priceData.originalPrice.toLocaleString('uz-UZ')} so'm</span>
                 )}

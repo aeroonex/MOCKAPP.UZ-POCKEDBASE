@@ -36,6 +36,7 @@
     "description": "Edumock.uz – bu O‘zbekistondagi o‘quv markazlarni rivojlantirishga hissa qo‘shayotgan ta’lim platformasi bo‘lib, o‘quv markazlarda CEFR imtihonlarini tashkil etishda Speaking qismini to‘liq o‘z zimmasiga oladi va o‘quvchilarga sifatli tayyorgarlikni kafolatlaydi.",
     "select_tariff": "Tarifni Tanlang",
     "monthly": "OYLIK",
+    "lifetime": "UMRBOY",
     "enter_promo_code": "Promokodni kiriting",
     "promo_code": "Promokod",
     "total": "Jami",
