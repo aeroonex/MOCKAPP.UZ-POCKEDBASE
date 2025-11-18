@@ -10,7 +10,7 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion"; // Accordion komponentlarini import qilish
+} from "@/components/ui/accordion";
 
 interface PriceOption {
   price: number;
@@ -55,19 +55,32 @@ const prices: { [key: string]: PriceOption } = {
 };
 
 const PricingCard: React.FC = () => {
-  const [currentOption, setCurrentOption] = useState<string>("1"); // Faqat bitta element ochiq bo'lishi uchun string
-  const [totalPrice, setTotalPrice] = useState<PriceOption>(prices["1"]);
+  // Accordionning qaysi elementi ochiq ekanligini boshqaradi
+  const [openAccordionValue, setOpenAccordionValue] = useState<string | undefined>("1");
+  // Tanlangan tarifning kalitini saqlaydi, bu totalPrice ni aniqlash uchun ishlatiladi
+  const [selectedPriceKey, setSelectedPriceKey] = useState<string>("1");
   const { t } = useTranslation();
 
+  // openAccordionValue o'zgarganda selectedPriceKey ni yangilash
   useEffect(() => {
-    setTotalPrice(prices[currentOption]);
-  }, [currentOption]);
+    if (openAccordionValue) {
+      setSelectedPriceKey(openAccordionValue);
+    }
+  }, [openAccordionValue]);
+
+  // selectedPriceKey o'zgarganda totalPrice ni yangilash
+  const totalPrice = prices[selectedPriceKey];
 
   return (
     <div className="bg-white p-6 border border-gray-200 rounded-xl shadow-2xl sticky top-20 animated-card" style={{ animationDelay: '1.5s' }}>
       <h2 className="text-xl font-bold text-gray-800 mb-6">{t("landing_page.select_tariff")}</h2>
 
-      <Accordion type="single" collapsible value={currentOption} onValueChange={(value) => setCurrentOption(value)}>
+      <Accordion 
+        type="single" 
+        collapsible 
+        value={openAccordionValue} 
+        onValueChange={setOpenAccordionValue}
+      >
         {Object.keys(prices).map((key) => {
           const option = key;
           const priceData = prices[option];
@@ -75,7 +88,7 @@ const PricingCard: React.FC = () => {
             <AccordionItem 
               key={option} 
               value={option} 
-              className={`price-option p-4 flex flex-col border-b-0 ${currentOption === option ? 'price-option-active' : ''}`}
+              className={`price-option p-4 flex flex-col border-b-0 ${selectedPriceKey === option ? 'price-option-active' : ''}`}
             >
               <AccordionTrigger className="flex justify-between items-center mb-2 p-0 hover:no-underline">
                 <div className="flex-grow text-left">
@@ -87,7 +100,7 @@ const PricingCard: React.FC = () => {
                   )}
                 </div>
                 <div className="text-right flex flex-col items-end">
-                  <p className={`text-xl font-bold ${currentOption === option ? 'text-lime-600' : 'text-gray-800'}`}>
+                  <p className={`text-xl font-bold ${selectedPriceKey === option ? 'text-lime-600' : 'text-gray-800'}`}>
                     {priceData.display}
                   </p>
                   {priceData.discount && (
