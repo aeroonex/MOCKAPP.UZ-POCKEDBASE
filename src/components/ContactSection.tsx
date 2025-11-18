@@ -8,7 +8,7 @@ const ContactSection: React.FC = () => {
     <div className="space-y-6 mt-12 max-w-[600px]">
       <div className="p-5 rounded-xl shadow-lg bg-lime-50 border border-lime-300 animated-card" style={{ animationDelay: '1.1s' }}>
         <p className="text-xl font-extrabold text-lime-700">
-          "Edumock.uz sifatli ta'lim sifatli ilovangiz bilan"
+          Edumock.uz sifatli ta'lim sifatli ilovangiz bilan
         </p>
       </div>
 
