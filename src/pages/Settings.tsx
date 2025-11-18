@@ -5,23 +5,23 @@ import Navbar from "@/components/Navbar";
 import { CefrCentreFooter } from "@/components/CefrCentreFooter";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useTheme } from "next-themes";
+import { Button } from "@/components/ui/button";
+// import { useTheme } from "next-themes"; // useTheme importini olib tashladim
 import { useTranslation } from 'react-i18next';
 
 const Settings: React.FC = () => {
-  const { theme, setTheme } = useTheme();
+  // const { theme, setTheme } = useTheme(); // useTheme hookini olib tashladim
   const { t } = useTranslation();
 
-  console.log("Current theme from useTheme:", theme);
+  // console.log("Current theme from useTheme:", theme); // Konsol logini olib tashladim
 
-  const handleThemeChange = (checked: boolean) => {
-    const newTheme = checked ? "dark" : "light";
-    console.log("Attempting to set theme to:", newTheme);
-    setTheme(newTheme);
-  };
+  // handleThemeChange funksiyasini olib tashladim
+  // const handleThemeChange = (checked: boolean) => {
+  //   const newTheme = checked ? "dark" : "light";
+  //   console.log("Attempting to set theme to:", newTheme);
+  //   setTheme(newTheme);
+  // };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -33,6 +33,8 @@ const Settings: React.FC = () => {
             <CardDescription>{t("settings_page.manage_preferences")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Tungi rejim sozlamasi olib tashlandi */}
+            {/*
             <div className="flex items-center justify-between">
               <Label htmlFor="dark-mode" className="text-base">{t("settings_page.dark_mode")}</Label>
               <Switch 
@@ -41,6 +43,7 @@ const Settings: React.FC = () => {
                 onCheckedChange={handleThemeChange}
               />
             </div>
+            */}
             <div className="space-y-2">
               <Label htmlFor="username-setting" className="text-base">{t("settings_page.username")}</Label>
               <Input id="username-setting" type="text" placeholder={t("settings_page.your_username")} defaultValue="user" />
