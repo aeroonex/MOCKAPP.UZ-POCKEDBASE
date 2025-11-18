@@ -219,6 +219,8 @@
     "rule2_title": "Downloading Recordings:",
     "rule2_text": "After conducting a test with a student, please download the recording from the site within 1 hour.",
     "rule3_title": "Data Storage:",
-    "rule3_text": "Recorded tests are stored in the browser's local storage. Clearing browser history, cache, or cookies may lead to the loss of your recordings."
+    "rule3_text": "Recorded tests are stored in the browser's local storage. Clearing browser history, cache, or cookies may lead to the loss of your recordings.",
+    "rule4_title": "Starting Screen Recording:",
+    "rule4_text": "When starting the test, select 'Entire Screen' in the pop-up window, check the 'Also share system audio' box, and click the 'Share' button. The exam will begin after this."
   }
 }

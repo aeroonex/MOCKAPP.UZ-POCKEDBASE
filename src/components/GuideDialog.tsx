@@ -31,6 +31,7 @@ const GuideDialog: React.FC<GuideDialogProps> = ({ isOpen, onClose }) => {
           <p><strong>1. {t("guide_dialog.rule1_title")}</strong> {t("guide_dialog.rule1_text")}</p>
           <p><strong>2. {t("guide_dialog.rule2_title")}</strong> {t("guide_dialog.rule2_text")}</p>
           <p><strong>3. {t("guide_dialog.rule3_title")}</strong> {t("guide_dialog.rule3_text")}</p>
+          <p><strong>4. {t("guide_dialog.rule4_title")}</strong> {t("guide_dialog.rule4_text")}</p>
         </div>
       </DialogContent>
     </Dialog>

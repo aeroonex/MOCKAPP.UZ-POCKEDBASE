@@ -219,6 +219,8 @@
     "rule2_title": "Yozuvlarni yuklab olish:",
     "rule2_text": "O'quvchidan test olingandan so'ng, yozuvni 1 soat ichida saytdan yuklab oling.",
     "rule3_title": "Ma'lumotlarni saqlash:",
-    "rule3_text": "Yozib olingan testlar brauzerning mahalliy xotirasida saqlanadi. Brauzer tarixini, keshini yoki cookie-fayllarini tozalash yozuvlaringizni yo'qotishga olib kelishi mumkin."
+    "rule3_text": "Yozib olingan testlar brauzerning mahalliy xotirasida saqlanadi. Brauzer tarixini, keshini yoki cookie-fayllarini tozalash yozuvlaringizni yo'qotishga olib kelishi mumkin.",
+    "rule4_title": "Ekran yozuvini boshlash:",
+    "rule4_text": "Testni boshlashda, ochilgan oynadan 'Entire Screen' (Butun ekran) ni tanlang, 'Also share system audio' (Tizim audiosini ham ulashish) katakchasini belgilang va 'Share' (Ulashish) tugmasini bosing. Shundan so'ng imtihon boshlanadi."
   }
 }
