@@ -74,8 +74,10 @@ const PricingCard: React.FC = () => {
         <p id="total-price" className="text-2xl font-extrabold text-lime-600">{totalPrice.display}</p>
       </div>
 
-      <Button className="w-full mt-4 py-4 bg-lime-500 text-white font-bold text-lg rounded-xl hover:bg-lime-600 transition duration-150 shadow-md">
-        To'lov uchun: {totalPrice.display}
+      <Button asChild className="w-full mt-4 py-4 bg-lime-500 text-white font-bold text-lg rounded-xl hover:bg-lime-600 transition duration-150 shadow-md">
+        <a href="https://t.me/aero_one" target="_blank" rel="noopener noreferrer">
+          To'lov uchun: {totalPrice.display}
+        </a>
       </Button>
     </div>
   );
