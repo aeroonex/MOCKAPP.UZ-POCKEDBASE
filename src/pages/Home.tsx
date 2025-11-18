@@ -22,7 +22,7 @@ const Home: React.FC = () => {
         {/* <div className="h-28 w-28 rounded-lg flex items-center justify-center bg-red-50 dark:bg-red-900/20 animate-logo-pulse mb-6 shadow-lg border border-red-200">
           <span className="text-4xl font-extrabold text-red-600">Edumock.uz</span>
         </div> */}
-        <h1 className="text-5xl font-bold text-red-600 dark:text-red-500 mb-4">
+        <h1 className="text-5xl font-bold text-primary dark:text-primary-foreground mb-4">
           Edumock.uz Speaking Platform
         </h1>
         <p className="text-xl text-muted-foreground mb-8">
@@ -32,9 +32,9 @@ const Home: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-5xl">
           {dashboardLinks.map((link) => (
             <Link to={link.path} key={link.name} className="transform hover:scale-105 transition-transform duration-200">
-              <Card className="h-full flex flex-col items-center justify-center text-center p-6 hover:bg-red-50 border-red-100 hover:border-red-200">
+              <Card className="h-full flex flex-col items-center justify-center text-center p-6 hover:bg-primary/10 border-primary/20 hover:border-primary/40">
                 <CardHeader>
-                  <link.icon className="h-12 w-12 mx-auto text-red-600 mb-4" />
+                  <link.icon className="h-12 w-12 mx-auto text-primary mb-4" />
                   <CardTitle>{link.name}</CardTitle>
                 </CardHeader>
                 <CardContent>

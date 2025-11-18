@@ -42,7 +42,7 @@ const Navbar: React.FC = () => {
     return (
       <>
         {filteredLinks.map((link) => (
-          <Button key={link.name} variant="ghost" asChild className="w-full justify-start hover:bg-red-700">
+          <Button key={link.name} variant="ghost" asChild className="w-full justify-start hover:bg-primary/80">
             <Link to={link.path} className="flex items-center gap-2">
               <link.icon className="h-4 w-4" />
               {link.name}
@@ -52,7 +52,7 @@ const Navbar: React.FC = () => {
         {(session || isGuestMode) && (
           <Button
             variant="ghost"
-            className="w-full justify-start text-white hover:bg-red-500/20 hover:text-white"
+            className="w-full justify-start text-white hover:bg-primary/20 hover:text-white"
             onClick={handleLogout}
           >
             <LogOut className="h-4 w-4 mr-2" />
@@ -64,7 +64,7 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <nav className="bg-red-600 text-white p-4 shadow-md flex items-center justify-between">
+    <nav className="bg-primary text-white p-4 shadow-md flex items-center justify-between">
       <Link to="/home" className="text-2xl font-bold">
         <span className="font-extrabold">Edumock.uz</span>
       </Link>
@@ -72,11 +72,11 @@ const Navbar: React.FC = () => {
       {isMobile ? (
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="hover:bg-red-700">
+            <Button variant="ghost" size="icon" className="hover:bg-primary/80">
               <Menu className="h-6 w-6" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-[250px] p-4 flex flex-col bg-red-600 text-white border-r-red-700">
+          <SheetContent side="left" className="w-[250px] p-4 flex flex-col bg-primary text-white border-r-primary/80">
             <Link to="/home" className="text-2xl font-bold mb-4">
               <span className="font-extrabold">Edumock.uz</span>
             </Link>
