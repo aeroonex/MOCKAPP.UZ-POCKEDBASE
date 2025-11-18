@@ -7,25 +7,25 @@ const ProcessSteps: React.FC = () => {
   const steps = [
     {
       icon: <LayoutGrid className="h-8 w-8 process-card-icon mx-auto mb-2" />,
-      text: "1. Edumock.uz",
+      text: "Edumock.uz",
       delay: "0s",
       active: true,
     },
     {
       icon: <Building className="h-8 w-8 process-card-icon mx-auto mb-2" />,
-      text: "2. O'quv Markazi",
+      text: "O'quv Markazi",
       delay: "0.3s",
       active: false,
     },
     {
       icon: <User className="h-8 w-8 process-card-icon mx-auto mb-2" />,
-      text: "3. Student",
+      text: "Student",
       delay: "0.6s",
       active: false,
     },
     {
       icon: <TrendingUp className="h-8 w-8 process-card-icon mx-auto mb-2" />,
-      text: "4. Natija",
+      text: "Natija",
       delay: "0.9s",
       active: false,
     },
