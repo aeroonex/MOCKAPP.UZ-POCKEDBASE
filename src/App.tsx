@@ -16,7 +16,6 @@ import Questions from "./pages/Questions";
 import Records from "./pages/Records";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/AuthProvider";
-import AdminDashboard from "./pages/AdminDashboard"; // AdminDashboard importini qo'shish
 // import NetworkStatusFooter from "./components/NetworkStatusFooter"; // NetworkStatusFooter importini olib tashladim
 
 const queryClient = new QueryClient();
@@ -44,7 +43,6 @@ const App = () => {
                   <Route path="/questions" element={<Questions />} />
                   <Route path="/records" element={<Records />} />
                   <Route path="/mood-journal" element={<MoodJournal />} />
-                  <Route path="/admin-dashboard" element={<AdminDashboard />} /> {/* AdminDashboard marshrutini qo'shish */}
                 </Route>
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

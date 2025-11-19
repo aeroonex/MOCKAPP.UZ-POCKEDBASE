@@ -4,7 +4,7 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LogOut, User, Settings, Home as HomeIcon, LayoutDashboard } from "lucide-react"; // LayoutDashboard iconini import qilish
+import { Menu, LogOut, User, Settings, Home as HomeIcon } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { showSuccess } from "@/utils/toast";
 import { useAuth } from "@/context/AuthProvider";
@@ -16,13 +16,12 @@ const allNavLinks = [
   { name: "common.home", path: "/home", icon: HomeIcon, protected: true },
   { name: "common.settings", path: "/settings", icon: Settings, protected: true },
   { name: "common.profile", path: "/user-profile", icon: User, protected: true },
-  { name: "common.admin_dashboard", path: "/admin-dashboard", icon: LayoutDashboard, protected: true, adminOnly: true }, // Admin Dashboard linkini qo'shish
 ];
 
 const Navbar: React.FC = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const { session, isSuperAdmin } = useAuth(); // isSuperAdmin ni useAuth dan olish
+  const { session } = useAuth();
   const isGuestMode = localStorage.getItem("isGuestMode") === "true";
   const { t } = useTranslation();
 
@@ -31,7 +30,6 @@ const Navbar: React.FC = () => {
       await supabase.auth.signOut();
     }
     localStorage.removeItem("isGuestMode");
-    localStorage.removeItem("isSuperAdmin"); // Super admin holatini ham tozalash
     showSuccess(t("common.success_logged_in"));
     navigate("/login");
   };
@@ -42,9 +40,6 @@ const Navbar: React.FC = () => {
     if (isGuestMode && !session) {
       filteredLinks = allNavLinks.filter(link => link.path === '/home');
     }
-
-    // AdminOnly linklarini faqat isSuperAdmin true bo'lsa ko'rsatish
-    filteredLinks = filteredLinks.filter(link => !link.adminOnly || isSuperAdmin);
 
     return (
       <>
