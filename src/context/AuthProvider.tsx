@@ -61,6 +61,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     getSessionAndProfile();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setLoading(true); // Auth holati o'zgarganda ham yuklanishni boshlash
       setSession(session);
       const currentUser = session?.user ?? null;
       setUser(currentUser);
@@ -71,7 +72,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else {
         setIsBlocked(null);
       }
-      setLoading(false); // Bu qator qo'shildi
+      setLoading(false);
     });
 
     return () => {
