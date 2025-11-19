@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { showSuccess, showError } from "@/utils/toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } = 'react-i18next';
 
 interface LoginDialogProps {
   isOpen: boolean;
@@ -31,16 +31,16 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         showError(error.message);
-        setLoading(false); // Xato bo'lganda yuklanish holatini tozalash
       } else {
         showSuccess(t("common.success_logged_in"));
-        setLoading(false); // Navigatsiyadan oldin yuklanish holatini tozalash
+        // setLoading(false) ni finally blokiga o'tkazdik, shuning uchun bu yerda kerak emas
         onClose();
         navigate("/home");
       }
     } catch (err: any) {
       showError(err.message || t("common.login_error"));
-      setLoading(false); // Catch blokida ham yuklanish holatini tozalash
+    } finally {
+      setLoading(false); // Yuklanish holatini har doim tozalash
     }
   };
 
