@@ -27,15 +27,20 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      showError(error.message);
-    } else {
-      showSuccess(t("common.success_logged_in"));
-      onClose();
-      navigate("/home");
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        showError(error.message);
+      } else {
+        showSuccess(t("common.success_logged_in"));
+        onClose();
+        navigate("/home");
+      }
+    } catch (err: any) {
+      showError(err.message || t("common.login_error"));
+    } finally {
+      setLoading(false); // Yuklanish holatini har doim tozalash
     }
-    setLoading(false);
   };
 
   return (
