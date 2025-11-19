@@ -82,9 +82,17 @@ const AdminDashboard: React.FC = () => {
   const fetchProfiles = useCallback(async () => {
     setIsLoading(true);
     
-    const { data: profilesData, error: profilesError } = await supabase
-      .from('profiles')
-      .select('*');
+    const [profilesResponse, usersEdgeResponse] = await Promise.all([
+      supabase.from('profiles').select('*'),
+      session?.access_token 
+        ? supabase.functions.invoke('list-users', {
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          })
+        : Promise.resolve({ data: [], error: null }), // Handle no session case gracefully
+    ]);
+
+    const { data: profilesData, error: profilesError } = profilesResponse;
+    const { data: usersEdgeData, error: usersEdgeError } = usersEdgeResponse;
 
     if (profilesError) {
       showError(t("admin_dashboard.error_fetching_profiles", { message: profilesError.message }));
@@ -92,27 +100,21 @@ const AdminDashboard: React.FC = () => {
       return;
     }
 
+    if (usersEdgeError) {
+      showError(t("admin_dashboard.error_fetching_users", { message: usersEdgeError.message }));
+      setIsLoading(false);
+      return;
+    }
+    
     let usersMap = new Map<string, string>();
-    if (session?.access_token) {
-      const { data: usersEdgeData, error: usersEdgeError } = await supabase.functions.invoke('list-users', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
+    if (usersEdgeData && Array.isArray(usersEdgeData)) {
+      usersEdgeData.forEach((user: any) => {
+        usersMap.set(user.id, user.email);
       });
-
-      if (usersEdgeError) {
-        showError(t("admin_dashboard.error_fetching_users", { message: usersEdgeError.message }));
-        setIsLoading(false);
-        return;
-      }
-      
-      if (usersEdgeData && Array.isArray(usersEdgeData)) {
-        usersEdgeData.forEach((user: any) => {
-          usersMap.set(user.id, user.email);
-        });
-      }
-    } else {
-      showError(t("admin_dashboard.error_no_session_for_users"));
+    } else if (!session?.access_token) {
+      // This case should ideally be handled by the Promise.resolve above,
+      // but keeping it for explicit error messaging if needed.
+      showError(t("admin_dashboard.error_no_session_for_users")); 
     }
 
     const combinedProfiles = profilesData.map(profile => ({

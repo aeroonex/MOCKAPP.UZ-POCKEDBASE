@@ -293,6 +293,7 @@
     "error_email_password_required": "Email and password are required.",
     "success_user_added": "User {{email}} added successfully!",
     "error_creating_user_no_user_data": "Error creating user: no user data returned.",
-    "error_adding_user": "Error adding user: {{message}}"
+    "error_adding_user": "Error adding user: {{message}}",
+    "error_no_session_for_users": "No session available to fetch user data."
   }
 }

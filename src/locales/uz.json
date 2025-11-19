@@ -289,6 +289,7 @@
     "error_email_password_required": "Email va parol majburiy.",
     "success_user_added": "{{email}} foydalanuvchisi muvaffaqiyatli qo'shildi!",
     "error_creating_user_no_user_data": "Foydalanuvchi yaratishda xatolik: foydalanuvchi ma'lumotlari olinmadi.",
-    "error_adding_user": "Foydalanuvchi qo'shishda xatolik: {{message}}"
+    "error_adding_user": "Foydalanuvchi qo'shishda xatolik: {{message}}",
+    "error_no_session_for_users": "Foydalanuvchi ma'lumotlarini yuklash uchun sessiya mavjud emas."
   }
 }
