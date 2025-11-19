@@ -284,6 +284,15 @@
     "purchase_date": "Purchase Date",
     "expiry_date": "Expiry Date",
     "income": "Income",
-    "error_no_session_for_users": "No session available to fetch user data."
+    "add_new_user": "Add New User",
+    "add_new_user_description": "Enter details for the new user.",
+    "new_user_email_placeholder": "New user email",
+    "new_user_password_placeholder": "New user password",
+    "new_user_username_placeholder": "New user username",
+    "add_user_button": "Add User",
+    "error_email_password_required": "Email and password are required.",
+    "success_user_added": "User {{email}} added successfully!",
+    "error_creating_user_no_user_data": "Error creating user: no user data returned.",
+    "error_adding_user": "Error adding user: {{message}}"
   }
 }

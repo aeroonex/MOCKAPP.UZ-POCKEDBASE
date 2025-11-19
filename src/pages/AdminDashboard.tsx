@@ -48,7 +48,7 @@ interface Profile {
 }
 
 const AdminDashboard: React.FC = () => {
-  const { isSuperAdmin, loading: authLoading, session } = useAuth(); // session ni ham olamiz
+  const { isSuperAdmin, loading: authLoading, session } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -56,6 +56,7 @@ const AdminDashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false); // New state for Add User dialog
   const [currentProfile, setCurrentProfile] = useState<Profile | null>(null);
   const [editForm, setEditForm] = useState({
     username: "",
@@ -71,11 +72,16 @@ const AdminDashboard: React.FC = () => {
     expiry_date: "",
     income: 0,
   });
+  const [newUserData, setNewUserData] = useState({ // New state for Add User form
+    email: "",
+    password: "",
+    username: "",
+    role: "user",
+  });
 
   const fetchProfiles = useCallback(async () => {
     setIsLoading(true);
     
-    // Fetch profiles data from the 'profiles' table
     const { data: profilesData, error: profilesError } = await supabase
       .from('profiles')
       .select('*');
@@ -86,7 +92,6 @@ const AdminDashboard: React.FC = () => {
       return;
     }
 
-    // Fetch user emails using the Edge Function
     let usersMap = new Map<string, string>();
     if (session?.access_token) {
       const { data: usersEdgeData, error: usersEdgeError } = await supabase.functions.invoke('list-users', {
@@ -180,7 +185,6 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleDeleteProfile = async (profileId: string) => {
-    // Supabase auth.users dan foydalanuvchini o'chirish
     const { error: authError } = await supabase.auth.admin.deleteUser(profileId);
 
     if (authError) {
@@ -188,7 +192,6 @@ const AdminDashboard: React.FC = () => {
       return;
     }
 
-    // profiles jadvalidan o'chirish (CASCADE tufayli avtomatik o'chirilishi kerak, lekin xavfsizlik uchun qo'shamiz)
     const { error: profileError } = await supabase
       .from('profiles')
       .delete()
@@ -199,6 +202,43 @@ const AdminDashboard: React.FC = () => {
     } else {
       showSuccess(t("admin_dashboard.success_user_deleted"));
       fetchProfiles();
+    }
+  };
+
+  const handleAddUserSubmit = async () => {
+    if (!newUserData.email || !newUserData.password) {
+      showError(t("admin_dashboard.error_email_password_required"));
+      return;
+    }
+
+    try {
+      const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+        email: newUserData.email,
+        password: newUserData.password,
+        email_confirm: true, // Auto-confirm email for admin-created users
+        user_metadata: {
+          username: newUserData.username,
+          role: newUserData.role,
+        },
+      });
+
+      if (authError) {
+        throw authError;
+      }
+
+      if (authUser.user) {
+        // The handle_new_user trigger should automatically create a profile.
+        // We can optionally update it here if more specific fields are needed immediately.
+        // For now, we rely on the trigger.
+        showSuccess(t("admin_dashboard.success_user_added", { email: newUserData.email }));
+        setIsAddUserDialogOpen(false);
+        setNewUserData({ email: "", password: "", username: "", role: "user" }); // Reset form
+        fetchProfiles(); // Refresh the list
+      } else {
+        showError(t("admin_dashboard.error_creating_user_no_user_data"));
+      }
+    } catch (error: any) {
+      showError(t("admin_dashboard.error_adding_user", { message: error.message }));
     }
   };
 
@@ -232,6 +272,7 @@ const AdminDashboard: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="max-w-sm"
               />
+              <Button onClick={() => setIsAddUserDialogOpen(true)}>{t("admin_dashboard.add_new_user")}</Button>
             </div>
 
             {isLoading ? (
@@ -436,6 +477,69 @@ const AdminDashboard: React.FC = () => {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Add New User Dialog */}
+      <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{t("admin_dashboard.add_new_user")}</DialogTitle>
+            <DialogDescription>{t("admin_dashboard.add_new_user_description")}</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="new-user-email" className="text-right">{t("common.email")}</Label>
+              <Input
+                id="new-user-email"
+                type="email"
+                value={newUserData.email}
+                onChange={(e) => setNewUserData({ ...newUserData, email: e.target.value })}
+                className="col-span-3"
+                placeholder={t("admin_dashboard.new_user_email_placeholder")}
+                required
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="new-user-password" className="text-right">{t("common.password")}</Label>
+              <Input
+                id="new-user-password"
+                type="password"
+                value={newUserData.password}
+                onChange={(e) => setNewUserData({ ...newUserData, password: e.target.value })}
+                className="col-span-3"
+                placeholder={t("admin_dashboard.new_user_password_placeholder")}
+                required
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="new-user-username" className="text-right">{t("admin_dashboard.username")}</Label>
+              <Input
+                id="new-user-username"
+                type="text"
+                value={newUserData.username}
+                onChange={(e) => setNewUserData({ ...newUserData, username: e.target.value })}
+                className="col-span-3"
+                placeholder={t("admin_dashboard.new_user_username_placeholder")}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="new-user-role" className="text-right">{t("admin_dashboard.role")}</Label>
+              <Select value={newUserData.role} onValueChange={(value) => setNewUserData({ ...newUserData, role: value })}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder={t("admin_dashboard.select_role")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">{t("admin_dashboard.role_user")}</SelectItem>
+                  <SelectItem value="teacher">{t("admin_dashboard.role_teacher")}</SelectItem>
+                  <SelectItem value="developer">{t("admin_dashboard.role_developer")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={handleAddUserSubmit}>{t("admin_dashboard.add_user_button")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

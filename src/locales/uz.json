@@ -280,6 +280,15 @@
     "purchase_date": "Sotib olingan sana",
     "expiry_date": "Amal qilish muddati",
     "income": "Daromad",
-    "error_no_session_for_users": "Foydalanuvchi ma'lumotlarini olish uchun sessiya mavjud emas."
+    "add_new_user": "Yangi foydalanuvchi qo'shish",
+    "add_new_user_description": "Yangi foydalanuvchi uchun ma'lumotlarni kiriting.",
+    "new_user_email_placeholder": "Yangi foydalanuvchi emaili",
+    "new_user_password_placeholder": "Yangi foydalanuvchi paroli",
+    "new_user_username_placeholder": "Yangi foydalanuvchi nomi",
+    "add_user_button": "Foydalanuvchi qo'shish",
+    "error_email_password_required": "Email va parol majburiy.",
+    "success_user_added": "{{email}} foydalanuvchisi muvaffaqiyatli qo'shildi!",
+    "error_creating_user_no_user_data": "Foydalanuvchi yaratishda xatolik: foydalanuvchi ma'lumotlari olinmadi.",
+    "error_adding_user": "Foydalanuvchi qo'shishda xatolik: {{message}}"
   }
 }
