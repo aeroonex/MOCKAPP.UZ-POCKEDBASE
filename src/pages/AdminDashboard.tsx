@@ -4,30 +4,16 @@ import React, { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
 import { CefrCentreFooter } from "@/components/CefrCentreFooter";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { showSuccess, showError } from "@/utils/toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthProvider";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
-import { format, parseISO } from 'date-fns';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+
+// Yangi modulli komponentlarni import qilish
+import AdminUserTable from "@/components/admin/AdminUserTable";
+import EditProfileDialog from "@/components/admin/EditProfileDialog";
+import AddUserDialog from "@/components/admin/AddUserDialog";
 
 interface Profile {
   id: string;
@@ -56,28 +42,9 @@ const AdminDashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false); // New state for Add User dialog
+  const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
   const [currentProfile, setCurrentProfile] = useState<Profile | null>(null);
-  const [editForm, setEditForm] = useState({
-    username: "",
-    role: "",
-    balance: 0,
-    score: 0,
-    phone: "",
-    bio: "",
-    tariff_name: "",
-    is_blocked: false,
-    is_active: false,
-    purchase_date: "",
-    expiry_date: "",
-    income: 0,
-  });
-  const [newUserData, setNewUserData] = useState({ // New state for Add User form
-    email: "",
-    password: "",
-    username: "",
-    role: "user",
-  });
+  const [isAddingUser, setIsAddingUser] = useState(false); // Add user loading state
 
   const fetchProfiles = useCallback(async () => {
     setIsLoading(true);
@@ -88,7 +55,7 @@ const AdminDashboard: React.FC = () => {
         ? supabase.functions.invoke('list-users', {
             headers: { Authorization: `Bearer ${session.access_token}` },
           })
-        : Promise.resolve({ data: [], error: null }), // Handle no session case gracefully
+        : Promise.resolve({ data: [], error: null }),
     ]);
 
     const { data: profilesData, error: profilesError } = profilesResponse;
@@ -112,8 +79,6 @@ const AdminDashboard: React.FC = () => {
         usersMap.set(user.id, user.email);
       });
     } else if (!session?.access_token) {
-      // This case should ideally be handled by the Promise.resolve above,
-      // but keeping it for explicit error messaging if needed.
       showError(t("admin_dashboard.error_no_session_for_users")); 
     }
 
@@ -139,43 +104,27 @@ const AdminDashboard: React.FC = () => {
 
   const handleEditClick = (profile: Profile) => {
     setCurrentProfile(profile);
-    setEditForm({
-      username: profile.username || "",
-      role: profile.role || "user",
-      balance: profile.balance || 0,
-      score: profile.score || 0,
-      phone: profile.phone || "",
-      bio: profile.bio || "",
-      tariff_name: profile.tariff_name || "Basic",
-      is_blocked: profile.is_blocked,
-      is_active: profile.is_active,
-      purchase_date: profile.purchase_date ? format(parseISO(profile.purchase_date), 'yyyy-MM-dd') : '',
-      expiry_date: profile.expiry_date ? format(parseISO(profile.expiry_date), 'yyyy-MM-dd') : '',
-      income: profile.income || 0,
-    });
     setIsEditDialogOpen(true);
   };
 
-  const handleSaveProfile = async () => {
-    if (!currentProfile) return;
-
+  const handleSaveProfile = async (updatedProfile: Profile) => {
     const { error } = await supabase
       .from('profiles')
       .update({
-        username: editForm.username,
-        role: editForm.role,
-        balance: editForm.balance,
-        score: editForm.score,
-        phone: editForm.phone,
-        bio: editForm.bio,
-        tariff_name: editForm.tariff_name,
-        is_blocked: editForm.is_blocked,
-        is_active: editForm.is_active,
-        purchase_date: editForm.purchase_date,
-        expiry_date: editForm.expiry_date,
-        income: editForm.income,
+        username: updatedProfile.username,
+        role: updatedProfile.role,
+        balance: updatedProfile.balance,
+        score: updatedProfile.score,
+        phone: updatedProfile.phone,
+        bio: updatedProfile.bio,
+        tariff_name: updatedProfile.tariff_name,
+        is_blocked: updatedProfile.is_blocked,
+        is_active: updatedProfile.is_active,
+        purchase_date: updatedProfile.purchase_date,
+        expiry_date: updatedProfile.expiry_date,
+        income: updatedProfile.income,
       })
-      .eq('id', currentProfile.id);
+      .eq('id', updatedProfile.id);
 
     if (error) {
       showError(t("admin_dashboard.error_updating_profile", { message: error.message }));
@@ -186,7 +135,7 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleDeleteProfile = async (profileId: string) => {
+  const handleDeleteProfile = async (profileId: string, username: string | undefined) => {
     const { error: authError } = await supabase.auth.admin.deleteUser(profileId);
 
     if (authError) {
@@ -207,24 +156,26 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleAddUserSubmit = async () => {
-    if (!newUserData.email || !newUserData.password) {
+  const handleAddUser = async (email: string, password: string, username: string, role: string) => {
+    if (!email || !password) {
       showError(t("admin_dashboard.error_email_password_required"));
       return;
     }
 
+    setIsAddingUser(true);
     try {
       if (!session?.access_token) {
         showError(t("admin_dashboard.error_no_session_for_users"));
+        setIsAddingUser(false);
         return;
       }
 
       const { data, error } = await supabase.functions.invoke('create-user', {
         body: JSON.stringify({
-          email: newUserData.email,
-          password: newUserData.password,
-          username: newUserData.username,
-          role: newUserData.role,
+          email,
+          password,
+          username,
+          role,
         }),
         headers: {
           'Content-Type': 'application/json',
@@ -237,23 +188,18 @@ const AdminDashboard: React.FC = () => {
       }
 
       if (data) {
-        showSuccess(t("admin_dashboard.success_user_added", { email: newUserData.email }));
+        showSuccess(t("admin_dashboard.success_user_added", { email }));
         setIsAddUserDialogOpen(false);
-        setNewUserData({ email: "", password: "", username: "", role: "user" }); // Reset form
-        fetchProfiles(); // Refresh the list
+        fetchProfiles();
       } else {
         showError(t("admin_dashboard.error_creating_user_no_user_data"));
       }
     } catch (error: any) {
       showError(t("admin_dashboard.error_adding_user", { message: error.message }));
+    } finally {
+      setIsAddingUser(false);
     }
   };
-
-  const filteredProfiles = profiles.filter(profile =>
-    profile.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    profile.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    profile.phone?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   if (authLoading || !isSuperAdmin) {
     return (
@@ -272,281 +218,33 @@ const AdminDashboard: React.FC = () => {
             <CardTitle className="text-3xl font-bold text-center">{t("admin_dashboard.admin_dashboard")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="mb-4 flex justify-between items-center">
-              <Input
-                placeholder={t("admin_dashboard.search_users")}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="max-w-sm"
-              />
-              <Button onClick={() => setIsAddUserDialogOpen(true)}>{t("admin_dashboard.add_new_user")}</Button>
-            </div>
-
-            {isLoading ? (
-              <p className="text-center">{t("common.loading")}</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t("admin_dashboard.id")}</TableHead>
-                      <TableHead>{t("admin_dashboard.email")}</TableHead>
-                      <TableHead>{t("admin_dashboard.username")}</TableHead>
-                      <TableHead>{t("admin_dashboard.role")}</TableHead>
-                      <TableHead>{t("admin_dashboard.balance")}</TableHead>
-                      <TableHead>{t("admin_dashboard.score")}</TableHead>
-                      <TableHead>{t("admin_dashboard.tariff")}</TableHead>
-                      <TableHead>{t("admin_dashboard.blocked")}</TableHead>
-                      <TableHead>{t("admin_dashboard.active")}</TableHead>
-                      <TableHead>{t("admin_dashboard.actions")}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredProfiles.map((profile) => (
-                      <TableRow key={profile.id}>
-                        <TableCell className="font-medium">{profile.id.substring(0, 8)}...</TableCell>
-                        <TableCell>{profile.email}</TableCell>
-                        <TableCell>{profile.username}</TableCell>
-                        <TableCell>{profile.role}</TableCell>
-                        <TableCell>{profile.balance}</TableCell>
-                        <TableCell>{profile.score}</TableCell>
-                        <TableCell>{profile.tariff_name}</TableCell>
-                        <TableCell>{profile.is_blocked ? t("common.yes") : t("common.no")}</TableCell>
-                        <TableCell>{profile.is_active ? t("common.yes") : t("common.no")}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm" onClick={() => handleEditClick(profile)}>
-                              {t("common.edit")}
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="destructive" size="sm">
-                                  {t("common.delete")}
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>{t("admin_dashboard.confirm_delete_user")}</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    {t("admin_dashboard.delete_user_warning", { username: profile.username || profile.email })}
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => handleDeleteProfile(profile.id)}>{t("common.delete")}</AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
+            <AdminUserTable
+              profiles={profiles}
+              isLoading={isLoading}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              onEditClick={handleEditClick}
+              onDeleteClick={handleDeleteProfile}
+              onAddUserClick={() => setIsAddUserDialogOpen(true)}
+            />
           </CardContent>
         </Card>
       </main>
       <CefrCentreFooter />
 
-      {currentProfile && (
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>{t("admin_dashboard.edit_profile_for", { username: currentProfile.username || currentProfile.email })}</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-username" className="text-right">{t("admin_dashboard.username")}</Label>
-                <Input
-                  id="edit-username"
-                  value={editForm.username}
-                  onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-role" className="text-right">{t("admin_dashboard.role")}</Label>
-                <Select value={editForm.role} onValueChange={(value) => setEditForm({ ...editForm, role: value })}>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder={t("admin_dashboard.select_role")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="user">{t("admin_dashboard.role_user")}</SelectItem>
-                    <SelectItem value="teacher">{t("admin_dashboard.role_teacher")}</SelectItem>
-                    <SelectItem value="developer">{t("admin_dashboard.role_developer")}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-balance" className="text-right">{t("admin_dashboard.balance")}</Label>
-                <Input
-                  id="edit-balance"
-                  type="number"
-                  value={editForm.balance}
-                  onChange={(e) => setEditForm({ ...editForm, balance: parseFloat(e.target.value) || 0 })}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-score" className="text-right">{t("admin_dashboard.score")}</Label>
-                <Input
-                  id="edit-score"
-                  type="number"
-                  value={editForm.score}
-                  onChange={(e) => setEditForm({ ...editForm, score: parseFloat(e.target.value) || 0 })}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-phone" className="text-right">{t("admin_dashboard.phone")}</Label>
-                <Input
-                  id="edit-phone"
-                  type="text"
-                  value={editForm.phone}
-                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-bio" className="text-right">{t("admin_dashboard.bio")}</Label>
-                <Input
-                  id="edit-bio"
-                  type="text"
-                  value={editForm.bio}
-                  onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-tariff" className="text-right">{t("admin_dashboard.tariff")}</Label>
-                <Input
-                  id="edit-tariff"
-                  type="text"
-                  value={editForm.tariff_name}
-                  onChange={(e) => setEditForm({ ...editForm, tariff_name: e.target.value })}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-purchase-date" className="text-right">{t("admin_dashboard.purchase_date")}</Label>
-                <Input
-                  id="edit-purchase-date"
-                  type="date"
-                  value={editForm.purchase_date}
-                  onChange={(e) => setEditForm({ ...editForm, purchase_date: e.target.value })}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-expiry-date" className="text-right">{t("admin_dashboard.expiry_date")}</Label>
-                <Input
-                  id="edit-expiry-date"
-                  type="date"
-                  value={editForm.expiry_date}
-                  onChange={(e) => setEditForm({ ...editForm, expiry_date: e.target.value })}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-income" className="text-right">{t("admin_dashboard.income")}</Label>
-                <Input
-                  id="edit-income"
-                  type="number"
-                  value={editForm.income}
-                  onChange={(e) => setEditForm({ ...editForm, income: parseFloat(e.target.value) || 0 })}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-blocked" className="text-right">{t("admin_dashboard.blocked")}</Label>
-                <Switch
-                  id="edit-blocked"
-                  checked={editForm.is_blocked}
-                  onCheckedChange={(checked) => setEditForm({ ...editForm, is_blocked: checked })}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-active" className="text-right">{t("admin_dashboard.active")}</Label>
-                <Switch
-                  id="edit-active"
-                  checked={editForm.is_active}
-                  onCheckedChange={(checked) => setEditForm({ ...editForm, is_active: checked })}
-                  className="col-span-3"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={handleSaveProfile}>{t("common.save_changes")}</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+      <EditProfileDialog
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+        profile={currentProfile}
+        onSave={handleSaveProfile}
+      />
 
-      {/* Add New User Dialog */}
-      <Dialog open={isAddUserDialogOpen} onOpenChange={setIsAddUserDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>{t("admin_dashboard.add_new_user")}</DialogTitle>
-            <DialogDescription>{t("admin_dashboard.add_new_user_description")}</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="new-user-email" className="text-right">{t("common.email")}</Label>
-              <Input
-                id="new-user-email"
-                type="email"
-                value={newUserData.email}
-                onChange={(e) => setNewUserData({ ...newUserData, email: e.target.value })}
-                className="col-span-3"
-                placeholder={t("admin_dashboard.new_user_email_placeholder")}
-                required
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="new-user-password" className="text-right">{t("common.password")}</Label>
-              <Input
-                id="new-user-password"
-                type="password"
-                value={newUserData.password}
-                onChange={(e) => setNewUserData({ ...newUserData, password: e.target.value })}
-                className="col-span-3"
-                placeholder={t("admin_dashboard.new_user_password_placeholder")}
-                required
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="new-user-username" className="text-right">{t("admin_dashboard.username")}</Label>
-              <Input
-                id="new-user-username"
-                type="text"
-                value={newUserData.username}
-                onChange={(e) => setNewUserData({ ...newUserData, username: e.target.value })}
-                className="col-span-3"
-                placeholder={t("admin_dashboard.new_user_username_placeholder")}
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="new-user-role" className="text-right">{t("admin_dashboard.role")}</Label>
-              <Select value={newUserData.role} onValueChange={(value) => setNewUserData({ ...newUserData, role: value })}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder={t("admin_dashboard.select_role")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">{t("admin_dashboard.role_user")}</SelectItem>
-                  <SelectItem value="teacher">{t("admin_dashboard.role_teacher")}</SelectItem>
-                  <SelectItem value="developer">{t("admin_dashboard.role_developer")}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button onClick={handleAddUserSubmit}>{t("admin_dashboard.add_user_button")}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <AddUserDialog
+        isOpen={isAddUserDialogOpen}
+        onClose={() => setIsAddUserDialogOpen(false)}
+        onAddUser={handleAddUser}
+        isLoading={isAddingUser}
+      />
     </div>
   );
 };
