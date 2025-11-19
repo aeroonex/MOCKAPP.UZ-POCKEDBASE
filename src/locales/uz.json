@@ -35,7 +35,18 @@
     "success_promo_code_activated": "Promokod muvaffaqiyatli faollashtirildi!",
     "error_invalid_promo_code": "Noto'g'ri promokod.",
     "super_admin_access_granted": "Super admin huquqlari berildi!",
-    "promo_code_error": "Promokodni faollashtirishda xatolik yuz berdi."
+    "promo_code_error": "Promokodni faollashtirishda xatolik yuz berdi.",
+    "admin_login": "Admin Kirish",
+    "admin_email": "Admin elektron pochta",
+    "admin_password": "Admin paroli",
+    "enter_admin_email": "Admin emailingizni kiriting",
+    "enter_admin_password": "Admin parolini kiriting",
+    "logging_in_as_admin": "Admin sifatida kirilmoqda...",
+    "admin_login_button": "Admin sifatida kirish",
+    "enter_credentials": "Kirish uchun ma'lumotlaringizni kiriting.",
+    "error_not_authorized_as_admin": "Siz admin huquqlariga ega emassiz.",
+    "admin_login_error": "Admin sifatida kirishda xatolik yuz berdi.",
+    "admin_dashboard": "Admin Paneli"
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",
@@ -190,11 +201,7 @@
     "download": "Yuklab olish",
     "delete": "O'chirish",
     "delete_recording_confirm_title": "Yozuvni o'chirishga ishonchingiz komilmi?",
-    "delete_recording_confirm_description": "Bu harakatni qaytarib bo'lmaydi. Ushbu yozuv butunlay o'chiriladi.",
-    "error_loading_recordings": "Yozuvlarni yuklashda xatolik:",
-    "error_downloading_video": "Videoni yuklashda xatolik:",
-    "success_recording_deleted": "Yozuv muvaffaqiyatli o'chirildi!",
-    "error_deleting_recording": "Yozuvni o'chirishda xatolik:"
+    "delete_recording_confirm_description": "Bu harakatni qaytarib bo'lmaydi. Ushbu yozuv butunlay o'chiriladi."
   },
   "mood_journal_page": {
     "mood_journal_tracker": "Kayfiyat Jurnali va Trekeri",
