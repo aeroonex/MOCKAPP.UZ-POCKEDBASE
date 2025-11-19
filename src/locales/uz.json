@@ -24,7 +24,9 @@
     "enter_admin_credentials": "Admin paneli uchun email va parolingizni kiriting.",
     "success_logged_in": "Tizimga muvaffaqiyatli kirdingiz!",
     "exit_guest_mode": "Mehmon rejimdan chiqish",
-    "guide": "Qo'llanma"
+    "guide": "Qo'llanma",
+    "error_fetching_profile": "Profil ma'lumotlarini yuklashda xatolik: {{message}}",
+    "error_account_blocked": "Sizning hisobingiz bloklangan. Iltimos, administrator bilan bog'laning."
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",

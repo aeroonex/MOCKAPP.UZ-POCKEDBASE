@@ -1,13 +1,21 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/context/AuthProvider";
-import NetworkStatusFooter from "./NetworkStatusFooter"; // NetworkStatusFooter importini qo'shdim
+import NetworkStatusFooter from "./NetworkStatusFooter";
+import { showError } from "@/utils/toast";
+import i18n from '@/i18n';
 
 const ProtectedRoute: React.FC = () => {
-  const { session, loading } = useAuth();
+  const { session, loading, isBlocked } = useAuth();
   const isGuestMode = localStorage.getItem("isGuestMode") === "true";
+
+  useEffect(() => {
+    if (!loading && session && isBlocked) {
+      showError(i18n.t("common.error_account_blocked"));
+    }
+  }, [loading, session, isBlocked]);
 
   if (loading) {
     return (
@@ -17,7 +25,7 @@ const ProtectedRoute: React.FC = () => {
     );
   }
 
-  if (session || isGuestMode) {
+  if ((session && !isBlocked) || isGuestMode) {
     return (
       <>
         <Outlet />

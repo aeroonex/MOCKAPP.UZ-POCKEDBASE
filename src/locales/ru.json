@@ -24,7 +24,9 @@
     "enter_admin_credentials": "Введите ваш email и пароль для панели администратора.",
     "success_logged_in": "Вы успешно вошли!",
     "exit_guest_mode": "Выйти из гостевого режима",
-    "guide": "Руководство"
+    "guide": "Руководство",
+    "error_fetching_profile": "Ошибка загрузки данных профиля: {{message}}",
+    "error_account_blocked": "Ваша учетная запись заблокирована. Пожалуйста, свяжитесь с администратором."
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",

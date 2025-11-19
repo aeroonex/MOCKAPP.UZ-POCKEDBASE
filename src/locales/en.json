@@ -24,7 +24,9 @@
     "enter_admin_credentials": "Enter your email and password for the admin panel.",
     "success_logged_in": "Successfully logged in!",
     "exit_guest_mode": "Exit Guest Mode",
-    "guide": "Guide"
+    "guide": "Guide",
+    "error_fetching_profile": "Error fetching profile data: {{message}}",
+    "error_account_blocked": "Your account is blocked. Please contact the administrator."
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",
