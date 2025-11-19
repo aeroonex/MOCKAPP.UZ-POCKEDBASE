@@ -95,7 +95,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [isSuperAdmin]); // isSuperAdmin ni dependency sifatida qo'shdik, shunda u o'zgarganda useEffect qayta ishga tushadi
+  }, []); // isSuperAdmin ni dependency sifatida qo'shdik, shunda u o'zgarganda useEffect qayta ishga tushadi
 
   const value = {
     session,
