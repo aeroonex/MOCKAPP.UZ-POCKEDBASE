@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // Import useEffect
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { showSuccess, showError } from "@/utils/toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from 'react-i18next';
+import { useAuth } from "@/context/AuthProvider"; // Import useAuth
 
 interface LoginDialogProps {
   isOpen: boolean;
@@ -20,11 +21,23 @@ interface LoginDialogProps {
 const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [adminEmail, setAdminEmail] = useState(""); // Admin uchun email
-  const [adminPassword, setAdminPassword] = useState(""); // Admin uchun parol
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { isSuperAdmin, loading: authLoading } = useAuth(); // Get auth loading and isSuperAdmin from context
+
+  // Reset form fields when dialog opens/closes
+  useEffect(() => {
+    if (!isOpen) {
+      setEmail("");
+      setPassword("");
+      setAdminEmail("");
+      setAdminPassword("");
+      setLoading(false); // Also reset local loading state
+    }
+  }, [isOpen]);
 
   const handleTeacherLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +48,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
         showError(error.message);
       } else {
         showSuccess(t("common.success_logged_in"));
-        onClose();
-        navigate("/home");
+        onClose(); // Close dialog, ProtectedRoute will handle navigation
       }
     } catch (err: any) {
       showError(err.message || t("common.login_error"));
@@ -50,7 +62,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
     setLoading(true);
     console.log("Admin login jarayoni boshlandi...");
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email: adminEmail, password: adminPassword });
+      const { error } = await supabase.auth.signInWithPassword({ email: adminEmail, password: adminPassword });
       
       if (error) {
         console.error("Supabase kirishda xatolik:", error.message);
@@ -58,43 +70,11 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
         return;
       }
 
-      if (data.user) {
-        console.log("Foydalanuvchi muvaffaqiyatli kirdi:", data.user.id);
-        // Foydalanuvchi profilini tekshirish
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.user.id)
-          .single();
-
-        if (profileError) {
-          console.error("Profil ma'lumotlarini yuklashda xatolik:", profileError.message);
-          showError(t("common.error_fetching_profile", { message: profileError.message }));
-          await supabase.auth.signOut(); // Xato bo'lsa, tizimdan chiqaramiz
-          return;
-        }
-
-        if (!profileData) {
-          console.error("Profil topilmadi:", data.user.id);
-          showError(t("common.error_profile_not_found"));
-          await supabase.auth.signOut();
-          return;
-        }
-
-        if (profileData.role === 'developer') { // 'developer' rolini super admin deb hisoblaymiz
-          // localStorage.setItem("isSuperAdmin", "true"); // Bu qatorni olib tashladik, AuthProvider boshqaradi
-          showSuccess(t("common.super_admin_access_granted"));
-          onClose();
-          navigate("/admin-dashboard"); // Admin paneliga yo'naltiramiz
-        } else {
-          console.warn("Foydalanuvchi admin huquqlariga ega emas:", profileData.role);
-          showError(t("common.error_not_authorized_as_admin"));
-          await supabase.auth.signOut(); // Admin bo'lmasa, tizimdan chiqaramiz
-        }
-      } else {
-        console.error("Kirish muvaffaqiyatsiz tugadi: Foydalanuvchi ma'lumotlari olinmadi.");
-        showError(t("common.admin_login_error"));
-      }
+      // If no error, the AuthProvider will detect the session change
+      // and update isSuperAdmin. ProtectedRoute will then handle navigation.
+      showSuccess(t("common.logging_in_as_admin_success")); // More generic success message
+      onClose(); // Close dialog, ProtectedRoute will handle navigation
+      
     } catch (err: any) {
       console.error("Admin login jarayonida kutilmagan xatolik:", err.message);
       showError(err.message || t("common.admin_login_error"));
