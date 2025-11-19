@@ -51,7 +51,8 @@
     "no": "No",
     "edit": "Edit",
     "delete": "Delete",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "error_profile_not_found": "User profile not found."
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",

@@ -48,11 +48,18 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    console.log("Admin login jarayoni boshlandi...");
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email: adminEmail, password: adminPassword });
+      
       if (error) {
+        console.error("Supabase kirishda xatolik:", error.message);
         showError(error.message);
-      } else if (data.user) {
+        return;
+      }
+
+      if (data.user) {
+        console.log("Foydalanuvchi muvaffaqiyatli kirdi:", data.user.id);
         // Foydalanuvchi profilini tekshirish
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
@@ -61,27 +68,39 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose }) => {
           .single();
 
         if (profileError) {
-          showError(profileError.message);
+          console.error("Profil ma'lumotlarini yuklashda xatolik:", profileError.message);
+          showError(t("common.error_fetching_profile", { message: profileError.message }));
           await supabase.auth.signOut(); // Xato bo'lsa, tizimdan chiqaramiz
           return;
         }
 
+        if (!profileData) {
+          console.error("Profil topilmadi:", data.user.id);
+          showError(t("common.error_profile_not_found"));
+          await supabase.auth.signOut();
+          return;
+        }
+
         if (profileData.role === 'developer') { // 'developer' rolini super admin deb hisoblaymiz
-          localStorage.setItem("isSuperAdmin", "true");
+          // localStorage.setItem("isSuperAdmin", "true"); // Bu qatorni olib tashladik, AuthProvider boshqaradi
           showSuccess(t("common.super_admin_access_granted"));
           onClose();
           navigate("/admin-dashboard"); // Admin paneliga yo'naltiramiz
         } else {
+          console.warn("Foydalanuvchi admin huquqlariga ega emas:", profileData.role);
           showError(t("common.error_not_authorized_as_admin"));
           await supabase.auth.signOut(); // Admin bo'lmasa, tizimdan chiqaramiz
         }
       } else {
+        console.error("Kirish muvaffaqiyatsiz tugadi: Foydalanuvchi ma'lumotlari olinmadi.");
         showError(t("common.admin_login_error"));
       }
     } catch (err: any) {
+      console.error("Admin login jarayonida kutilmagan xatolik:", err.message);
       showError(err.message || t("common.admin_login_error"));
     } finally {
       setLoading(false);
+      console.log("Admin login jarayoni yakunlandi.");
     }
   };
 

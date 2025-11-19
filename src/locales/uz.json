@@ -51,7 +51,8 @@
     "no": "Yo'q",
     "edit": "Tahrirlash",
     "delete": "O'chirish",
-    "cancel": "Bekor qilish"
+    "cancel": "Bekor qilish",
+    "error_profile_not_found": "Foydalanuvchi profili topilmadi."
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",
