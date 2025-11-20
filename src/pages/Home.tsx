@@ -68,27 +68,35 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-sky-500 to-slate-900 text-white p-4">
       <header className="flex flex-col sm:flex-row sm:justify-between items-center mb-8">
         <h1 className="text-xl sm:text-3xl font-bold">Edumock.uz</h1>
-        <nav className="flex flex-row flex-wrap justify-center sm:justify-end gap-2 text-xs items-center mt-4 sm:mt-0">
-          <Link to="/home" className="hover:text-indigo-300 flex items-center justify-center gap-1 py-0.5 px-2 rounded-md hover:bg-white/10 border border-white/30">
-            <HomeIcon className="h-3 w-3" /> {t("common.home")}
-          </Link>
-          <Link to="/settings" className="hover:text-indigo-300 flex items-center justify-center gap-1 py-0.5 px-2 rounded-md hover:bg-white/10 border border-white/30">
-            <SettingsIcon className="h-3 w-3" /> {t("common.settings")}
-          </Link>
-          <Link to="/user-profile" className="hover:text-indigo-300 flex items-center justify-center gap-1 py-0.5 px-2 rounded-md hover:bg-white/10 border border-white/30">
-            <UserIcon className="h-3 w-3" /> {t("common.profile")}
-          </Link>
+        <nav className="flex flex-row flex-wrap justify-around gap-2 text-xs items-center mt-4 sm:mt-0">
+          <Button asChild variant="ghost" className="flex items-center gap-1 text-white py-0.5 px-2 rounded-md hover:bg-white/10 hover:text-indigo-300">
+            <Link to="/home">
+              <HomeIcon className="h-3 w-3" /> {t("common.home")}
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" className="flex items-center gap-1 text-white py-0.5 px-2 rounded-md hover:bg-white/10 hover:text-indigo-300">
+            <Link to="/settings">
+              <SettingsIcon className="h-3 w-3" /> {t("common.settings")}
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" className="flex items-center gap-1 text-white py-0.5 px-2 rounded-md hover:bg-white/10 hover:text-indigo-300">
+            <Link to="/user-profile">
+              <UserIcon className="h-3 w-3" /> {t("common.profile")}
+            </Link>
+          </Button>
           <Button 
             variant="ghost" 
-            className="hover:text-indigo-300 flex items-center justify-center gap-1 text-white py-0.5 px-2 rounded-md hover:bg-white/10 border border-white/30" 
+            className="flex items-center gap-1 text-white py-0.5 px-2 rounded-md hover:bg-white/10 hover:text-indigo-300" 
             onClick={() => setIsGuideDialogOpen(true)}
           >
             <Info className="h-3 w-3" /> {t("common.guide")}
           </Button>
           {(session || isGuestMode) && (
-            <Link to="/login" onClick={handleLogout} className="hover:text-red-300 flex items-center justify-center gap-1 py-0.5 px-2 rounded-md hover:bg-white/10 border border-white/30">
-              <LogOut className="h-3 w-3" /> {isGuestMode && !session ? t("common.guest_mode_exit") : t("common.logout")}
-            </Link>
+            <Button asChild variant="ghost" className="flex items-center gap-1 text-white py-0.5 px-2 rounded-md hover:bg-white/10 hover:text-red-300">
+              <Link to="/login" onClick={handleLogout}>
+                <LogOut className="h-3 w-3" /> {isGuestMode && !session ? t("common.guest_mode_exit") : t("common.logout")}
+              </Link>
+            </Button>
           )}
         </nav>
       </header>
