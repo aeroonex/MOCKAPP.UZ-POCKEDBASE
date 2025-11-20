@@ -313,11 +313,38 @@ export const useMockTestLogic = ({
       const eligibleQuestions = allAvailableQuestionsRef.current[part].filter(q =>
         !q.last_used || (now.getTime() - new Date(q.last_used!).getTime() > twoHoursInMs)
       );
-      if (eligibleQuestions.length < minQuestions[part]) {
+
+      if (part === "Part 1.1") {
+        // Part 1.1 uchun barcha kichik savollarni yig'amiz
+        const allPart1_1SubQuestions: { questionId: string; subQuestion: string; originalQuestion: Part1_1Question }[] = [];
+        eligibleQuestions.forEach(q => {
+          const part1_1Q = q as Part1_1Question;
+          if (part1_1Q.sub_questions && part1_1Q.sub_questions.length > 0) {
+            part1_1Q.sub_questions.forEach(subQ => {
+              allPart1_1SubQuestions.push({ questionId: part1_1Q.id, subQuestion: subQ, originalQuestion: part1_1Q });
+            });
+          }
+        });
+
+        if (allPart1_1SubQuestions.length < minQuestions[part]) {
+          hasEnoughQuestions = false;
+          missingParts.push(`${part} (kerak: ${minQuestions[part]}, mavjud: ${allPart1_1SubQuestions.length})`);
+        } else {
+          // Tasodifiy 3 ta kichik savolni tanlaymiz
+          const selectedSubQuestions = getRandomElements(allPart1_1SubQuestions, minQuestions[part]);
+          const finalPart1_1Questions: Part1_1Question[] = selectedSubQuestions.map(item => ({
+            ...item.originalQuestion,
+            id: item.questionId, // Asl ID ni saqlab qolamiz
+            sub_questions: [item.subQuestion], // Faqat tanlangan kichik savolni qo'shamiz
+          }));
+          selectedQuestionsForTest[part] = finalPart1_1Questions;
+        }
+      } else if (eligibleQuestions.length < minQuestions[part]) {
         hasEnoughQuestions = false;
         missingParts.push(`${part} (kerak: ${minQuestions[part]}, mavjud: ${eligibleQuestions.length})`);
+      } else {
+        selectedQuestionsForTest[part] = getRandomElements(eligibleQuestions, minQuestions[part]);
       }
-      selectedQuestionsForTest[part] = getRandomElements(eligibleQuestions, minQuestions[part]);
     });
 
     if (!hasEnoughQuestions) {
