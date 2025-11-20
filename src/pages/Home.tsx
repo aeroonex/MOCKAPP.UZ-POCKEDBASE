@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Book, PlusCircle, ListChecks, Video, Settings as SettingsIcon, User as UserIcon, Home as HomeIcon, LogOut, Info } from "lucide-react";
@@ -10,21 +10,30 @@ import { showSuccess } from "@/utils/toast";
 import { useAuth } from "@/context/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from 'react-i18next';
-import GuideDialog from "@/components/GuideDialog"; // GuideDialog komponentini import qilish
+import GuideDialog from "@/components/GuideDialog";
+import { toast } from "sonner";
 
 export default function Home() {
   const navigate = useNavigate();
   const { session } = useAuth();
   const isGuestMode = localStorage.getItem("isGuestMode") === "true";
   const { t } = useTranslation();
-  const [isGuideDialogOpen, setIsGuideDialogOpen] = useState(false); // GuideDialog holati
+  const [isGuideDialogOpen, setIsGuideDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (isGuestMode && !session) {
+      toast.info(t("landing_page.guest_mode_welcome"));
+    }
+  }, [isGuestMode, session, t]);
 
   const handleLogout = async () => {
     if (session) {
       await supabase.auth.signOut();
+      showSuccess(t("common.success_logged_in"));
+    } else if (isGuestMode) {
+      localStorage.removeItem("isGuestMode");
+      showSuccess(t("common.success_guest_mode_exited"));
     }
-    localStorage.removeItem("isGuestMode");
-    showSuccess(t("common.success_logged_in"));
     navigate("/login");
   };
 
@@ -106,7 +115,7 @@ export default function Home() {
                 <CardContent className="flex flex-col items-center text-center p-8">
                   <div className="mb-4 text-indigo-300 transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_10px_rgba(99,102,241,0.8)]">{item.icon}</div>
                   <h3 className="text-2xl font-bold mb-2">{item.title}</h3>
-                  <p className="text-sm text-gray-700 mb-4">{item.subtitle}</p> {/* text-slate-300 dan text-gray-700 ga o'zgartirildi */}
+                  <p className="text-sm text-gray-700 mb-4">{item.subtitle}</p>
                   <Button className="mt-2 bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-2 rounded-xl shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:scale-105">{t("common.open")}</Button>
                 </CardContent>
               </Card>

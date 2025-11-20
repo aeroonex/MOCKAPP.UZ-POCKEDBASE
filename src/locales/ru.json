@@ -24,7 +24,8 @@
     "enter_admin_credentials": "Введите ваш email и пароль для панели администратора.",
     "success_logged_in": "Вы успешно вошли!",
     "exit_guest_mode": "Выйти из гостевого режима",
-    "guide": "Руководство"
+    "guide": "Руководство",
+    "success_guest_mode_exited": "Гостевой режим успешно завершен."
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",
@@ -51,7 +52,9 @@
     },
     "all_rights_reserved": "Все права защищены.",
     "privacy_policy": "Политика конфиденциальности",
-    "terms_of_use": "Условия использования"
+    "terms_of_use": "Условия использования",
+    "try_me_button": "Попробовать (Гостевой режим)",
+    "guest_mode_welcome": "Добро пожаловать, Гость! Вы находитесь в пробном режиме. Ваш прогресс не будет сохранен."
   },
   "home_page": {
     "speaking_platform": "Платформа для разговорной практики",

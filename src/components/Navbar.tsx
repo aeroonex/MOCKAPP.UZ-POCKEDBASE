@@ -28,9 +28,11 @@ const Navbar: React.FC = () => {
   const handleLogout = async () => {
     if (session) {
       await supabase.auth.signOut();
+      showSuccess(t("common.success_logged_in"));
+    } else if (isGuestMode) {
+      localStorage.removeItem("isGuestMode");
+      showSuccess(t("common.success_guest_mode_exited"));
     }
-    localStorage.removeItem("isGuestMode");
-    showSuccess(t("common.success_logged_in"));
     navigate("/login");
   };
 

@@ -24,7 +24,8 @@
     "enter_admin_credentials": "Enter your email and password for the admin panel.",
     "success_logged_in": "Successfully logged in!",
     "exit_guest_mode": "Exit Guest Mode",
-    "guide": "Guide"
+    "guide": "Guide",
+    "success_guest_mode_exited": "Guest mode exited successfully."
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",
@@ -51,7 +52,9 @@
     },
     "all_rights_reserved": "All rights reserved.",
     "privacy_policy": "Privacy Policy",
-    "terms_of_use": "Terms of Use"
+    "terms_of_use": "Terms of Use",
+    "try_me_button": "Try Me (Guest Mode)",
+    "guest_mode_welcome": "Welcome, Guest! You are in a trial mode. Your progress will not be saved."
   },
   "home_page": {
     "speaking_platform": "Speaking Platform",
