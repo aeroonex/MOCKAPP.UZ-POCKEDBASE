@@ -190,15 +190,15 @@
     "upload": "Загрузить",
     "download_from_cloud": "Скачать из облака",
     "uploaded_to_cloud": "Загружено в облако",
-    "uploading_to_cloud": "Загрузка в облако...",
-    "success_uploaded_to_cloud": "Видео успешно загружено в облако!",
+    "uploading_to_cloud": "Загрузка в облако",
     "error_uploading_to_cloud": "Ошибка загрузки в облако:",
     "error_getting_public_url": "Ошибка получения публичного URL для загруженного видео.",
     "error_login_to_upload": "Пожалуйста, войдите, чтобы загружать видео в облако.",
     "error_already_uploaded": "Это видео уже загружено в облако.",
     "error_no_video_data": "Данные видео для загрузки не найдены.",
     "error_deleting_from_cloud": "Ошибка удаления видео из облака:",
-    "delete_from_cloud_warning": "Это также удалит видео из облачного хранилища."
+    "delete_from_cloud_warning": "Это также удалит видео из облачного хранилища.",
+    "upload_failed": "Загрузка не удалась"
   },
   "mood_journal_page": {
     "mood_journal_tracker": "Дневник настроения и трекер",

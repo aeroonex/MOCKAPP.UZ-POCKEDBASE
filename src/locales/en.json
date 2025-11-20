@@ -190,15 +190,15 @@
     "upload": "Upload",
     "download_from_cloud": "Download from Cloud",
     "uploaded_to_cloud": "Uploaded to Cloud",
-    "uploading_to_cloud": "Uploading to cloud...",
-    "success_uploaded_to_cloud": "Video successfully uploaded to cloud!",
+    "uploading_to_cloud": "Uploading to Cloud",
     "error_uploading_to_cloud": "Error uploading to cloud:",
     "error_getting_public_url": "Error getting public URL for uploaded video.",
     "error_login_to_upload": "Please log in to upload videos to the cloud.",
     "error_already_uploaded": "This video is already uploaded to the cloud.",
     "error_no_video_data": "No video data found for upload.",
     "error_deleting_from_cloud": "Error deleting video from cloud:",
-    "delete_from_cloud_warning": "This will also delete the video from cloud storage."
+    "delete_from_cloud_warning": "This will also delete the video from cloud storage.",
+    "upload_failed": "Upload failed"
   },
   "mood_journal_page": {
     "mood_journal_tracker": "Mood Journal & Tracker",

@@ -190,15 +190,15 @@
     "upload": "Yuklash",
     "download_from_cloud": "Bulutdan yuklab olish",
     "uploaded_to_cloud": "Bulutga yuklandi",
-    "uploading_to_cloud": "Bulutga yuklanmoqda...",
-    "success_uploaded_to_cloud": "Video bulutga muvaffaqiyatli yuklandi!",
+    "uploading_to_cloud": "Bulutga yuklanmoqda",
     "error_uploading_to_cloud": "Bulutga yuklashda xatolik:",
     "error_getting_public_url": "Yuklangan video uchun ommaviy URL olishda xatolik.",
     "error_login_to_upload": "Videolarni bulutga yuklash uchun iltimos, tizimga kiring.",
     "error_already_uploaded": "Bu video allaqachon bulutga yuklangan.",
     "error_no_video_data": "Yuklash uchun video ma'lumotlari topilmadi.",
     "error_deleting_from_cloud": "Videoni bulutdan o'chirishda xatolik:",
-    "delete_from_cloud_warning": "Bu video bulutli xotiradan ham o'chiriladi."
+    "delete_from_cloud_warning": "Bu video bulutli xotiradan ham o'chiriladi.",
+    "upload_failed": "Yuklash amalga oshmadi"
   },
   "mood_journal_page": {
     "mood_journal_tracker": "Kayfiyat Jurnali va Trekeri",

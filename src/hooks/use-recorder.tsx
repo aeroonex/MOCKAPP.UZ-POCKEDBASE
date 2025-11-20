@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthProvider";
 import { v4 as uuidv4 } from 'uuid';
+import { setUploadProgress, removeUploadProgress } from "@/utils/uploadProgress"; // Yangi import
 
 const MAX_RECORDING_DURATION_MS = 60 * 60 * 1000;
 const MIME_TYPE = "video/webm; codecs=vp8,opus";
@@ -131,15 +132,19 @@ export const useRecorder = () => {
           // Supabase'ga yuklash
           if (user?.id) {
             const filePath = `${user.id}/${recordingId}.webm`;
+            setUploadProgress(recordingId, 0); // Yuklash boshlanganini belgilash
             const { data, error: uploadError } = await supabase.storage
               .from('recordings')
               .upload(filePath, blob, {
                 cacheControl: '3600',
                 upsert: false,
+              }, (event) => {
+                setUploadProgress(recordingId, event.percent || 0); // Progressni yangilash
               });
 
             if (uploadError) {
               showError(`${t("records_page.error_uploading_to_cloud")} ${uploadError.message}`);
+              removeUploadProgress(recordingId); // Xato bo'lsa progressni o'chirish
             } else {
               const { data: publicUrlData } = supabase.storage
                 .from('recordings')
@@ -148,8 +153,11 @@ export const useRecorder = () => {
               if (publicUrlData.publicUrl) {
                 await updateLocalRecordingSupabaseUrl(recordingId, publicUrlData.publicUrl);
                 showSuccess(t("records_page.success_uploaded_to_cloud"));
+                setUploadProgress(recordingId, 100); // Muvaffaqiyatli yuklanganini belgilash
+                setTimeout(() => removeUploadProgress(recordingId), 2000); // 2 soniyadan keyin progressni o'chirish
               } else {
                 showError(t("records_page.error_getting_public_url"));
+                removeUploadProgress(recordingId); // Xato bo'lsa progressni o'chirish
               }
             }
           }

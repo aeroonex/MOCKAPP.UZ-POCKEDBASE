@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import { CefrCentreFooter } from "@/components/CefrCentreFooter";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, PlayCircle, Trash2, ArrowLeft, Cloud, Zap } from "lucide-react";
+import { Download, PlayCircle, Trash2, ArrowLeft, Cloud, Zap, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { RecordedSession } from "@/lib/types";
 import { showError, showSuccess } from "@/utils/toast";
@@ -25,12 +25,14 @@ import {
 import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthProvider";
+import { useUploadProgress, setUploadProgress } from "@/utils/uploadProgress"; // Yangi import
 
 const Records: React.FC = () => {
   const [recordings, setRecordings] = useState<RecordedSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { t } = useTranslation();
   const { user } = useAuth();
+  const uploadProgress = useUploadProgress(); // Yuklash progressini kuzatish uchun hook
 
   const fetchRecordings = useCallback(async () => {
     setIsLoading(true);
@@ -74,15 +76,20 @@ const Records: React.FC = () => {
     }
 
     const filePath = `${user.id}/${recording.id}.webm`; // Assuming .webm format
+    setUploadProgress(recording.id, 0); // Yuklash boshlanganini belgilash
     const { data, error: uploadError } = await supabase.storage
       .from('recordings')
       .upload(filePath, blob, {
         cacheControl: '3600',
         upsert: false,
+      }, (event) => {
+        setUploadProgress(recording.id, event.percent || 0); // Progressni yangilash
       });
 
     if (uploadError) {
       showError(`${t("records_page.error_uploading_to_cloud")} ${uploadError.message}`);
+      setUploadProgress(recording.id, -1); // Xato holatini belgilash
+      setTimeout(() => setUploadProgress(recording.id, 0), 3000); // 3 soniyadan keyin progressni qayta tiklash
     } else {
       const { data: publicUrlData } = supabase.storage
         .from('recordings')
@@ -92,8 +99,12 @@ const Records: React.FC = () => {
         await updateLocalRecordingSupabaseUrl(recording.id, publicUrlData.publicUrl);
         setRecordings(prev => prev.map(rec => rec.id === recording.id ? { ...rec, supabase_url: publicUrlData.publicUrl } : rec));
         showSuccess(t("records_page.success_uploaded_to_cloud"));
+        setUploadProgress(recording.id, 100); // Muvaffaqiyatli yuklanganini belgilash
+        setTimeout(() => setUploadProgress(recording.id, 0), 2000); // 2 soniyadan keyin progressni o'chirish
       } else {
         showError(t("records_page.error_getting_public_url"));
+        setUploadProgress(recording.id, -1); // Xato holatini belgilash
+        setTimeout(() => setUploadProgress(recording.id, 0), 3000); // 3 soniyadan keyin progressni qayta tiklash
       }
     }
   }, [user, t]);
@@ -167,77 +178,100 @@ const Records: React.FC = () => {
               <p className="text-muted-foreground text-center">{t("records_page.no_recordings_available")}</p>
             ) : (
               <div className="space-y-4">
-                {recordings.map((recording, index) => (
-                  <Card key={recording.id} className="p-4">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                      <div className="text-left mb-2 sm:mb-0">
-                        <h3 className="text-lg font-semibold">
-                          {recording.student_name ? `${t("records_page.student")}: ${recording.student_name}` : `${t("records_page.session")} ${recordings.length - index}`}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {format(new Date(recording.timestamp), "PPP - p")}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {t("records_page.duration")}: {Math.floor(recording.duration / 60)}m {recording.duration % 60}s
-                        </p>
-                        {recording.supabase_url && (
-                          <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
-                            <Cloud className="h-3 w-3" /> {t("records_page.uploaded_to_cloud")}
+                {recordings.map((recording, index) => {
+                  const currentUploadProgress = uploadProgress.get(recording.id);
+                  const isUploading = currentUploadProgress !== undefined && currentUploadProgress < 100 && currentUploadProgress >= 0;
+                  const isUploaded = recording.supabase_url && currentUploadProgress === 0; // currentUploadProgress 0 bo'lsa, yuklash tugagan va holat normal
+                  const uploadError = currentUploadProgress === -1;
+
+                  return (
+                    <Card key={recording.id} className="p-4">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                        <div className="text-left mb-2 sm:mb-0">
+                          <h3 className="text-lg font-semibold">
+                            {recording.student_name ? `${t("records_page.student")}: ${recording.student_name}` : `${t("records_page.session")} ${recordings.length - index}`}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(recording.timestamp), "PPP - p")}
                           </p>
-                        )}
-                      </div>
-                      <div className="flex gap-2 mt-2 sm:mt-0">
-                        <Button asChild size="sm" className="flex items-center gap-1">
-                          <a href={recording.video_url} target="_blank" rel="noopener noreferrer">
-                            <PlayCircle className="h-4 w-4" /> {t("records_page.play")}
-                          </a>
-                        </Button>
-                        {!recording.supabase_url && user?.id && (
-                          <Button onClick={() => handleUploadToSupabase(recording)} variant="outline" size="sm" className="flex items-center gap-1">
-                            <Cloud className="h-4 w-4" /> {t("records_page.upload")}
+                          <p className="text-sm text-muted-foreground">
+                            {t("records_page.duration")}: {Math.floor(recording.duration / 60)}m {recording.duration % 60}s
+                          </p>
+                          {isUploaded && (
+                            <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
+                              <CheckCircle2 className="h-3 w-3" /> {t("records_page.uploaded_to_cloud")}
+                            </p>
+                          )}
+                          {uploadError && (
+                            <p className="text-xs text-red-500 flex items-center gap-1 mt-1">
+                              <Cloud className="h-3 w-3" /> {t("records_page.upload_failed")}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex gap-2 mt-2 sm:mt-0">
+                          <Button asChild size="sm" className="flex items-center gap-1">
+                            <a href={recording.video_url} target="_blank" rel="noopener noreferrer">
+                              <PlayCircle className="h-4 w-4" /> {t("records_page.play")}
+                            </a>
                           </Button>
-                        )}
-                        {recording.supabase_url ? (
-                          <Button onClick={() => handleDownload(recording)} variant="default" size="sm" className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600">
-                            <Zap className="h-4 w-4" /> {t("records_page.download_from_cloud")}
-                          </Button>
-                        ) : (
-                          <Button onClick={() => handleDownload(recording)} variant="outline" size="sm" className="flex items-center gap-1">
-                            <Download className="h-4 w-4" /> {t("records_page.download")}
-                          </Button>
-                        )}
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="destructive" size="sm" className="flex items-center gap-1">
-                              <Trash2 className="h-4 w-4" /> {t("records_page.delete")}
+                          
+                          {!recording.supabase_url && user?.id && !isUploading && !uploadError ? (
+                            <Button onClick={() => handleUploadToSupabase(recording)} variant="outline" size="sm" className="flex items-center gap-1">
+                              <Cloud className="h-4 w-4" /> {t("records_page.upload")}
                             </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>{t("records_page.delete_recording_confirm_title")}</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {t("records_page.delete_recording_confirm_description")}
-                                {recording.supabase_url && (
-                                  <p className="text-red-500 mt-2">{t("records_page.delete_from_cloud_warning")}</p>
-                                )}
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>{t("add_question_page.cancel")}</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDelete(recording)}>{t("records_page.delete")}</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                          ) : isUploading ? (
+                            <Button variant="outline" size="sm" className="flex items-center gap-1 relative overflow-hidden" disabled>
+                              <div 
+                                className="absolute inset-0 bg-blue-500 opacity-30" 
+                                style={{ width: `${currentUploadProgress}%` }}
+                              ></div>
+                              <Cloud className="h-4 w-4 z-10" /> 
+                              <span className="z-10">{t("records_page.uploading")} {currentUploadProgress?.toFixed(0)}%</span>
+                            </Button>
+                          ) : null}
+
+                          {recording.supabase_url ? (
+                            <Button onClick={() => handleDownload(recording)} variant="default" size="sm" className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600">
+                              <Zap className="h-4 w-4" /> {t("records_page.download_from_cloud")}
+                            </Button>
+                          ) : (
+                            <Button onClick={() => handleDownload(recording)} variant="outline" size="sm" className="flex items-center gap-1">
+                              <Download className="h-4 w-4" /> {t("records_page.download")}
+                            </Button>
+                          )}
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm" className="flex items-center gap-1">
+                                <Trash2 className="h-4 w-4" /> {t("records_page.delete")}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>{t("records_page.delete_recording_confirm_title")}</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {t("records_page.delete_recording_confirm_description")}
+                                  {recording.supabase_url && (
+                                    <p className="text-red-500 mt-2">{t("records_page.delete_from_cloud_warning")}</p>
+                                  )}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{t("add_question_page.cancel")}</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDelete(recording)}>{t("records_page.delete")}</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
                       </div>
-                    </div>
-                    {recording.student_name && (
-                      <div className="text-left text-sm text-muted-foreground mt-2 border-t pt-2">
-                        <p><strong>{t("mock_test_page.student_id")}:</strong> {recording.student_id}</p>
-                        <p><strong>{t("mock_test_page.student_phone")}:</strong> {recording.student_phone}</p>
-                      </div>
-                    )}
-                  </Card>
-                ))}
+                      {recording.student_name && (
+                        <div className="text-left text-sm text-muted-foreground mt-2 border-t pt-2">
+                          <p><strong>{t("mock_test_page.student_id")}:</strong> {recording.student_id}</p>
+                          <p><strong>{t("mock_test_page.student_phone")}:</strong> {recording.student_phone}</p>
+                        </div>
+                      )}
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </CardContent>
