@@ -120,9 +120,6 @@ export const useRecorder = () => {
         showSuccess(t("add_question_page.success_video_saving"));
 
         try {
-          const currentTimestamp = new Date().toISOString();
-          const userId = user?.id || 'local_user';
-
           // 1. Avval mahalliy (IndexedDB) saqlaymiz
           const recordingId = await addLocalRecording({
             duration,
@@ -133,53 +130,8 @@ export const useRecorder = () => {
           });
           showSuccess(t("add_question_page.success_video_saved"));
 
-          // 2. Agar foydalanuvchi tizimga kirgan bo'lsa, Supabase Storage'ga yuklaymiz
-          if (user?.id) {
-            const filePath = `${user.id}/${recordingId}.webm`;
-            setUploadProgress(recordingId, 0);
-            const { data, error: uploadError } = await supabase.storage
-              .from('recordings')
-              .upload(filePath, blob, {
-                cacheControl: '3600',
-                upsert: false,
-              }, (event) => {
-                console.log(`Upload progress for recording ID ${recordingId}: ${event.percent}%`); // Debug log
-                setUploadProgress(recordingId, event.percent || 0);
-              });
-
-            if (uploadError) {
-              showError(`${t("records_page.error_uploading_to_cloud")} ${uploadError.message}`);
-              setUploadProgress(recordingId, -1);
-            } else {
-              const { data: publicUrlData } = supabase.storage
-                .from('recordings')
-                .getPublicUrl(filePath);
-              
-              if (publicUrlData.publicUrl) {
-                // 3. Mahalliy yozuvni Supabase URL bilan yangilaymiz
-                await updateLocalRecordingSupabaseUrl(recordingId, publicUrlData.publicUrl);
-                
-                // 4. Supabase metadata jadvaliga ma'lumotlarni kiritamiz/yangilaymiz
-                await upsertRecordingMetadataToSupabase({
-                  id: recordingId,
-                  user_id: user.id, // Bu yerda user.id ni to'g'ridan-to'g'ri ishlatamiz
-                  timestamp: currentTimestamp,
-                  duration,
-                  student_id: studentInfo?.id,
-                  student_name: studentInfo?.name,
-                  student_phone: studentInfo?.phone,
-                  supabase_url: publicUrlData.publicUrl,
-                });
-
-                showSuccess(t("records_page.success_uploaded_to_cloud"));
-                setUploadProgress(recordingId, 100);
-                setTimeout(() => removeUploadProgress(recordingId), 2000); // Yuklash tugagach progressni o'chiramiz
-              } else {
-                showError(t("records_page.error_getting_public_url"));
-                setUploadProgress(recordingId, -1);
-              }
-            }
-          }
+          // Supabase'ga avtomatik yuklash logikasini olib tashladim.
+          // Endi yuklash faqat "Upload to Cloud" tugmasi bosilganda amalga oshiriladi.
 
         } catch (dbError: any) {
           showError(`${t("add_question_page.error_saving_record_data")} ${dbError.message}`);
