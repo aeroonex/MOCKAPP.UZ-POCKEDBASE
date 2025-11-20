@@ -107,16 +107,16 @@ const PricingCard: React.FC = () => {
 
   // Har bir karta uchun fon klasslarini belgilash
   const cardBackgrounds: { [key: string]: string } = {
-    "1": "bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800", // Dark mode variant qo'shildi
-    "3": "bg-gradient-to-br from-red-50 to-white dark:from-red-950 dark:to-gray-800", // Hot Sale kartasi uchun
-    "6": "bg-gradient-to-br from-blue-50 to-white dark:from-blue-950 dark:to-gray-800",
-    "12": "bg-gradient-to-br from-purple-50 to-white dark:from-purple-950 dark:to-gray-800",
-    "lifetime": "bg-gradient-to-br from-green-50 to-white dark:from-green-950 dark:to-gray-800",
+    "1": "bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900",
+    "3": "bg-gradient-to-br from-red-50 to-white dark:from-red-950 dark:to-gray-900", // Hot Sale kartasi uchun
+    "6": "bg-gradient-to-br from-blue-50 to-white dark:from-blue-950 dark:to-gray-900",
+    "12": "bg-gradient-to-br from-purple-50 to-white dark:from-purple-950 dark:to-gray-900",
+    "lifetime": "bg-gradient-to-br from-green-50 to-white dark:from-green-950 dark:to-gray-900",
   };
 
   return (
-    <div className="bg-card p-6 border border-border rounded-xl shadow-2xl sticky top-20 animated-card" style={{ animationDelay: '1.5s' }}> {/* bg-white -> bg-card, border-gray-200 -> border-border */}
-      <h2 className="text-xl font-bold text-foreground mb-6">{t("landing_page.select_tariff")}</h2> {/* text-gray-800 -> text-foreground */}
+    <div className="bg-card p-6 border border-border rounded-xl shadow-2xl sticky top-20 animated-card" style={{ animationDelay: '1.5s' }}>
+      <h2 className="text-xl font-bold text-foreground mb-6">{t("landing_page.select_tariff")}</h2>
 
       <Accordion 
         type="single" 
@@ -133,7 +133,7 @@ const PricingCard: React.FC = () => {
             <AccordionItem 
               key={option} 
               value={option} 
-              className={`price-option p-4 flex flex-col border border-border rounded-xl relative mb-3 last:mb-0 ${cardBackgrounds[option]} ${selectedPriceKey === option ? 'price-option-active' : ''}`} {/* border-gray-200 -> border-border */}
+              className={`price-option p-4 flex flex-col border border-border rounded-xl relative mb-3 last:mb-0 ${cardBackgrounds[option]} ${selectedPriceKey === option ? 'price-option-active' : ''}`}
             >
               {isHotSaleCard && (
                 <div className="hot-sale-badge absolute -top-3 -right-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md z-10 animate-pulse-hot-sale">
@@ -142,15 +142,15 @@ const PricingCard: React.FC = () => {
               )}
               <AccordionTrigger className="flex justify-between items-center mb-2 p-0 hover:no-underline">
                 <div className="flex-grow text-left">
-                  <p className="font-semibold text-foreground"> {/* text-gray-800 -> text-foreground */}
+                  <p className="font-semibold text-foreground">
                     {option === "lifetime" ? t("landing_page.lifetime") : `${option} ${t("landing_page.monthly")}`}
                   </p>
                   {priceData.originalPrice && (
-                    <span className="text-xs text-destructive line-through">{priceData.originalPrice.toLocaleString('uz-UZ')} so'm</span> {/* text-red-500 -> text-destructive */}
+                    <span className="text-xs text-red-500 line-through">{priceData.originalPrice.toLocaleString('uz-UZ')} so'm</span>
                   )}
                 </div>
                 <div className="text-right flex flex-col items-end">
-                  <p className={`text-xl font-bold ${selectedPriceKey === option ? 'text-primary' : 'text-foreground'}`}> {/* text-gray-800 -> text-foreground */}
+                  <p className={`text-xl font-bold ${selectedPriceKey === option ? 'text-primary' : 'text-foreground'}`}>
                     {priceData.display}
                   </p>
                   {priceData.discount && (
@@ -159,7 +159,7 @@ const PricingCard: React.FC = () => {
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-                <ul className="mt-2 space-y-1 text-sm text-muted-foreground"> {/* text-gray-700 -> text-muted-foreground */}
+                <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
                   {priceData.features.map((featureKey) => (
                     <li key={featureKey} className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-primary" />
@@ -173,7 +173,7 @@ const PricingCard: React.FC = () => {
         })}
       </Accordion>
 
-      <div className="mb-6 p-3 border border-border rounded-xl flex justify-between items-center bg-card"> {/* border-gray-300 -> border-border, bg-white -> bg-card */}
+      <div className="mb-6 p-3 border border-border rounded-xl flex justify-between items-center bg-input">
         <Input type="text" placeholder={t("landing_page.enter_promo_code")} className="w-full outline-none text-sm bg-transparent border-none focus-visible:ring-0" />
         <Button variant="ghost" className="text-primary font-semibold text-sm hover:text-primary/90 p-0 h-auto">{t("landing_page.promo_code")}</Button>
       </div>

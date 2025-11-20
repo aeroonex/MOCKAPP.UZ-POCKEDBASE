@@ -40,7 +40,7 @@ const ProcessSteps: React.FC = () => {
             style={{ animationDelay: step.delay }}
           >
             {step.icon}
-            <p className="text-sm font-semibold text-foreground">{step.text}</p> {/* text-gray-800 -> text-foreground */}
+            <p className="text-sm font-semibold text-foreground">{step.text}</p>
           </div>
           {/* O'q va chiziq elementini olib tashladim */}
         </React.Fragment>

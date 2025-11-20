@@ -7,7 +7,7 @@ const LandingPageFooter: React.FC = () => {
   const { t } = useTranslation();
 
   return (
-    <footer className="w-full bg-white py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+    <footer className="w-full bg-background py-8 text-center text-sm text-muted-foreground">
       <p className="mb-2">©2025 Edumock.uz, Inc. {t("landing_page.all_rights_reserved")}</p>
       <div className="flex justify-center space-x-4">
         <a href="#" className="hover:underline">

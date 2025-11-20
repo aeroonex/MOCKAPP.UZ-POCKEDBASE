@@ -31,16 +31,16 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col"> {/* bg-white -> bg-background */}
+    <div className="min-h-screen bg-background flex flex-col">
       <LandingPageHeader onOpenLogin={openLoginModal} />
 
       <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 hero-section">
         <div className="lg:flex lg:space-x-12">
           <div className="lg:w-3/5 pb-10">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground mb-4 leading-tight"> {/* text-gray-900 -> text-foreground */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground mb-4 leading-tight">
               {t("landing_page.title_part1")} <span className="text-primary">{t("landing_page.title_part2")}</span>
             </h1>
-            <p className="text-xl sm:text-3xl font-semibold text-muted-foreground mb-8"> {/* text-gray-500 -> text-muted-foreground */}
+            <p className="text-xl sm:text-3xl font-semibold text-muted-foreground mb-8">
               {t("landing_page.subtitle")}
             </p>
 
