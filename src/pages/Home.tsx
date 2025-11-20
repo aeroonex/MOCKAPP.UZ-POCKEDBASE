@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Book, PlusCircle, ListChecks, Video, Settings as SettingsIcon, User as UserIcon, Home as HomeIcon, LogOut, Info } from "lucide-react";
+import { Book, PlusCircle, ListChecks, Video, Settings as SettingsIcon, User as UserIcon, Home as HomeIcon, LogOut, Info, Send } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { showSuccess } from "@/utils/toast";
@@ -131,10 +131,8 @@ export default function Home() {
           rel="noreferrer"
           className="inline-flex justify-center items-center gap-2 text-sky-300 hover:text-sky-400 transition-all duration-300 mt-4"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-            <path d="M9.999 15.17 9.965 18c.445 0 .638-.191.871-.419l2.086-1.99 4.322 3.166c.793.44 1.36.209 1.568-.737l2.837-13.27.001-.002c.252-1.178-.425-1.64-1.21-1.35L2.932 9.23c-1.164.453-1.147 1.103-.21 1.397l4.993 1.558 11.6-7.27c.545-.33 1.045-.147.635.183" />
-          </svg>
-          <span className="font-medium">@aero_one</span>
+          <Send className="h-5 w-5" />
+          <span className="font-medium">Telegram</span>
         </a>
 
         <p className="text-base sm:text-lg mt-4">{t("landing_page.contact_us")}: <span className="font-bold text-white">{t("landing_page.phone_number")}</span></p>
