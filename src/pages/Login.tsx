@@ -1,16 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import LandingPageHeader from "@/components/LandingPageHeader";
 import ProcessSteps from "@/components/ProcessSteps";
 import ContactSection from "@/components/ContactSection";
 import PricingCard from "@/components/PricingCard";
-import LoginDialog from "@/components/LoginDialog";
 import LandingPageFooter from "@/components/LandingPageFooter";
 import { useTranslation } from 'react-i18next';
-import { User } from "lucide-react"; // User ikonkasini import qildim
+import { Dialog, DialogContent } from "@/components/ui/dialog"; // Dialog komponentini import qildim
+import { Auth } from '@supabase/auth-ui-react'; // Supabase Auth UI komponentini import qildim
+import { ThemeSupa } from '@supabase/auth-ui-shared'; // Supabase Auth UI uchun temani import qildim
+import { supabase } from "@/integrations/supabase/client"; // Supabase clientni import qildim
+import { toast } from "sonner"; // Toast xabarlari uchun
 
 const Login: React.FC = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
@@ -27,8 +30,24 @@ const Login: React.FC = () => {
 
   const handleTryMe = () => {
     localStorage.setItem("isGuestMode", "true");
+    toast.info(t("landing_page.guest_mode_welcome"));
     navigate("/home");
   };
+
+  // Supabase Auth UI komponenti uchun o'zgarishlarni kuzatish
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        // Agar foydalanuvchi tizimga kirsa yoki parolni tiklasa
+        closeLoginModal();
+        navigate("/home");
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -53,9 +72,8 @@ const Login: React.FC = () => {
               </Button>
               <Button
                 onClick={openLoginModal}
-                className="fixed-login-button text-white focus:outline-none focus:ring-4 focus:ring-primary focus:ring-opacity-50 rounded-xl flex items-center gap-2" // flex va gap-2 qo'shildi
+                className="fixed-login-button text-white focus:outline-none focus:ring-4 focus:ring-primary focus:ring-opacity-50 rounded-xl flex items-center gap-2"
               >
-                <User className="h-5 w-5" /> {/* User ikonkasini qo'shdim */}
                 {t("common.login")}
               </Button>
             </div>
@@ -70,7 +88,57 @@ const Login: React.FC = () => {
         </div>
       </main>
 
-      <LoginDialog isOpen={isLoginDialogOpen} onClose={closeLoginModal} />
+      {/* LoginDialog o'rniga Supabase Auth komponentini ishlatamiz */}
+      <Dialog open={isLoginDialogOpen} onOpenChange={closeLoginModal}>
+        <DialogContent className="sm:max-w-[425px] p-0"> {/* Paddingni olib tashladim, Auth komponenti o'zi padding beradi */}
+          <Auth
+            supabaseClient={supabase}
+            providers={[]} // Faqat email/password orqali kirishni qoldirdim
+            appearance={{
+              theme: ThemeSupa,
+              variables: {
+                default: {
+                  colors: {
+                    brand: 'hsl(var(--primary))', // Asosiy rangni Tailwind primary rangiga mosladim
+                    brandAccent: 'hsl(var(--primary-foreground))', // Accent rangni ham mosladim
+                  },
+                },
+              },
+            }}
+            theme="light" // Ilovangizning umumiy mavzusiga mos ravishda
+            view="sign_in" // Dastlabki ko'rinishni sign_in qilib belgiladim
+            localization={{
+              variables: {
+                sign_in: {
+                  email_label: t("common.email"),
+                  password_label: t("common.password"),
+                  email_input_placeholder: t("common.enter_your_email"),
+                  password_input_placeholder: t("common.enter_your_password"),
+                  button_label: t("common.login"),
+                  loading_button_label: t("common.logging_in"),
+                  link_text: t("common.admin_only"),
+                },
+                forgotten_password: {
+                  email_label: t("common.email"),
+                  password_label: t("common.password"),
+                  email_input_placeholder: t("common.enter_your_email"),
+                  button_label: t("user_profile_page.update_credentials"),
+                  loading_button_label: t("common.save_changes"),
+                  link_text: t("user_profile_page.update_login_credentials"),
+                  confirmation_text: t("user_profile_page.success_email_update_check_inbox"),
+                },
+                update_password: {
+                  password_label: t("user_profile_page.new_password"),
+                  password_input_placeholder: t("user_profile_page.enter_new_password"),
+                  button_label: t("user_profile_page.update_credentials"),
+                  loading_button_label: t("common.save_changes"),
+                  confirmation_text: t("user_profile_page.success_password_updated"),
+                },
+              },
+            }}
+          />
+        </DialogContent>
+      </Dialog>
       <LandingPageFooter />
     </div>
   );
