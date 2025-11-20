@@ -114,7 +114,9 @@ const Login: React.FC = () => {
                     password_input_placeholder: t("common.enter_your_password"),
                     button_label: t("common.login"),
                     loading_button_label: t("common.logging_in"),
-                    // link_text olib tashlandi, chunki faqat sign_in ko'rinishi kerak
+                    link_text: '', // "Forgot your password?" ni olib tashlash
+                    no_account_text: '', // "Don't have an account?" ni olib tashlash
+                    no_account_link_text: '', // "Sign up" ni olib tashlash
                   },
                   // forgotten_password va update_password localizationlari olib tashlandi
                   // chunki foydalanuvchi parolni o'zi tiklay olmasligi kerak
