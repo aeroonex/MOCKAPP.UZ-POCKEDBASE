@@ -25,7 +25,10 @@
     "success_logged_in": "Tizimga muvaffaqiyatli kirdingiz!",
     "exit_guest_mode": "Mehmon rejimdan chiqish",
     "guide": "Qo'llanma",
-    "success_guest_mode_exited": "Mehmon rejimi muvaffaqiyatli yakunlandi."
+    "success_guest_mode_exited": "Mehmon rejimi muvaffaqiyatli yakunlandi.",
+    "light": "Yorug'",
+    "dark_mode": "Tungi rejim",
+    "system": "Tizim"
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",

@@ -25,7 +25,10 @@
     "success_logged_in": "Successfully logged in!",
     "exit_guest_mode": "Exit Guest Mode",
     "guide": "Guide",
-    "success_guest_mode_exited": "Guest mode exited successfully."
+    "success_guest_mode_exited": "Guest mode exited successfully.",
+    "light": "Light",
+    "dark_mode": "Dark Mode",
+    "system": "System"
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",

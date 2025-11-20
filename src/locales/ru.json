@@ -25,7 +25,10 @@
     "success_logged_in": "Вы успешно вошли!",
     "exit_guest_mode": "Выйти из гостевого режима",
     "guide": "Руководство",
-    "success_guest_mode_exited": "Гостевой режим успешно завершен."
+    "success_guest_mode_exited": "Гостевой режим успешно завершен.",
+    "light": "Светлый",
+    "dark_mode": "Темный режим",
+    "system": "Системный"
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",

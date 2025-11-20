@@ -3,7 +3,8 @@
 import React from "react";
 import { User } from "lucide-react";
 import { useTranslation } from 'react-i18next';
-import LanguageSwitcher from './LanguageSwitcher'; // LanguageSwitcher'ni import qilish
+import LanguageSwitcher from './LanguageSwitcher';
+import { ThemeToggle } from './ThemeToggle'; // ThemeToggle'ni import qilish
 
 interface LandingPageHeaderProps {
   onOpenLogin: () => void;
@@ -22,8 +23,8 @@ const LandingPageHeader: React.FC<LandingPageHeaderProps> = ({ onOpenLogin }) =>
           <a href="#" className="hidden sm:inline-block px-4 py-2 bg-primary text-white font-semibold rounded-full hover:bg-primary/90 transition duration-150 text-sm">
             Edumock Plus
           </a>
-          {/* Static "UZ" span o'rniga LanguageSwitcher komponentini qo'shdim */}
           <LanguageSwitcher />
+          <ThemeToggle /> {/* ThemeToggle komponentini qo'shdim */}
           <button onClick={onOpenLogin} className="text-primary hover:text-primary/80">
             <User className="h-5 w-5" />
           </button>
