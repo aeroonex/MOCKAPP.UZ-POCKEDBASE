@@ -130,7 +130,7 @@ export const deleteSupabaseQuestion = async (id: string): Promise<boolean> => {
   } else {
     // Guest users cannot delete any questions, even public ones.
     // This prevents guests from modifying the sample data.
-    showError(i18n.t("add_question_page.error_deleting_entry", { message: "Mehmon rejimida savolni o'chirib bo'lmaydi." }));
+    showError(i18n.t("add_question_page.error_deleting_entry", { message: "Mehmon rejimida savol o'chirib bo'lmaydi." }));
     return false;
   }
 
@@ -295,10 +295,38 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
     if (error) {
       showError(i18n.t("records_page.error_loading_recordings", { message: error.message }));
     } else if (data) {
-      allRecordings = data.map(rec => {
-        // Check if this recording also exists locally in IndexedDB
-        const localVersion = storedRecordings.find(sRec => sRec.id === rec.id);
-        return {
+      const supabaseRecordingIds = new Set(data.map(rec => rec.id));
+      const tx = db.transaction(STORE_RECORDINGS, 'readwrite');
+      const store = tx.objectStore(STORE_RECORDINGS);
+
+      // Filter and potentially delete stale local recordings
+      const filteredLocalRecordings: StoredRecording[] = [];
+      for (const sRec of storedRecordings) {
+        if (sRec.user_id === userId) { // Only consider local recordings belonging to the current user
+          if (sRec.supabase_url && !supabaseRecordingIds.has(sRec.id)) {
+            // This local recording has a supabase_url but is not in Supabase metadata.
+            // It means it was deleted from Supabase (e.g., by another browser). Delete it locally.
+            console.log(`[getLocalRecordings] Deleting stale local recording from IndexedDB: ${sRec.id}`);
+            await store.delete(sRec.id);
+            // Do not add to filteredLocalRecordings
+          } else {
+            filteredLocalRecordings.push(sRec);
+          }
+        } else {
+          // Keep local recordings that belong to other users (e.g., 'local_user' for guest mode)
+          filteredLocalRecordings.push(sRec);
+        }
+      }
+      await tx.done; // Commit the transaction after potential deletions
+
+      // Now, combine the fresh Supabase data with the filtered local data
+      const combinedIds = new Set<string>();
+      
+      // Add Supabase recordings first
+      data.forEach(rec => {
+        combinedIds.add(rec.id);
+        const localVersion = filteredLocalRecordings.find(sRec => sRec.id === rec.id);
+        allRecordings.push({
           id: rec.id,
           user_id: rec.user_id,
           timestamp: rec.timestamp,
@@ -306,34 +334,34 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
           student_id: rec.student_id || undefined,
           student_name: rec.student_name || undefined,
           student_phone: rec.student_phone || undefined,
-          video_url: rec.supabase_url, // Supabase URL'ni video_url sifatida ishlatamiz
+          video_url: rec.supabase_url,
           supabase_url: rec.supabase_url,
-          isLocalBlobAvailable: !!localVersion, // If localVersion exists, then local blob is available
-        };
+          isLocalBlobAvailable: !!localVersion,
+        });
+      });
+
+      // Add local-only recordings that are not in Supabase
+      filteredLocalRecordings.forEach(sRec => {
+        if (!combinedIds.has(sRec.id)) {
+          allRecordings.push({
+            ...sRec,
+            video_url: URL.createObjectURL(sRec.videoBlob),
+            isLocalBlobAvailable: true,
+          });
+        }
       });
     }
-
-    // Add unuploaded local recordings to the list
-    // These are recordings that are in IndexedDB but NOT in Supabase metadata
-    const uploadedSupabaseIds = new Set(allRecordings.map(r => r.id));
-    const unuploadedLocalRecordings = storedRecordings.filter(rec => !uploadedSupabaseIds.has(rec.id));
-
-    unuploadedLocalRecordings.forEach(rec => {
-      allRecordings.push({
-        ...rec,
-        video_url: URL.createObjectURL(rec.videoBlob),
-        isLocalBlobAvailable: true, // It's a local recording, so blob is available
-      });
-    });
 
   } else {
     // Guest mode or not logged in: Fetch only from IndexedDB
     storedRecordings.forEach(rec => {
-      allRecordings.push({
-        ...rec,
-        video_url: URL.createObjectURL(rec.videoBlob),
-        isLocalBlobAvailable: true, // It's a local recording, so blob is available
-      });
+      if (rec.user_id === 'local_user') { // Only show 'local_user' recordings in guest mode
+        allRecordings.push({
+          ...rec,
+          video_url: URL.createObjectURL(rec.videoBlob),
+          isLocalBlobAvailable: true, // It's a local recording, so blob is available
+        });
+      }
     });
   }
   
@@ -389,39 +417,11 @@ export const deleteLocalRecording = async (id: string): Promise<boolean> => {
   console.log(`[Delete] Starting deletion for recording ID: ${id}. Supabase URL present in IndexedDB: ${!!recording?.supabase_url}`);
 
   if (!recording) {
-    console.warn(`[Delete] Recording with ID ${id} not found in IndexedDB. Checking Supabase metadata.`);
-    const userId = await getUserId();
-    if (userId) {
-      const { data: supabaseMetadata, error: metadataError } = await supabase
-        .from('recordings_metadata')
-        .select('*')
-        .eq('id', id)
-        .eq('user_id', userId)
-        .single();
-
-      if (metadataError && metadataError.code !== 'PGRST116') { // PGRST116 means no rows found
-        console.error(`[Delete] Error fetching metadata for ID ${id} from Supabase:`, metadataError.message);
-        showError(i18n.t("records_page.error_deleting_from_cloud", { message: metadataError.message }));
-        return false; // Failed to even check Supabase
-      }
-
-      if (supabaseMetadata) {
-        console.log(`[Delete] Found metadata in Supabase for ID ${id} even though not in IndexedDB. Attempting cloud deletion.`);
-        supabaseDeletionSuccessful = await deleteCloudRecording(id, userId);
-        if (supabaseDeletionSuccessful) {
-          console.log(`[Delete] Successfully deleted cloud-only recording metadata for ID: ${id}`);
-          return true; // Successfully deleted from cloud
-        } else {
-          console.error(`[Delete] Failed to delete cloud-only recording for ID: ${id}.`);
-          return false; // Cloud deletion failed
-        }
-      }
-    }
-    console.log(`[Delete] Recording ID ${id} not found locally or in Supabase metadata. Nothing to delete.`);
-    return false; // Not found locally, and not found/deleted from cloud (or no user)
+    console.warn(`[Delete] Recording with ID ${id} not found in IndexedDB. Nothing to delete.`);
+    return false; // Agar mahalliy topilmasa, o'chirishga urinmaymiz
   }
 
-  // If recording is found locally, proceed with deletion logic
+  // Agar yozuv Supabase'ga yuklangan bo'lsa, avval Supabase'dan o'chiramiz
   if (recording.supabase_url) {
     const userId = await getUserId();
     if (!userId) {
@@ -436,15 +436,16 @@ export const deleteLocalRecording = async (id: string): Promise<boolean> => {
 
   console.log(`[Delete] Supabase deletion successful status: ${supabaseDeletionSuccessful}`);
 
-  // Decision to delete locally:
-  // Only delete from IndexedDB if Supabase deletion was successful OR if it was never a cloud recording (local-only)
+  // Mahalliy o'chirish qarori:
+  // Faqatgina Supabase'dan o'chirish muvaffaqiyatli bo'lsa (bulutli yozuv uchun)
+  // YOKI u hech qachon bulutli yozuv bo'lmagan bo'lsa (faqat mahalliy)
   if (supabaseDeletionSuccessful || !recording.supabase_url) {
     console.log(`[Delete] Proceeding with local deletion for ID: ${id}.`);
     await db.delete(STORE_RECORDINGS, id);
     localDeletionPerformed = true;
     console.log(`[Delete] Successfully deleted local recording for ID: ${id}`);
   } else {
-    // This branch is hit if it was a cloud recording AND Supabase deletion failed.
+    // Agar u bulutli yozuv bo'lsa VA Supabase'dan o'chirish muvaffaqiyatsiz tugagan bo'lsa.
     showError(i18n.t("records_page.error_cloud_delete_failed_local_kept"));
     console.warn(`[Delete] Supabase deletion failed for recording ID ${id}. Local copy kept in IndexedDB.`);
   }
