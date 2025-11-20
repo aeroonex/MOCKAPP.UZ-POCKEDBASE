@@ -37,11 +37,16 @@ export const getSupabaseQuestions = async (): Promise<SpeakingQuestion[]> => {
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user?.id;
 
-  // Fetch questions that belong to the current user OR have a NULL user_id (for sample questions)
+  let filterString = 'user_id.is.null'; // Har doim ommaviy savollarni qo'shish
+
+  if (userId) {
+    filterString = `user_id.eq.${userId},${filterString}`; // Agar foydalanuvchi tizimga kirgan bo'lsa, uning savollarini ham qo'shish
+  }
+
   const { data, error } = await supabase
     .from('questions')
     .select('*')
-    .or(`user_id.eq.${userId},user_id.is.null`);
+    .or(filterString);
 
   if (error) {
     showError(i18n.t("add_question_page.error_loading_entries", { message: error.message }));
