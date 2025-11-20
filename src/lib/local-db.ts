@@ -130,7 +130,7 @@ export const deleteSupabaseQuestion = async (id: string): Promise<boolean> => {
   } else {
     // Guest users cannot delete any questions, even public ones.
     // This prevents guests from modifying the sample data.
-    showError(i18n.t("add_question_page.error_deleting_entry", { message: "Mehmon rejimida savol o'chirib bo'lmaydi." }));
+    showError(i18n.t("add_question_page.error_deleting_entry", { message: "Mehmon rejimida savolni o'chirib bo'lmaydi." }));
     return false;
   }
 
@@ -252,6 +252,31 @@ const deleteRecordingMetadataFromSupabase = async (recordingId: string): Promise
   return true;
 };
 
+// Helper function to encapsulate cloud deletion logic
+const deleteCloudRecording = async (recordingId: string, userId: string): Promise<boolean> => {
+  console.log(`[Delete Cloud] Attempting to delete from Supabase Storage: ${userId}/${recordingId}.webm`);
+  const { error: deleteStorageError } = await supabase.storage
+    .from('recordings')
+    .remove([`${userId}/${recordingId}.webm`]);
+
+  if (deleteStorageError) {
+    console.error(`[Delete Cloud] Error deleting from Supabase Storage for ID ${recordingId}:`, deleteStorageError.message);
+    showError(i18n.t("records_page.error_deleting_from_cloud", { message: deleteStorageError.message }));
+    return false;
+  } else {
+    console.log(`[Delete Cloud] Successfully deleted from Supabase Storage: ${userId}/${recordingId}.webm`);
+    // Storage'dan o'chirilgandan so'ng, metama'lumotlarni ham o'chiramiz
+    const metadataDeleted = await deleteRecordingMetadataFromSupabase(recordingId);
+    if (!metadataDeleted) {
+      console.error(`[Delete Cloud] Failed to delete metadata from Supabase DB for ID: ${recordingId}.`);
+      return false;
+    } else {
+      console.log(`[Delete Cloud] Successfully deleted metadata from Supabase DB for ID: ${recordingId}`);
+      return true;
+    }
+  }
+};
+
 
 export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
   const db = await initDB();
@@ -358,54 +383,61 @@ export const deleteLocalRecording = async (id: string): Promise<boolean> => {
   const db = await initDB();
   const recording = await db.get(STORE_RECORDINGS, id);
 
-  if (!recording) {
-    console.warn(`[Delete] Recording with ID ${id} not found in IndexedDB. Nothing to delete.`);
-    return false;
-  }
-
   let supabaseDeletionSuccessful = true; // Assume success if not uploaded to Supabase
   let localDeletionPerformed = false;
 
-  console.log(`[Delete] Starting deletion for recording ID: ${id}. Supabase URL present: ${!!recording.supabase_url}`);
+  console.log(`[Delete] Starting deletion for recording ID: ${id}. Supabase URL present in IndexedDB: ${!!recording?.supabase_url}`);
 
+  if (!recording) {
+    console.warn(`[Delete] Recording with ID ${id} not found in IndexedDB. Checking Supabase metadata.`);
+    const userId = await getUserId();
+    if (userId) {
+      const { data: supabaseMetadata, error: metadataError } = await supabase
+        .from('recordings_metadata')
+        .select('*')
+        .eq('id', id)
+        .eq('user_id', userId)
+        .single();
+
+      if (metadataError && metadataError.code !== 'PGRST116') { // PGRST116 means no rows found
+        console.error(`[Delete] Error fetching metadata for ID ${id} from Supabase:`, metadataError.message);
+        showError(i18n.t("records_page.error_deleting_from_cloud", { message: metadataError.message }));
+        return false; // Failed to even check Supabase
+      }
+
+      if (supabaseMetadata) {
+        console.log(`[Delete] Found metadata in Supabase for ID ${id} even though not in IndexedDB. Attempting cloud deletion.`);
+        supabaseDeletionSuccessful = await deleteCloudRecording(id, userId);
+        if (supabaseDeletionSuccessful) {
+          console.log(`[Delete] Successfully deleted cloud-only recording metadata for ID: ${id}`);
+          return true; // Successfully deleted from cloud
+        } else {
+          console.error(`[Delete] Failed to delete cloud-only recording for ID: ${id}.`);
+          return false; // Cloud deletion failed
+        }
+      }
+    }
+    console.log(`[Delete] Recording ID ${id} not found locally or in Supabase metadata. Nothing to delete.`);
+    return false; // Not found locally, and not found/deleted from cloud (or no user)
+  }
+
+  // If recording is found locally, proceed with deletion logic
   if (recording.supabase_url) {
-    const userId = await getUserId(); // Get current authenticated user ID
+    const userId = await getUserId();
     if (!userId) {
       console.error(`[Delete] User not authenticated for cloud deletion of ID: ${id}.`);
       showError(i18n.t("records_page.error_deleting_from_cloud", { message: "Foydalanuvchi ID topilmadi. Bulutdan o'chirib bo'lmaydi." }));
       supabaseDeletionSuccessful = false;
     } else {
       console.log(`[Delete] Authenticated user ID for deletion attempt: ${userId}`);
-      // 1. Delete from Supabase Storage
-      const filePath = `${userId}/${id}.webm`;
-      console.log(`[Delete] Attempting to delete from Supabase Storage: ${filePath}`);
-      const { error: deleteStorageError } = await supabase.storage
-        .from('recordings')
-        .remove([filePath]);
-
-      if (deleteStorageError) {
-        console.error(`[Delete] Error deleting from Supabase Storage for ID ${id}:`, deleteStorageError.message);
-        showError(i18n.t("records_page.error_deleting_from_cloud", { message: deleteStorageError.message }));
-        supabaseDeletionSuccessful = false;
-      } else {
-        console.log(`[Delete] Successfully deleted from Supabase Storage: ${filePath}`);
-        // 2. Delete from Supabase Metadata Table
-        const metadataDeleted = await deleteRecordingMetadataFromSupabase(id);
-        if (!metadataDeleted) {
-          console.error(`[Delete] Failed to delete metadata from Supabase DB for ID: ${id}.`);
-          supabaseDeletionSuccessful = false;
-        } else {
-          console.log(`[Delete] Successfully deleted metadata from Supabase DB for ID: ${id}`);
-        }
-      }
+      supabaseDeletionSuccessful = await deleteCloudRecording(id, userId);
     }
   }
 
   console.log(`[Delete] Supabase deletion successful status: ${supabaseDeletionSuccessful}`);
 
   // Decision to delete locally:
-  // 1. If Supabase deletion was successful (for a cloud recording)
-  // 2. OR if it was never a cloud recording (local-only)
+  // Only delete from IndexedDB if Supabase deletion was successful OR if it was never a cloud recording (local-only)
   if (supabaseDeletionSuccessful || !recording.supabase_url) {
     console.log(`[Delete] Proceeding with local deletion for ID: ${id}.`);
     await db.delete(STORE_RECORDINGS, id);
