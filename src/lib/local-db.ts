@@ -35,15 +35,13 @@ const getUserId = async (): Promise<string | null> => {
 
 export const getSupabaseQuestions = async (): Promise<SpeakingQuestion[]> => {
   const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id;
 
-  let query;
-  if (user) {
-    query = supabase.from('questions').select('*').eq('user_id', user.id);
-  } else {
-    query = supabase.from('questions').select('*');
-  }
-
-  const { data, error } = await query;
+  // Fetch questions that belong to the current user OR have a NULL user_id (for sample questions)
+  const { data, error } = await supabase
+    .from('questions')
+    .select('*')
+    .or(`user_id.eq.${userId},user_id.is.null`);
 
   if (error) {
     showError(i18n.t("add_question_page.error_loading_entries", { message: error.message }));
@@ -54,7 +52,10 @@ export const getSupabaseQuestions = async (): Promise<SpeakingQuestion[]> => {
 
 export const addSupabaseQuestion = async (question: Omit<SpeakingQuestion, 'id' | 'date' | 'user_id'>): Promise<SpeakingQuestion | null> => {
   const userId = await getUserId();
-  if (!userId) return null;
+  if (!userId) {
+    showError(i18n.t("add_question_page.error_saving_entry", { message: "Foydalanuvchi ID topilmadi. Mehmon rejimida savol qo'shib bo'lmaydi." }));
+    return null;
+  }
 
   const newQuestion = {
     ...question,
@@ -78,13 +79,16 @@ export const addSupabaseQuestion = async (question: Omit<SpeakingQuestion, 'id' 
 
 export const updateSupabaseQuestion = async (updatedQuestion: SpeakingQuestion): Promise<SpeakingQuestion | null> => {
   const userId = await getUserId();
-  if (!userId) return null;
+  if (!userId) {
+    showError(i18n.t("add_question_page.error_saving_entry", { message: "Foydalanuvchi ID topilmadi. Mehmon rejimida savolni tahrirlab bo'lmaydi." }));
+    return null;
+  }
 
   const { data, error } = await supabase
     .from('questions')
     .update(updatedQuestion)
     .eq('id', updatedQuestion.id)
-    .eq('user_id', userId)
+    .eq('user_id', userId) // Faqat o'z savollarini tahrirlashga ruxsat berish
     .select()
     .single();
 
@@ -97,13 +101,16 @@ export const updateSupabaseQuestion = async (updatedQuestion: SpeakingQuestion):
 
 export const deleteSupabaseQuestion = async (id: string): Promise<boolean> => {
   const userId = await getUserId();
-  if (!userId) return false;
+  if (!userId) {
+    showError(i18n.t("add_question_page.error_deleting_entry", { message: "Foydalanuvchi ID topilmadi. Mehmon rejimida savolni o'chirib bo'lmaydi." }));
+    return false;
+  }
 
   const { error } = await supabase
     .from('questions')
     .delete()
     .eq('id', id)
-    .eq('user_id', userId);
+    .eq('user_id', userId); // Faqat o'z savollarini o'chirishga ruxsat berish
 
   if (error) {
     showError(i18n.t("add_question_page.error_deleting_entry", { message: error.message }));
@@ -114,12 +121,15 @@ export const deleteSupabaseQuestion = async (id: string): Promise<boolean> => {
 
 export const resetSupabaseQuestionCooldowns = async (): Promise<boolean> => {
   const userId = await getUserId();
-  if (!userId) return false;
+  if (!userId) {
+    showError(i18n.t("add_question_page.error_saving_entry", { message: "Foydalanuvchi ID topilmadi. Mehmon rejimida cooldown'larni tiklab bo'lmaydi." }));
+    return false;
+  }
 
   const { error } = await supabase
     .from('questions')
     .update({ last_used: null })
-    .eq('user_id', userId);
+    .eq('user_id', userId); // Faqat o'z savollarini tiklashga ruxsat berish
 
   if (error) {
     showError(i18n.t("add_question_page.error_saving_entry", { message: error.message }));
