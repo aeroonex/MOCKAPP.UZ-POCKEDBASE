@@ -46,7 +46,7 @@ const Login: React.FC = () => {
 
             <Button
               onClick={handleTryMe}
-              className="bg-primary hover:bg-primary/90 text-white text-lg px-8 py-6 rounded-full shadow-lg mb-10 transition-all duration-300 hover:scale-105 btn-hover-glow"
+              className="bg-gradient-purple text-white text-lg px-8 py-6 rounded-full shadow-lg mb-10 transition-all duration-300 animate-button-pulse btn-hover-glow"
             >
               {t("landing_page.try_me_button")}
             </Button>

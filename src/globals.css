@@ -214,3 +214,25 @@
 .animate-pulse-hot-sale {
   animation: pulse-hot-sale 2s infinite ease-in-out;
 }
+
+/* New animation for the "Try Me" button */
+@keyframes button-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03); /* Slightly larger */
+  }
+}
+
+.animate-button-pulse {
+  animation: button-pulse 2s infinite ease-in-out;
+}
+
+/* New gradient background for the "Try Me" button */
+.bg-gradient-purple {
+  background: linear-gradient(to right, #8A2BE2, #4169E1); /* BlueViolet to RoyalBlue */
+}
+.bg-gradient-purple:hover {
+  background: linear-gradient(to right, #9333ea, #6d28d9); /* Slightly darker on hover */
+}
