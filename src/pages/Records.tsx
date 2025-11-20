@@ -173,9 +173,11 @@ const Records: React.FC = () => {
       if (recording.isLocalBlobAvailable && recording.video_url.startsWith('blob:')) {
         URL.revokeObjectURL(recording.video_url);
       }
-      await deleteLocalRecording(recording.id);
-      setRecordings(prev => prev.filter(rec => rec.id !== recording.id));
-      showSuccess(t("records_page.success_recording_deleted"));
+      const localDeleted = await deleteLocalRecording(recording.id); // Get return value
+      if (localDeleted) { // Only update state if local deletion was successful
+        setRecordings(prev => prev.filter(rec => rec.id !== recording.id));
+        showSuccess(t("records_page.success_recording_deleted"));
+      }
     } catch (error: any) {
       showError(`${t("records_page.error_deleting_recording")} ${error.message}`);
     }
