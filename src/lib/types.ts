@@ -8,6 +8,7 @@ export interface BaseSpeakingQuestion {
   date: string; // ISO string
   last_used?: string; // ISO string
   type: SpeakingPart;
+  isSimilar?: boolean; // Yangi: Savolning o'xshashligini belgilash uchun
 }
 
 export interface Part1_1Question extends BaseSpeakingQuestion {

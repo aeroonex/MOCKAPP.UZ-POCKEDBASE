@@ -37,6 +37,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useTranslation } from 'react-i18next';
+import { normalizeText } from "@/lib/utils"; // normalizeText funksiyasini import qilish
 
 const SpeakingQuestionManager: React.FC = () => {
   const { session } = useAuth();
@@ -63,8 +64,49 @@ const SpeakingQuestionManager: React.FC = () => {
         groupedQuestions[q.type as SpeakingPart].push(q);
       }
     });
+
+    // Part 1.1 savollarini o'xshashlik bo'yicha tekshirish va saralash
+    if (groupedQuestions["Part 1.1"].length > 0) {
+      const part1_1Questions = groupedQuestions["Part 1.1"] as Part1_1Question[];
+      const similarQuestionIds = new Set<string>();
+
+      for (let i = 0; i < part1_1Questions.length; i++) {
+        for (let j = i + 1; j < part1_1Questions.length; j++) {
+          const q1 = part1_1Questions[i];
+          const q2 = part1_1Questions[j];
+
+          const q1NormalizedSubQuestions = new Set(q1.sub_questions.map(normalizeText));
+          const q2NormalizedSubQuestions = new Set(q2.sub_questions.map(normalizeText));
+
+          // Agar kamida bitta umumiy normalizatsiyalangan kichik savol bo'lsa, ular o'xshash
+          const intersection = new Set([...q1NormalizedSubQuestions].filter(x => q2NormalizedSubQuestions.has(x)));
+
+          if (intersection.size > 0) {
+            similarQuestionIds.add(q1.id);
+            similarQuestionIds.add(q2.id);
+          }
+        }
+      }
+
+      const processedPart1_1Questions = part1_1Questions.map(q => ({
+        ...q,
+        isSimilar: similarQuestionIds.has(q.id),
+      }));
+
+      // O'xshash savollarni ro'yxatning boshiga joylashtirish
+      processedPart1_1Questions.sort((a, b) => {
+        if (a.isSimilar && !b.isSimilar) return -1;
+        if (!a.isSimilar && b.isSimilar) return 1;
+        return new Date(b.date).getTime() - new Date(a.date).getTime(); // Qolganlarini sanasi bo'yicha saralash
+      });
+
+      groupedQuestions["Part 1.1"] = processedPart1_1Questions;
+    }
+
     for (const part in groupedQuestions) {
-      groupedQuestions[part as SpeakingPart].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      if (part !== "Part 1.1") { // Part 1.1 allaqachon saralangan
+        groupedQuestions[part as SpeakingPart].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      }
     }
     setQuestions(groupedQuestions);
     setIsLoading(false);
@@ -321,7 +363,7 @@ const SpeakingQuestionManager: React.FC = () => {
               {Array.isArray(q.sub_questions) && q.sub_questions.length > 0
                 ? q.sub_questions.map((subQ, i) => <li key={i}>{subQ}</li>)
                 : <li className="text-yellow-600">{t("add_question_page.no_sub_questions")}</li>}
-            </ul>
+          </ul>
           </div>
         );
       case "Part 2":
@@ -396,7 +438,10 @@ const SpeakingQuestionManager: React.FC = () => {
                         <p className="text-center text-muted-foreground">{t("add_question_page.no_questions_added")}</p>
                       ) : (
                         questions[part].map((q) => (
-                          <div key={q.id} className="flex items-start justify-between p-3 border rounded-md bg-secondary text-secondary-foreground">
+                          <div 
+                            key={q.id} 
+                            className={`flex items-start justify-between p-3 border rounded-md bg-secondary text-secondary-foreground ${q.isSimilar ? 'border-red-400 bg-red-50/50 dark:bg-red-900/20' : ''}`}
+                          >
                             <div className="flex-grow mr-4">{renderQuestionCardContent(q)}</div>
                             <div className="flex flex-col items-end gap-2">
                               <div className="flex items-center gap-2">
