@@ -120,12 +120,21 @@ export const useRecorder = () => {
         showSuccess(t("add_question_page.success_video_saving"));
 
         try {
-          const recordingId = await addLocalRecording({
+          // Avval mahalliy saqlaymiz, lekin supabase_url ni hali qo'shmaymiz
+          const recordingId = uuidv4();
+          const currentTimestamp = new Date().toISOString();
+          const userId = user?.id || 'local_user';
+
+          await addLocalRecording({
+            id: recordingId,
+            timestamp: currentTimestamp,
+            user_id: userId,
             duration,
             student_id: studentInfo?.id,
             student_name: studentInfo?.name,
             student_phone: studentInfo?.phone,
             videoBlob: blob,
+            // supabase_url bu yerda hali bo'lmaydi, keyin yangilanadi
           });
           showSuccess(t("add_question_page.success_video_saved"));
 
@@ -154,7 +163,7 @@ export const useRecorder = () => {
                 await updateLocalRecordingSupabaseUrl(recordingId, publicUrlData.publicUrl);
                 showSuccess(t("records_page.success_uploaded_to_cloud"));
                 setUploadProgress(recordingId, 100);
-                setTimeout(() => setUploadProgress(recordingId, 0), 2000);
+                setTimeout(() => removeUploadProgress(recordingId), 2000); // Yuklash tugagach progressni o'chiramiz
               } else {
                 showError(t("records_page.error_getting_public_url"));
                 setUploadProgress(recordingId, -1);

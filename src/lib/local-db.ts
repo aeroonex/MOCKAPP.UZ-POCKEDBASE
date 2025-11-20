@@ -8,7 +8,7 @@ import i18n from '@/i18n';
 const DB_NAME = 'edumock_uz_db';
 const DB_VERSION = 1;
 const STORE_MOODS = 'mood_entries';
-const STORE_RECORDINGS = 'recordings';
+const STORE_RECORDINGS = 'recordings'; // IndexedDB uchun
 
 let db: IDBPDatabase;
 
@@ -203,17 +203,118 @@ interface StoredRecording {
   student_name?: string;
   student_phone?: string;
   videoBlob: Blob;
-  supabase_url?: string; // Supabase URL for the video
+  supabase_url?: string; // Supabase'ga yuklangan videoning ommaviy URL manzili
 }
+
+// Yangi: Supabase jadvaliga yozuv metama'lumotlarini qo'shish
+const insertRecordingMetadataToSupabase = async (recording: Omit<RecordedSession, 'video_url'>): Promise<void> => {
+  const { error } = await supabase
+    .from('recordings_metadata')
+    .insert({
+      id: recording.id,
+      user_id: recording.user_id,
+      timestamp: recording.timestamp,
+      duration: recording.duration,
+      student_id: recording.student_id,
+      student_name: recording.student_name,
+      student_phone: recording.student_phone,
+      supabase_url: recording.supabase_url,
+    });
+
+  if (error) {
+    console.error("Error inserting recording metadata to Supabase:", error.message);
+    showError(i18n.t("records_page.error_uploading_to_cloud", { message: error.message }));
+  }
+};
+
+// Yangi: Supabase jadvalidagi yozuv metama'lumotlarini yangilash
+const updateRecordingMetadataInSupabase = async (recordingId: string, supabaseUrl: string): Promise<void> => {
+  const userId = await getUserId();
+  if (!userId) return;
+
+  const { error } = await supabase
+    .from('recordings_metadata')
+    .update({ supabase_url: supabaseUrl })
+    .eq('id', recordingId)
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error("Error updating recording metadata in Supabase:", error.message);
+    showError(i18n.t("records_page.error_uploading_to_cloud", { message: error.message }));
+  }
+};
+
+// Yangi: Supabase jadvalidan yozuv metama'lumotlarini o'chirish
+const deleteRecordingMetadataFromSupabase = async (recordingId: string): Promise<void> => {
+  const userId = await getUserId();
+  if (!userId) return;
+
+  const { error } = await supabase
+    .from('recordings_metadata')
+    .delete()
+    .eq('id', recordingId)
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error("Error deleting recording metadata from Supabase:", error.message);
+    showError(i18n.t("records_page.error_deleting_from_cloud", { message: error.message }));
+  }
+};
+
 
 export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
   const db = await initDB();
   const storedRecordings: StoredRecording[] = await db.getAll(STORE_RECORDINGS);
   
-  return storedRecordings.map(rec => ({
-    ...rec,
-    video_url: URL.createObjectURL(rec.videoBlob),
-  }));
+  const userId = await getUserId();
+  let allRecordings: RecordedSession[] = [];
+
+  if (userId) {
+    // Authenticated user: Fetch from Supabase metadata table first
+    const { data, error } = await supabase
+      .from('recordings_metadata')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (error) {
+      showError(i18n.t("records_page.error_loading_recordings", { message: error.message }));
+    } else if (data) {
+      allRecordings = data.map(rec => ({
+        id: rec.id,
+        user_id: rec.user_id,
+        timestamp: rec.timestamp,
+        duration: rec.duration,
+        student_id: rec.student_id || undefined,
+        student_name: rec.student_name || undefined,
+        student_phone: rec.student_phone || undefined,
+        video_url: rec.supabase_url, // Supabase URL'ni video_url sifatida ishlatamiz
+        supabase_url: rec.supabase_url,
+      }));
+    }
+
+    // Filter out local recordings that are already uploaded to Supabase
+    const uploadedSupabaseIds = new Set(allRecordings.map(r => r.id));
+    const unuploadedLocalRecordings = storedRecordings.filter(rec => !uploadedSupabaseIds.has(rec.id));
+
+    // Add unuploaded local recordings to the list
+    unuploadedLocalRecordings.forEach(rec => {
+      allRecordings.push({
+        ...rec,
+        video_url: URL.createObjectURL(rec.videoBlob),
+      });
+    });
+
+  } else {
+    // Guest mode or not logged in: Fetch only from IndexedDB
+    storedRecordings.forEach(rec => {
+      allRecordings.push({
+        ...rec,
+        video_url: URL.createObjectURL(rec.videoBlob),
+      });
+    });
+  }
+  
+  return allRecordings;
 };
 
 export const getRecordingBlob = async (id: string): Promise<Blob | undefined> => {
@@ -226,16 +327,35 @@ export const addLocalRecording = async (
   recording: Omit<RecordedSession, 'id' | 'timestamp' | 'user_id' | 'video_url'> & { videoBlob: Blob, supabase_url?: string }
 ): Promise<string> => {
   const db = await initDB();
+  const newRecordingId = uuidv4();
+  const currentTimestamp = new Date().toISOString();
+  const userId = await getUserId() || 'local_user';
+
   const newRecording: StoredRecording = {
     ...recording,
-    id: uuidv4(),
-    timestamp: new Date().toISOString(),
-    user_id: await getUserId() || 'local_user', // Use actual user ID if available
+    id: newRecordingId,
+    timestamp: currentTimestamp,
+    user_id: userId,
     videoBlob: recording.videoBlob,
     supabase_url: recording.supabase_url,
   };
   await db.add(STORE_RECORDINGS, newRecording);
-  return newRecording.id;
+
+  // Agar foydalanuvchi tizimga kirgan bo'lsa va supabase_url mavjud bo'lsa, metama'lumotlarni Supabase jadvaliga ham qo'shamiz
+  if (userId !== 'local_user' && recording.supabase_url) {
+    await insertRecordingMetadataToSupabase({
+      id: newRecordingId,
+      user_id: userId,
+      timestamp: currentTimestamp,
+      duration: recording.duration,
+      student_id: recording.student_id,
+      student_name: recording.student_name,
+      student_phone: recording.student_phone,
+      supabase_url: recording.supabase_url,
+    });
+  }
+
+  return newRecordingId;
 };
 
 export const updateLocalRecordingSupabaseUrl = async (id: string, supabaseUrl: string): Promise<void> => {
@@ -246,6 +366,12 @@ export const updateLocalRecordingSupabaseUrl = async (id: string, supabaseUrl: s
   if (recording) {
     recording.supabase_url = supabaseUrl;
     await store.put(recording);
+
+    // Agar foydalanuvchi tizimga kirgan bo'lsa, Supabase jadvalidagi URL manzilini ham yangilaymiz
+    const userId = await getUserId();
+    if (userId !== 'local_user') {
+      await updateRecordingMetadataInSupabase(id, supabaseUrl);
+    }
   }
   await tx.done;
 };
@@ -264,6 +390,9 @@ export const deleteLocalRecording = async (id: string) => {
 
       if (deleteError) {
         showError(i18n.t("records_page.error_deleting_from_cloud", { message: deleteError.message }));
+      } else {
+        // Supabase Storage'dan o'chirilgandan so'ng, metama'lumotlarni ham o'chiramiz
+        await deleteRecordingMetadataFromSupabase(id);
       }
     }
   }
