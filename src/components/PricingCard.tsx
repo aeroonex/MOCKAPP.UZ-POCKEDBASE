@@ -115,7 +115,7 @@ const PricingCard: React.FC = () => {
   };
 
   return (
-    <div className="bg-card p-6 border border-border rounded-xl shadow-2xl sticky top-20 animated-card" style={{ animationDelay: '1.5s' }}>
+    <div className="bg-card p-6 border border-border rounded-xl shadow-2xl sticky top-20 animated-card glow-primary" style={{ animationDelay: '1.5s' }}>
       <h2 className="text-xl font-bold text-foreground mb-6">{t("landing_page.select_tariff")}</h2>
 
       <Accordion 

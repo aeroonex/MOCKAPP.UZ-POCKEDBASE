@@ -236,3 +236,34 @@
 .bg-gradient-purple:hover {
   background: linear-gradient(to right, #9333ea, #6d28d9); /* Slightly darker on hover */
 }
+
+/* New glow effect for static elements */
+.glow-primary {
+  position: relative;
+  overflow: hidden;
+  z-index: 0; /* Ensure content is above glow */
+}
+
+.glow-primary::before {
+  content: '';
+  position: absolute;
+  top: -5px; /* Adjust to make glow visible around border */
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  background: hsl(var(--primary)); /* Use primary color for glow */
+  filter: blur(10px); /* Subtle blur */
+  opacity: 0.3; /* Constant, subtle glow */
+  z-index: -1;
+  border-radius: inherit; /* Inherit border-radius from parent */
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Optional: Add a subtle hover effect for glow-primary elements */
+.glow-primary:hover::before {
+  opacity: 0.5; /* Slightly brighter on hover */
+}
+.glow-primary:hover {
+  /* Add a subtle box-shadow on hover to enhance the glow */
+  box-shadow: 0 0 15px hsl(var(--primary) / 0.4);
+}
