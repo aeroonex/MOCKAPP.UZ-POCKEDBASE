@@ -124,8 +124,8 @@
 }
 .price-option-active {
     border: 2px solid hsl(var(--primary)); /* Faol holat uchun asosiy rang chegarasi */
-    /* background: linear-gradient(to bottom right, hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.05)); */ /* Faol holat uchun nozik gradient olib tashlandi */
-    /* box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2); */ /* Faol holat uchun kuchliroq soya olib tashlandi */
+    background: linear-gradient(to bottom right, hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.05)); /* Faol holat uchun nozik gradient */
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2); /* Faol holat uchun kuchliroq soya */
     transform: translateY(-1px); /* Biroz ko'tarilgan holatda saqlash */
 }
 
@@ -235,35 +235,4 @@
 }
 .bg-gradient-purple:hover {
   background: linear-gradient(to right, #9333ea, #6d28d9); /* Slightly darker on hover */
-}
-
-/* New glow effect for static elements */
-.glow-primary {
-  position: relative;
-  overflow: hidden;
-  z-index: 0; /* Ensure content is above glow */
-}
-
-.glow-primary::before {
-  content: '';
-  position: absolute;
-  top: -15px; /* Adjust to make glow visible around border */
-  left: -15px;
-  right: -15px;
-  bottom: -15px;
-  background: hsl(var(--primary)); /* Use primary color for glow */
-  filter: blur(15px); /* Subtle blur */
-  opacity: 0.3; /* Constant, subtle glow */
-  z-index: -1;
-  border-radius: inherit; /* Inherit border-radius from parent */
-  transition: opacity 0.3s ease-in-out;
-}
-
-/* Optional: Add a subtle hover effect for glow-primary elements */
-.glow-primary:hover::before {
-  opacity: 0.5; /* Slightly brighter on hover */
-}
-.glow-primary:hover {
-  /* Add a subtle box-shadow on hover to enhance the glow */
-  /* box-shadow: 0 0 15px hsl(var(--primary) / 0.4); */ /* Hoverdagi soya olib tashlandi */
 }

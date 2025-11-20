@@ -9,11 +9,11 @@ const ContactSection: React.FC = () => {
 
   return (
     <div className="space-y-6 mt-12 max-w-[600px]">
-      <div className="p-5 rounded-xl shadow-lg bg-primary/5 border border-primary/30 animated-card glow-primary" style={{ animationDelay: '1.1s' }}>
+      <div className="p-5 rounded-xl shadow-lg bg-primary/5 border border-primary/30 animated-card" style={{ animationDelay: '1.1s' }}>
         <p className="text-base font-normal leading-relaxed text-foreground" dangerouslySetInnerHTML={{ __html: t("landing_page.description") }} />
       </div>
 
-      <div className="bg-card p-5 rounded-xl shadow-xl border border-border animated-card glow-primary" style={{ animationDelay: '1.3s' }}>
+      <div className="bg-card p-5 rounded-xl shadow-xl border border-border animated-card" style={{ animationDelay: '1.3s' }}>
         <h2 className="text-xl font-bold text-foreground mb-3 flex items-center">
           <div className="bg-primary rounded-full p-2 mr-3">
             <Phone className="h-6 w-6 text-white" />
