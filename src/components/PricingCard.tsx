@@ -58,8 +58,7 @@ const prices: { [key: string]: PriceOption } = {
       "cloud_storage_25gb",
       "add_custom_questions", 
       "edit_questions", 
-      "premium_support",
-      "early_access_features"
+      "premium_support"
     ]
   },
   "12": { 
@@ -74,7 +73,6 @@ const prices: { [key: string]: PriceOption } = {
       "add_custom_questions", 
       "edit_questions", 
       "premium_support",
-      "ai_recommendations",
       "faster_cloud_sync"
     ]
   },
@@ -88,7 +86,6 @@ const prices: { [key: string]: PriceOption } = {
       "add_custom_questions", 
       "edit_questions", 
       "vip_support",
-      "lifetime_updates",
       "priority_cloud_backup",
       "exclusive_features_unlock"
     ]
