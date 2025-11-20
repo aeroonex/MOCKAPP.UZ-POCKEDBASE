@@ -9,7 +9,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { showSuccess } from "@/utils/toast";
 import { useAuth } from "@/context/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
-import { useTranslation } => 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import GuideDialog from "@/components/GuideDialog";
 import { toast } from "sonner";
 
