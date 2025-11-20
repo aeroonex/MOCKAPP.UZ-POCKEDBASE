@@ -13,7 +13,7 @@ import {
   Part3Question,
 } from "@/lib/types";
 import { allSpeakingParts } from "@/lib/constants";
-import { getSupabaseQuestions, updateSupabaseQuestion } from "@/lib/local-db";
+import { getSupabaseQuestions, updateSupabaseQuestion, filterUniqueQuestions } from "@/lib/local-db";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/context/AuthProvider"; // useAuth import qilindi
 
@@ -158,6 +158,12 @@ export const useMockTestLogic = ({
         loadedQuestions[q.type as SpeakingPart].push(q);
       }
     });
+
+    // Filter out duplicates within each part before storing
+    for (const part of allSpeakingParts) {
+      loadedQuestions[part] = filterUniqueQuestions(loadedQuestions[part]);
+    }
+
     allAvailableQuestionsRef.current = loadedQuestions;
   }, []);
 
