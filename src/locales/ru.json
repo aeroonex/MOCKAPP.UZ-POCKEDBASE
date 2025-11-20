@@ -222,8 +222,7 @@
     "downloading": "Загрузка...",
     "success_downloaded": "Успешно загружено!",
     "error_cloud_delete_failed_local_kept": "Ошибка удаления из облака. Локальная запись сохранена.",
-    "upload_success": "Видео успешно загружено в облако!",
-    "success_download_initiated": "Загрузка началась! Проверьте раздел загрузок вашего браузера."
+    "upload_success": "Видео успешно загружено в облако!"
   },
   "mood_journal_page": {
     "mood_journal_tracker": "Дневник настроения и трекер",

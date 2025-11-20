@@ -222,8 +222,7 @@
     "downloading": "Downloading...",
     "success_downloaded": "Successfully downloaded!",
     "error_cloud_delete_failed_local_kept": "Cloud deletion failed. Local recording kept.",
-    "upload_success": "Video successfully uploaded to cloud!",
-    "success_download_initiated": "Download initiated! Check your browser's downloads section."
+    "upload_success": "Video successfully uploaded to cloud!"
   },
   "mood_journal_page": {
     "mood_journal_tracker": "Mood Journal & Tracker",

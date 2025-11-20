@@ -37,7 +37,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useTranslation } from 'react-i18next';
-import { normalizeText, normalizeSubQuestions } from "@/lib/utils"; // normalizeText va normalizeSubQuestions funksiyalarini import qilish
+import { normalizeText } from "@/lib/utils"; // normalizeText funksiyasini import qilish
 
 const SpeakingQuestionManager: React.FC = () => {
   const { session } = useAuth();

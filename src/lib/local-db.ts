@@ -4,7 +4,6 @@ import { SpeakingQuestion, MoodEntry, RecordedSession, Part1_1Question, Part1_2Q
 import { supabase } from '@/integrations/supabase/client';
 import { showError } from '@/utils/toast';
 import i18n from '@/i18n';
-import { normalizeText, normalizeSubQuestions } from '@/lib/utils'; // Import from utils
 
 const DB_NAME = 'edumock_uz_db';
 const DB_VERSION = 1;
@@ -33,6 +32,12 @@ const getUserId = async (): Promise<string | null> => {
   const { data: { user } } = await supabase.auth.getUser();
   console.log("[getUserId] Current authenticated user ID:", user?.id || "null");
   return user?.id || null;
+};
+
+// Helper to normalize sub_questions for comparison
+const normalizeSubQuestions = (subQuestions: string[] | undefined): string => {
+  if (!subQuestions) return '';
+  return subQuestions.map(q => q.trim()).filter(Boolean).sort().join('|||');
 };
 
 // Duplicate check function
@@ -86,35 +91,6 @@ export const checkDuplicateQuestion = async (
     default:
       return false;
   }
-};
-
-// New: Function to filter a list of questions for uniqueness based on content
-export const filterUniqueQuestions = (questions: SpeakingQuestion[]): SpeakingQuestion[] => {
-  const uniqueQuestions: SpeakingQuestion[] = [];
-  const seenContents = new Set<string>(); // Stores normalized question content
-
-  for (const q of questions) {
-    let normalizedContent: string | null = null;
-    switch (q.type) {
-      case "Part 1.1":
-      case "Part 1.2": {
-        normalizedContent = normalizeSubQuestions((q as Part1_1Question | Part1_2Question).sub_questions);
-        break;
-      }
-      case "Part 2":
-      case "Part 3": {
-        const text = (q as Part2Question | Part3Question).question_text;
-        normalizedContent = text ? normalizeText(text) : null;
-        break;
-      }
-    }
-
-    if (normalizedContent && !seenContents.has(normalizedContent)) {
-      uniqueQuestions.push(q);
-      seenContents.add(normalizedContent);
-    }
-  }
-  return uniqueQuestions;
 };
 
 export const getSupabaseQuestions = async (): Promise<SpeakingQuestion[]> => {
