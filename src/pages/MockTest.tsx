@@ -54,7 +54,7 @@ const MockTest: React.FC = () => {
       {!isTestStarted && <Navbar />}
       <main className="flex-grow container mx-auto p-4 flex items-center justify-center relative">
         {(webcamStream || (isTestStarted && studentInfo)) && (
-          <div className="fixed top-4 right-4 z-20 flex flex-col items-end space-y-2"> {/* Joylashuv o'zgartirildi: right-4 */}
+          <div className="fixed top-20 left-4 z-20 flex flex-col items-start space-y-2"> {/* Joylashuv o'zgartirildi: top-20 left-4 */}
             {webcamStream && (
               <video
                 ref={webcamVideoRef}
