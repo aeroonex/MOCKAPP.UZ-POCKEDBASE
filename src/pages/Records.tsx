@@ -195,8 +195,8 @@ const Records: React.FC = () => {
       <Navbar />
       <main className="flex-grow container mx-auto p-4 flex items-center justify-center">
         <Card className="w-full max-w-3xl">
-          <CardHeader className="relative text-center">
-            <Link to="/home" className="absolute left-0 top-4">
+          <CardHeader className="relative text-center pt-8"> {/* pt-8 qo'shildi */}
+            <Link to="/home" className="absolute left-0 top-0"> {/* top-0 ga o'zgartirildi */}
               <Button variant="outline">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 {t("common.back")}

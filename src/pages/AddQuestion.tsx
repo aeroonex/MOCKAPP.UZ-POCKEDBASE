@@ -398,9 +398,9 @@ const SpeakingQuestionManager: React.FC = () => {
       <Navbar />
       <main className="flex-grow container mx-auto p-4">
         <Card className="max-w-3xl mx-auto">
-          <CardHeader>
+          <CardHeader className="pt-8"> {/* pt-8 qo'shildi */}
             <div className="relative text-center">
-              <Link to="/home" className="absolute left-0 top-1/2 -translate-y-1/2">
+              <Link to="/home" className="absolute left-0 top-0"> {/* top-0 ga o'zgartirildi */}
                 <Button variant="outline">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   {t("common.back")}
