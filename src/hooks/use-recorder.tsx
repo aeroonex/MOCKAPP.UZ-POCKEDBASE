@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { showSuccess, showError } from "@/utils/toast";
 import { StudentInfo } from "@/lib/types";
-import { addLocalRecording, updateLocalRecordingSupabaseUrl } from "@/lib/local-db";
+import { addLocalRecording, updateLocalRecordingSupabaseUrl, upsertRecordingMetadataToSupabase } from "@/lib/local-db";
 import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthProvider";
@@ -120,24 +120,22 @@ export const useRecorder = () => {
         showSuccess(t("add_question_page.success_video_saving"));
 
         try {
-          // Avval mahalliy saqlaymiz, lekin supabase_url ni hali qo'shmaymiz
-          const recordingId = uuidv4();
           const currentTimestamp = new Date().toISOString();
           const userId = user?.id || 'local_user';
 
-          await addLocalRecording({
-            id: recordingId,
-            timestamp: currentTimestamp,
-            user_id: userId,
+          // 1. Avval mahalliy (IndexedDB) saqlaymiz
+          const recordingId = await addLocalRecording({
             duration,
             student_id: studentInfo?.id,
             student_name: studentInfo?.name,
             student_phone: studentInfo?.phone,
             videoBlob: blob,
-            // supabase_url bu yerda hali bo'lmaydi, keyin yangilanadi
+            timestamp: currentTimestamp, // add timestamp here
+            user_id: userId, // add user_id here
           });
           showSuccess(t("add_question_page.success_video_saved"));
 
+          // 2. Agar foydalanuvchi tizimga kirgan bo'lsa, Supabase Storage'ga yuklaymiz
           if (user?.id) {
             const filePath = `${user.id}/${recordingId}.webm`;
             setUploadProgress(recordingId, 0);
@@ -160,7 +158,21 @@ export const useRecorder = () => {
                 .getPublicUrl(filePath);
               
               if (publicUrlData.publicUrl) {
+                // 3. Mahalliy yozuvni Supabase URL bilan yangilaymiz
                 await updateLocalRecordingSupabaseUrl(recordingId, publicUrlData.publicUrl);
+                
+                // 4. Supabase metadata jadvaliga ma'lumotlarni kiritamiz/yangilaymiz
+                await upsertRecordingMetadataToSupabase({
+                  id: recordingId,
+                  user_id: userId,
+                  timestamp: currentTimestamp,
+                  duration,
+                  student_id: studentInfo?.id,
+                  student_name: studentInfo?.name,
+                  student_phone: studentInfo?.phone,
+                  supabase_url: publicUrlData.publicUrl,
+                });
+
                 showSuccess(t("records_page.success_uploaded_to_cloud"));
                 setUploadProgress(recordingId, 100);
                 setTimeout(() => removeUploadProgress(recordingId), 2000); // Yuklash tugagach progressni o'chiramiz

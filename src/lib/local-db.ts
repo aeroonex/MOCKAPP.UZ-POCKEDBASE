@@ -206,11 +206,11 @@ interface StoredRecording {
   supabase_url?: string; // Supabase'ga yuklangan videoning ommaviy URL manzili
 }
 
-// Yangi: Supabase jadvaliga yozuv metama'lumotlarini qo'shish
-const insertRecordingMetadataToSupabase = async (recording: Omit<RecordedSession, 'video_url'>): Promise<void> => {
+// Yangi: Supabase jadvaliga yozuv metama'lumotlarini kiritish yoki yangilash
+export const upsertRecordingMetadataToSupabase = async (recording: Omit<RecordedSession, 'video_url'>): Promise<void> => {
   const { error } = await supabase
     .from('recordings_metadata')
-    .insert({
+    .upsert({
       id: recording.id,
       user_id: recording.user_id,
       timestamp: recording.timestamp,
@@ -219,27 +219,10 @@ const insertRecordingMetadataToSupabase = async (recording: Omit<RecordedSession
       student_name: recording.student_name,
       student_phone: recording.student_phone,
       supabase_url: recording.supabase_url,
-    });
+    }, { onConflict: 'id' }); // Agar ID mavjud bo'lsa, yangilaydi
 
   if (error) {
-    console.error("Error inserting recording metadata to Supabase:", error.message);
-    showError(i18n.t("records_page.error_uploading_to_cloud", { message: error.message }));
-  }
-};
-
-// Yangi: Supabase jadvalidagi yozuv metama'lumotlarini yangilash
-const updateRecordingMetadataInSupabase = async (recordingId: string, supabaseUrl: string): Promise<void> => {
-  const userId = await getUserId();
-  if (!userId) return;
-
-  const { error } = await supabase
-    .from('recordings_metadata')
-    .update({ supabase_url: supabaseUrl })
-    .eq('id', recordingId)
-    .eq('user_id', userId);
-
-  if (error) {
-    console.error("Error updating recording metadata in Supabase:", error.message);
+    console.error("Error upserting recording metadata to Supabase:", error.message);
     showError(i18n.t("records_page.error_uploading_to_cloud", { message: error.message }));
   }
 };
@@ -341,19 +324,8 @@ export const addLocalRecording = async (
   };
   await db.add(STORE_RECORDINGS, newRecording);
 
-  // Agar foydalanuvchi tizimga kirgan bo'lsa va supabase_url mavjud bo'lsa, metama'lumotlarni Supabase jadvaliga ham qo'shamiz
-  if (userId !== 'local_user' && recording.supabase_url) {
-    await insertRecordingMetadataToSupabase({
-      id: newRecordingId,
-      user_id: userId,
-      timestamp: currentTimestamp,
-      duration: recording.duration,
-      student_id: recording.student_id,
-      student_name: recording.student_name,
-      student_phone: recording.student_phone,
-      supabase_url: recording.supabase_url,
-    });
-  }
+  // Supabase metadata insertion is now handled by upsertRecordingMetadataToSupabase in use-recorder.tsx
+  // This function only adds to IndexedDB.
 
   return newRecordingId;
 };
@@ -366,12 +338,7 @@ export const updateLocalRecordingSupabaseUrl = async (id: string, supabaseUrl: s
   if (recording) {
     recording.supabase_url = supabaseUrl;
     await store.put(recording);
-
-    // Agar foydalanuvchi tizimga kirgan bo'lsa, Supabase jadvalidagi URL manzilini ham yangilaymiz
-    const userId = await getUserId();
-    if (userId !== 'local_user') {
-      await updateRecordingMetadataInSupabase(id, supabaseUrl);
-    }
+    // Supabase metadata update is now handled by upsertRecordingMetadataToSupabase in use-recorder.tsx
   }
   await tx.done;
 };
