@@ -30,6 +30,7 @@ async function initDB() {
 
 const getUserId = async (): Promise<string | null> => {
   const { data: { user } } = await supabase.auth.getUser();
+  console.log("[getUserId] Current authenticated user ID:", user?.id || "null");
   return user?.id || null;
 };
 
@@ -129,7 +130,7 @@ export const deleteSupabaseQuestion = async (id: string): Promise<boolean> => {
   } else {
     // Guest users cannot delete any questions, even public ones.
     // This prevents guests from modifying the sample data.
-    showError(i18n.t("add_question_page.error_deleting_entry", { message: "Mehmon rejimida savolni o'chirib bo'lmaydi." }));
+    showError(i18n.t("add_question_page.error_deleting_entry", { message: "Mehmon rejimida savol o'chirib bo'lmaydi." }));
     return false;
   }
 
@@ -368,15 +369,16 @@ export const deleteLocalRecording = async (id: string): Promise<boolean> => {
   console.log(`[Delete] Starting deletion for recording ID: ${id}. Supabase URL present: ${!!recording.supabase_url}`);
 
   if (recording.supabase_url) {
-    const userId = await getUserId();
+    const userId = await getUserId(); // Get current authenticated user ID
     if (!userId) {
       console.error(`[Delete] User not authenticated for cloud deletion of ID: ${id}.`);
       showError(i18n.t("records_page.error_deleting_from_cloud", { message: "Foydalanuvchi ID topilmadi. Bulutdan o'chirib bo'lmaydi." }));
       supabaseDeletionSuccessful = false;
     } else {
-      console.log(`[Delete] Authenticated user ${userId} attempting cloud deletion for ID: ${id}.`);
+      console.log(`[Delete] Authenticated user ID for deletion attempt: ${userId}`);
       // 1. Delete from Supabase Storage
       const filePath = `${userId}/${id}.webm`;
+      console.log(`[Delete] Attempting to delete from Supabase Storage: ${filePath}`);
       const { error: deleteStorageError } = await supabase.storage
         .from('recordings')
         .remove([filePath]);

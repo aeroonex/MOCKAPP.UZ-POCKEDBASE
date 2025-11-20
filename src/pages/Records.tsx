@@ -288,7 +288,7 @@ const Records: React.FC = () => {
                                 <AlertDialogDescription>
                                   {t("records_page.delete_recording_confirm_description")}
                                   {recording.supabase_url && (
-                                    <p className="text-red-500 mt-2">{t("records_page.delete_from_cloud_warning")}</p>
+                                    <span className="block text-red-500 mt-2">{t("records_page.delete_from_cloud_warning")}</span>
                                   )}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
