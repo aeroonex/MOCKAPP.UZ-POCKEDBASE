@@ -25,7 +25,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthProvider";
-import { useUploadProgress, setUploadProgress } from "@/utils/uploadProgress";
+import { useUploadProgress, setUploadProgress, removeUploadProgress } from "@/utils/uploadProgress";
 
 const Records: React.FC = () => {
   const [recordings, setRecordings] = useState<RecordedSession[]>([]);
@@ -94,7 +94,7 @@ const Records: React.FC = () => {
     if (uploadError) {
       showError(`${t("records_page.error_uploading_to_cloud")} ${uploadError.message}`);
       setUploadProgress(recording.id, -1);
-      setTimeout(() => setUploadProgress(recording.id, 0), 3000);
+      setTimeout(() => removeUploadProgress(recording.id), 3000); // Remove progress on error
     } else {
       const { data: publicUrlData } = supabase.storage
         .from('recordings')
@@ -116,12 +116,12 @@ const Records: React.FC = () => {
 
         setRecordings(prev => prev.map(rec => rec.id === recording.id ? { ...rec, supabase_url: publicUrlData.publicUrl } : rec));
         showSuccess(t("records_page.upload_success"));
-        setUploadProgress(recording.id, 100);
-        setTimeout(() => setUploadProgress(recording.id, 0), 2000);
+        setUploadProgress(recording.id, 100); // Set to 100% briefly
+        setTimeout(() => removeUploadProgress(recording.id), 2000); // Then remove progress after a delay
       } else {
         showError(t("records_page.error_getting_public_url"));
         setUploadProgress(recording.id, -1);
-        setTimeout(() => setUploadProgress(recording.id, 0), 3000);
+        setTimeout(() => removeUploadProgress(recording.id), 3000); // Remove progress on error
       }
     }
   }, [user, t]);
@@ -132,9 +132,16 @@ const Records: React.FC = () => {
       let urlToDownload = recording.video_url;
       let filename = `recording_${recording.id}.webm`;
 
-      if (recording.supabase_url) {
+      // If local blob is available, prioritize downloading from local
+      if (recording.isLocalBlobAvailable && recording.video_url.startsWith('blob:')) {
+        urlToDownload = recording.video_url;
+        filename = `local_recording_${recording.id}.webm`;
+      } else if (recording.supabase_url) {
         urlToDownload = recording.supabase_url;
         filename = `cloud_recording_${recording.id}.webm`;
+      } else {
+        showError(t("records_page.error_no_video_data"));
+        return;
       }
 
       if (recording.student_name && recording.student_phone) {
@@ -259,7 +266,7 @@ const Records: React.FC = () => {
                                 className="absolute inset-0 bg-blue-500 opacity-30" 
                                 style={{ width: `${currentUploadProgress}%` }}
                               ></div>
-                              <span className="relative z-10">{t("records_page.uploading")} {currentUploadProgress?.toFixed(0)}%</span>
+                              <span className="relative z-10">{t("records_page.uploading_to_cloud")} {currentUploadProgress?.toFixed(0)}%</span>
                             </Button>
                           ) : recording.supabase_url && (
                             <Button onClick={() => handleDownload(recording)} variant="default" size="sm" className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600" disabled={isDownloading || isUploading}>
