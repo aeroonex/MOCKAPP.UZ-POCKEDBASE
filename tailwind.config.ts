@@ -89,44 +89,11 @@ export default {
           "0%, 100%": { transform: "scale(1)" },
           "50%": { transform: "scale(1.05)" },
         },
-        "glitch-effect": {
-          "0%, 100%": {
-            transform: "translate(0)",
-            filter: "hue-rotate(0deg)",
-            textShadow: "none",
-          },
-          "20%": {
-            transform: "translate(-2px, 2px)",
-            filter: "hue-rotate(10deg)",
-            textShadow: "2px 2px 0 rgba(255, 0, 0, 0.7), -2px -2px 0 rgba(0, 0, 255, 0.7)",
-          },
-          "22%": {
-            transform: "translate(2px, -2px)",
-            filter: "hue-rotate(20deg)",
-            textShadow: "-2px -2px 0 rgba(0, 255, 0, 0.7), 2px 2px 0 rgba(255, 0, 255, 0.7)",
-          },
-          "24%": {
-            transform: "translate(-1px, 1px)",
-            filter: "hue-rotate(30deg)",
-            textShadow: "1px 1px 0 rgba(0, 0, 255, 0.7), -1px -1px 0 rgba(255, 255, 0, 0.7)",
-          },
-          "26%": {
-            transform: "translate(1px, -1px)",
-            filter: "hue-rotate(40deg)",
-            textShadow: "-1px -1px 0 rgba(255, 0, 255, 0.7), 1px 1px 0 rgba(0, 255, 255, 0.7)",
-          },
-          "28%": {
-            transform: "translate(0)",
-            filter: "hue-rotate(0deg)",
-            textShadow: "none",
-          },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "logo-pulse": "logo-pulse 2s ease-in-out infinite",
-        "glitch-effect": "glitch-effect 5s infinite",
       },
     },
   },

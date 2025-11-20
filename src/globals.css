@@ -165,40 +165,29 @@
     animation: slideInUp 0.7s ease-out forwards;
 }
 
-@keyframes glitch-effect {
-  0% {
-    transform: translate(0);
-    filter: hue-rotate(0deg);
-    text-shadow: none;
-  }
-  20% {
-    transform: translate(-2px, 2px);
-    filter: hue-rotate(10deg);
-    text-shadow: 2px 2px 0 rgba(255, 0, 0, 0.7), -2px -2px 0 rgba(0, 0, 255, 0.7);
-  }
-  22% {
-    transform: translate(2px, -2px);
-    filter: hue-rotate(20deg);
-    text-shadow: -2px -2px 0 rgba(0, 255, 0, 0.7), 2px 2px 0 rgba(255, 0, 255, 0.7);
-  }
-  24% {
-    transform: translate(-1px, 1px);
-    filter: hue-rotate(30deg);
-    text-shadow: 1px 1px 0 rgba(0, 0, 255, 0.7), -1px -1px 0 rgba(255, 255, 0, 0.7);
-  }
-  26% {
-    transform: translate(1px, -1px);
-    filter: hue-rotate(40deg);
-    text-shadow: -1px -1px 0 rgba(255, 0, 255, 0.7), 1px 1px 0 rgba(0, 255, 255, 0.7);
-  }
-  28% {
-    transform: translate(0);
-    filter: hue-rotate(0deg);
-    text-shadow: none;
-  }
-  100% {
-    transform: translate(0);
-    filter: hue-rotate(0deg);
-    text-shadow: none;
-  }
+/* Hover-Glow Gradient Button */
+.btn-hover-glow {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  transition: all 0.3s ease-in-out;
+}
+
+.btn-hover-glow::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  left: -20px;
+  right: -20px;
+  bottom: -20px;
+  background: linear-gradient(45deg, #4169E1, #8A2BE2); /* RoyalBlue to BlueViolet */
+  filter: blur(15px); /* Glow effect */
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.3s ease-in-out;
+  border-radius: inherit;
+}
+
+.btn-hover-glow:hover::before {
+  opacity: 1;
 }
