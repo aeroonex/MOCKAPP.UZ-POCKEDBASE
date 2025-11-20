@@ -68,7 +68,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-sky-500 to-slate-900 text-white p-4">
       <header className="flex flex-col sm:flex-row sm:justify-between items-center mb-8">
         <h1 className="text-xl sm:text-3xl font-bold">Edumock.uz</h1>
-        <nav className="flex flex-row justify-center sm:justify-end gap-1 text-xs items-center mt-4 sm:mt-0">
+        <nav className="flex flex-col items-start gap-2 text-xs mt-4 sm:mt-0">
           <Link to="/home" className="hover:text-indigo-300 flex items-center justify-center gap-1 py-0.5 px-2 rounded-md hover:bg-white/10 border border-white/30">
             <HomeIcon className="h-3 w-3" /> {t("common.home")}
           </Link>
