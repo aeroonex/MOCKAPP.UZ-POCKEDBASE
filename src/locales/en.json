@@ -238,7 +238,8 @@
     "guest_upload_title": "Cloud Upload",
     "guest_upload_description": "This feature is available for subscribed users. Please select a plan to upload your recordings to the cloud and access them from any device.",
     "error_max_size_exceeded": "Upload failed: The video file size exceeds the maximum limit allowed by the cloud storage. Please contact support if you need a higher limit.",
-    "used_percentage": "Used: {{percentage}}%"
+    "used_percentage": "Used: {{percentage}}%",
+    "error_storage_limit_exceeded": "Upload failed: Not enough cloud storage. Please delete old recordings to free up space."
   },
   "mood_journal_page": {
     "mood_journal_tracker": "Mood Journal & Tracker",

@@ -238,7 +238,8 @@
     "guest_upload_title": "Загрузка в облако",
     "guest_upload_description": "Эта функция доступна для подписчиков. Пожалуйста, выберите тарифный план, чтобы загружать свои записи в облако и получать к ним доступ с любого устройства.",
     "error_max_size_exceeded": "Ошибка загрузки: Размер видеофайла превышает максимально допустимый лимит облачного хранилища. Если вам нужен kattaroq limit, iltimos, qo'llab-quvvatlash xizmatiga murojaat qiling.",
-    "used_percentage": "Использовано: {{percentage}}%"
+    "used_percentage": "Использовано: {{percentage}}%",
+    "error_storage_limit_exceeded": "Загрузка не удалась: Недостаточно места в облачном хранилище. Пожалуйста, удалите старые записи, чтобы освободить место."
   },
   "mood_journal_page": {
     "mood_journal_tracker": "Дневник настроения и трекер",

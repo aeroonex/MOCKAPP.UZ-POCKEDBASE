@@ -76,7 +76,7 @@ const Records: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { fetchProfile } = useProfile(); // fetchProfile ni qo'shdik
+  const { profile, fetchProfile } = useProfile(); // fetchProfile ni qo'shdik
   const isGuestMode = localStorage.getItem("isGuestMode") === "true" && !user;
   const [uploadingRecordId, setUploadingRecordId] = useState<string | null>(null);
   const [uploadErrorRecordId, setUploadErrorRecordId] = useState<string | null>(null);
@@ -124,6 +124,11 @@ const Records: React.FC = () => {
     const blob = await getRecordingBlob(recording.id);
     if (!blob) {
       showError(t("records_page.error_no_video_data"));
+      return;
+    }
+
+    if (profile && (profile.storage_used_bytes + blob.size > profile.storage_limit_bytes)) {
+      showError(t("records_page.error_storage_limit_exceeded"));
       return;
     }
 
@@ -200,7 +205,7 @@ const Records: React.FC = () => {
     });
 
     upload.start();
-  }, [t, fetchRecordings, fetchProfile]); // fetchProfile ni dependency arrayga qo'shdik
+  }, [t, fetchRecordings, fetchProfile, profile]); // fetchProfile ni dependency arrayga qo'shdik
 
   const handleUploadClick = (recording: RecordedSession) => {
     if (isGuestMode) {
