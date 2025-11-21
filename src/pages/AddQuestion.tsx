@@ -46,6 +46,7 @@ import {
 
 const SpeakingQuestionManager: React.FC = () => {
   const { session, user } = useAuth();
+  const isGuestMode = localStorage.getItem("isGuestMode") === "true" && !session;
   const [currentTab, setCurrentTab] = useState<SpeakingPart>("Part 1.1");
   const [questionText, setQuestionText] = useState<string>("");
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
@@ -118,10 +119,8 @@ const SpeakingQuestionManager: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (session) {
-      loadQuestions();
-    }
-  }, [session, loadQuestions]);
+    loadQuestions();
+  }, [loadQuestions]);
 
   const resetForm = () => {
     setQuestionText("");
@@ -444,17 +443,24 @@ const SpeakingQuestionManager: React.FC = () => {
                     <h3 className="text-lg font-semibold">
                       {editingQuestionId ? t("add_question_page.edit_question_title", { id_suffix: editingQuestionId.slice(-6) }) : t("add_question_page.add_new_question_title", { part })}
                     </h3>
-                    {renderQuestionInput(part)}
-                    <div className="flex gap-2">
-                      <Button onClick={() => handleSubmitQuestion(part)} className="w-full" disabled={isUploading}>
-                        {editingQuestionId ? t("add_question_page.save_changes") : t("add_question_page.add_question_to_part", { part })}
-                      </Button>
-                      {editingQuestionId && (
-                        <Button variant="outline" onClick={resetForm} className="w-full">
-                          <X className="h-4 w-4 mr-2" /> {t("add_question_page.cancel")}
+                    {isGuestMode && (
+                      <div className="p-3 text-center bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-700 rounded-md text-yellow-800 dark:text-yellow-300">
+                        <p>{t("add_question_page.guest_mode_add_question_warning")}</p>
+                      </div>
+                    )}
+                    <fieldset disabled={isGuestMode}>
+                      {renderQuestionInput(part)}
+                      <div className="flex gap-2 mt-4">
+                        <Button onClick={() => handleSubmitQuestion(part)} className="w-full" disabled={isUploading}>
+                          {editingQuestionId ? t("add_question_page.save_changes") : t("add_question_page.add_question_to_part", { part })}
                         </Button>
-                      )}
-                    </div>
+                        {editingQuestionId && (
+                          <Button variant="outline" onClick={resetForm} className="w-full">
+                            <X className="h-4 w-4 mr-2" /> {t("add_question_page.cancel")}
+                          </Button>
+                        )}
+                      </div>
+                    </fieldset>
                   </div>
                   {isLoading ? <p className="text-center">{t("add_question_page.questions_loading")}</p> : (
                     <div className="space-y-3">
@@ -468,30 +474,32 @@ const SpeakingQuestionManager: React.FC = () => {
                           >
                             <div className="flex-grow mr-4">{renderQuestionCardContent(q)}</div>
                             <div className="flex flex-col items-end gap-2">
-                              <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="icon" onClick={() => handleEditClick(q)}>
-                                  <Pencil className="h-4 w-4 text-blue-500" />
-                                </Button>
-                                <AlertDialog>
-                                  <AlertDialogTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                      <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                  </AlertDialogTrigger>
-                                  <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                      <AlertDialogTitle>{t("add_question_page.delete_question_confirm_title")}</AlertDialogTitle>
-                                      <AlertDialogDescription>
-                                        {t("add_question_page.delete_question_confirm_description")}
-                                      </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                      <AlertDialogCancel>{t("add_question_page.cancel")}</AlertDialogCancel>
-                                      <AlertDialogAction onClick={() => handleDeleteQuestion(q.id)}>{t("add_question_page.delete")}</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                  </AlertDialogContent>
-                                </AlertDialog>
-                              </div>
+                              {!isGuestMode && (
+                                <div className="flex items-center gap-2">
+                                  <Button variant="ghost" size="icon" onClick={() => handleEditClick(q)}>
+                                    <Pencil className="h-4 w-4 text-blue-500" />
+                                  </Button>
+                                  <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                      <Button variant="ghost" size="icon">
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                      </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>{t("add_question_page.delete_question_confirm_title")}</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          {t("add_question_page.delete_question_confirm_description")}
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>{t("add_question_page.cancel")}</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleDeleteQuestion(q.id)}>{t("add_question_page.delete")}</AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                </div>
+                              )}
                               <div className="text-xs text-muted-foreground text-right">
                                 <span>{q.last_used ? t("add_question_page.last_used", { date: format(new Date(q.last_used), "MMM dd, HH:mm") }) : t("add_question_page.not_used")}</span>
                               </div>

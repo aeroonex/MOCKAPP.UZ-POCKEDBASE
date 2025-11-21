@@ -100,7 +100,7 @@ export const getSupabaseQuestions = async (): Promise<SpeakingQuestion[]> => {
 
   let query = supabase.from('questions').select('*');
 
-  if (isGuestMode) {
+  if (isGuestMode && !user) {
     // Mehmon rejimida faqat user_id NULL bo'lgan savollarni ko'rsatish
     query = query.is('user_id', null);
   } else if (userId) {
@@ -125,7 +125,7 @@ export const addSupabaseQuestion = async (question: Omit<SpeakingQuestion, 'id' 
   const userId = user?.id;
 
   if (!userId) {
-    showError(i18n.t("add_question_page.error_saving_entry", { message: "Foydalanuvchi ID topilmadi. Mehmon rejimida savol qo'shib bo'lmaydi." }));
+    console.warn("Attempted to add a question without being authenticated. This action is blocked.");
     return null;
   }
 
@@ -160,6 +160,11 @@ export const updateSupabaseQuestion = async (updatedQuestion: SpeakingQuestion):
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user?.id;
 
+  if (!userId) {
+    console.warn("Attempted to update a question without being authenticated. This action is blocked.");
+    return null;
+  }
+
   // Check for duplicate before updating, excluding the current question being edited
   const isDuplicate = await checkDuplicateQuestion(updatedQuestion, userId, updatedQuestion.id);
   if (isDuplicate) {
@@ -167,18 +172,13 @@ export const updateSupabaseQuestion = async (updatedQuestion: SpeakingQuestion):
     return null;
   }
 
-  let query = supabase
+  const { data, error } = await supabase
     .from('questions')
     .update(updatedQuestion)
-    .eq('id', updatedQuestion.id);
-
-  if (userId) {
-    query = query.eq('user_id', userId);
-  } else {
-    query = query.eq('user_id', null);
-  }
-
-  const { data, error } = await query.select().single();
+    .eq('id', updatedQuestion.id)
+    .eq('user_id', userId) // Ensure user can only update their own questions
+    .select()
+    .single();
 
   if (error) {
     showError(i18n.t("add_question_page.error_saving_entry", { message: error.message }));
@@ -191,21 +191,16 @@ export const deleteSupabaseQuestion = async (id: string): Promise<boolean> => {
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user?.id;
 
-  let query = supabase
-    .from('questions')
-    .delete()
-    .eq('id', id);
-
-  if (userId) {
-    query = query.eq('user_id', userId);
-  } else {
-    // Guest users cannot delete any questions, even public ones.
-    // This prevents guests from modifying the sample data.
-    showError(i18n.t("add_question_page.error_deleting_entry", { message: "Mehmon rejimida savol o'chirib bo'lmaydi." }));
+  if (!userId) {
+    console.warn("Attempted to delete a question in guest mode. This action is blocked.");
     return false;
   }
 
-  const { error } = await query;
+  const { error } = await supabase
+    .from('questions')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', userId); // Ensure user can only delete their own questions
 
   if (error) {
     showError(i18n.t("add_question_page.error_deleting_entry", { message: error.message }));
@@ -226,7 +221,7 @@ export const resetSupabaseQuestionCooldowns = async (): Promise<boolean> => {
     query = query.eq('user_id', userId);
   } else {
     // Guest user can reset cooldowns for public sample questions
-    query = query.eq('user_id', null);
+    query = query.is('user_id', null);
   }
 
   const { error } = await query;

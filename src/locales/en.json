@@ -180,7 +180,8 @@
     "error_duplicate_question": "This question already exists in the system.",
     "error_recording_not_supported_mobile": "Screen recording is not supported on mobile devices. Please use a desktop browser.",
     "added": "Added",
-    "last_used_full": "Last Used"
+    "last_used_full": "Last Used",
+    "guest_mode_add_question_warning": "Adding and editing questions is disabled in guest mode. Please log in to use this feature."
   },
   "mock_test_page": {
     "mock_speaking_test": "Mock Speaking Test",
