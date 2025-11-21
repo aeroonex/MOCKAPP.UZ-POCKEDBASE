@@ -35,6 +35,41 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthProvider";
 import * as tus from 'tus-js-client';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useProfile, formatBytes } from "@/hooks/use-profile"; // useProfile va formatBytes import qilindi
+import { Progress } from "@/components/ui/progress"; // Progress komponenti
+
+// Xotira ishlatilishini ko'rsatuvchi kichik komponent
+const StorageUsageCard: React.FC = () => {
+  const { profile, loading } = useProfile();
+  const { t } = useTranslation();
+
+  if (loading || !profile) {
+    return null;
+  }
+
+  const totalLimit = profile.storage_limit_bytes || 0;
+  const usedSpace = profile.storage_used_bytes || 0;
+  const usagePercentage = totalLimit > 0 ? (usedSpace / totalLimit) * 100 : 0;
+
+  return (
+    <Card className="p-4 mb-6 border-primary/50 bg-primary/5 shadow-md">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <Cloud className="h-5 w-5 text-primary" />
+          <h4 className="text-sm font-semibold text-foreground">{t("user_profile_page.cloud_storage")}</h4>
+        </div>
+        <p className="text-sm font-medium text-primary">
+          {formatBytes(usedSpace)} / {formatBytes(totalLimit)}
+        </p>
+      </div>
+      <Progress value={usagePercentage} className="h-2" />
+      <p className="text-xs text-muted-foreground mt-1 text-right">
+        {t("records_page.used_percentage", { percentage: usagePercentage.toFixed(1) })}
+      </p>
+    </Card>
+  );
+};
+
 
 const Records: React.FC = () => {
   const [recordings, setRecordings] = useState<RecordedSession[]>([]);
@@ -135,7 +170,9 @@ const Records: React.FC = () => {
             supabase_url: publicUrlData.publicUrl,
           });
 
-          setRecordings(prev => prev.map(rec => rec.id === recording.id ? { ...rec, supabase_url: publicUrlData.publicUrl } : rec));
+          // Xotira ishlatilishini yangilash uchun profillarni qayta yuklash kerak bo'lishi mumkin
+          // Lekin Edge Function buni avtomatik qiladi. Shunchaki UI ni yangilash uchun fetchRecordings ni chaqiramiz.
+          await fetchRecordings(); 
           showSuccess(t("records_page.upload_success"));
         } else {
           showError(t("records_page.error_getting_public_url"));
@@ -162,7 +199,7 @@ const Records: React.FC = () => {
     });
 
     upload.start();
-  }, [t]);
+  }, [t, fetchRecordings]);
 
   const handleUploadClick = (recording: RecordedSession) => {
     if (isGuestMode) {
@@ -216,6 +253,8 @@ const Records: React.FC = () => {
       }
       const localDeleted = await deleteLocalRecording(recording.id);
       if (localDeleted) {
+        // Agar bulutdan ham o'chirilgan bo'lsa, Edge Function profiles ni yangilaydi.
+        // Shuning uchun biz faqat ro'yxatni yangilaymiz.
         setRecordings(prev => prev.filter(rec => rec.id !== recording.id));
         showSuccess(t("records_page.success_recording_deleted"));
       }
@@ -246,6 +285,8 @@ const Records: React.FC = () => {
             <CardDescription className="text-center mt-2">{t("records_page.review_past_sessions")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {!isGuestMode && <StorageUsageCard />} {/* Xotira ishlatilishini ko'rsatish */}
+            
             {isLoading ? <p className="text-center">{t("common.loading")}</p> : recordings.length === 0 ? (
               <p className="text-muted-foreground text-center">{t("records_page.no_recordings_available")}</p>
             ) : (
@@ -296,7 +337,7 @@ const Records: React.FC = () => {
                           {isUploading ? (
                             <Button variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled>
                               <Cloud className="h-4 w-4 animate-pulse" />
-                              {t("records_page.uploading_to_cloud")}
+                              {t("records_page.uploading_to_cloud")} ({progress.toFixed(0)}%)
                             </Button>
                           ) : recording.supabase_url ? (
                             <Button onClick={() => handleDownload(recording)} variant="default" size="sm" className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 w-full sm:w-auto" disabled={isDownloading || isUploading}>

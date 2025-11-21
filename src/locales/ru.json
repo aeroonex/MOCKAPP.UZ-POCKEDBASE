@@ -30,7 +30,8 @@
     "dark_mode": "Темный режим",
     "system": "Системный",
     "forgot_password_contact_admin_message": "Забыли пароль? Пожалуйста, свяжитесь с администратором.",
-    "admin_contact_phone": "+998 77 207 71 17"
+    "admin_contact_phone": "+998 77 207 71 17",
+    "saving": "Сохранение..."
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",
@@ -98,7 +99,9 @@
     "your_username": "Ваше имя пользователя",
     "email": "Электронная почта",
     "your_email": "Ваш адрес электронной почты",
-    "save_profile": "Сохранить профиль"
+    "save_profile": "Сохранить профиль",
+    "success_profile_saved": "Профиль успешно сохранен!",
+    "error_saving_profile": "Ошибка сохранения профиля:"
   },
   "add_question_page": {
     "question_management": "Управление вопросами",
@@ -234,7 +237,8 @@
     "upload_success": "Видео успешно загружено в облако!",
     "guest_upload_title": "Загрузка в облако",
     "guest_upload_description": "Эта функция доступна для подписчиков. Пожалуйста, выберите тарифный план, чтобы загружать свои записи в облако и получать к ним доступ с любого устройства.",
-    "error_max_size_exceeded": "Ошибка загрузки: Размер видеофайла превышает максимально допустимый лимит облачного хранилища. Если вам нужен kattaroq limit, iltimos, qo'llab-quvvatlash xizmatiga murojaat qiling."
+    "error_max_size_exceeded": "Ошибка загрузки: Размер видеофайла превышает максимально допустимый лимит облачного хранилища. Если вам нужен kattaroq limit, iltimos, qo'llab-quvvatlash xizmatiga murojaat qiling.",
+    "used_percentage": "Использовано: {{percentage}}%"
   },
   "mood_journal_page": {
     "mood_journal_tracker": "Дневник настроения и трекер",
@@ -277,7 +281,14 @@
     "error_no_changes_to_save": "Изменения для сохранения не были внесены.",
     "error_password_length": "Пароль должен содержать не менее 6 символов.",
     "error_recovery_login_failed": "Ошибка при входе через восстановление.",
-    "success_recovery_login": "Успешный вход через восстановление!"
+    "success_recovery_login": "Успешный вход через восстановление!",
+    "first_name": "Имя",
+    "your_first_name": "Ваше имя",
+    "last_name": "Фамилия",
+    "your_last_name": "Ваша фамилия",
+    "cloud_storage": "Облачное хранилище",
+    "error_loading_profile": "Ошибка загрузки профиля:",
+    "error_login_to_save": "Пожалуйста, войдите, чтобы сохранить свой профиль."
   },
   "guide_dialog": {
     "title": "Руководство",

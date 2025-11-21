@@ -30,7 +30,8 @@
     "dark_mode": "Dark Mode",
     "system": "System",
     "forgot_password_contact_admin_message": "Forgot your password? Please contact the administrator.",
-    "admin_contact_phone": "+998 77 207 71 17"
+    "admin_contact_phone": "+998 77 207 71 17",
+    "saving": "Saving..."
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",
@@ -98,7 +99,9 @@
     "your_username": "Your username",
     "email": "Email",
     "your_email": "Your email",
-    "save_profile": "Save Profile"
+    "save_profile": "Save Profile",
+    "success_profile_saved": "Profile successfully saved!",
+    "error_saving_profile": "Error saving profile:"
   },
   "add_question_page": {
     "question_management": "Question Management",
@@ -234,7 +237,8 @@
     "upload_success": "Video successfully uploaded to cloud!",
     "guest_upload_title": "Cloud Upload",
     "guest_upload_description": "This feature is available for subscribed users. Please select a plan to upload your recordings to the cloud and access them from any device.",
-    "error_max_size_exceeded": "Upload failed: The video file size exceeds the maximum limit allowed by the cloud storage. Please contact support if you need a higher limit."
+    "error_max_size_exceeded": "Upload failed: The video file size exceeds the maximum limit allowed by the cloud storage. Please contact support if you need a higher limit.",
+    "used_percentage": "Used: {{percentage}}%"
   },
   "mood_journal_page": {
     "mood_journal_tracker": "Mood Journal & Tracker",
@@ -277,7 +281,14 @@
     "error_no_changes_to_save": "No changes were made to save.",
     "error_password_length": "Password must be at least 6 characters long.",
     "error_recovery_login_failed": "Error logging in via recovery.",
-    "success_recovery_login": "Successfully logged in via recovery!"
+    "success_recovery_login": "Successfully logged in via recovery!",
+    "first_name": "First Name",
+    "your_first_name": "Your first name",
+    "last_name": "Last Name",
+    "your_last_name": "Your last name",
+    "cloud_storage": "Cloud Storage",
+    "error_loading_profile": "Error loading profile:",
+    "error_login_to_save": "Please log in to save your profile."
   },
   "guide_dialog": {
     "title": "Guide",
