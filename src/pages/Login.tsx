@@ -115,9 +115,6 @@ const Login: React.FC = () => {
                     password_input_placeholder: t("common.enter_your_password"),
                     button_label: t("common.login"),
                     loading_button_label: t("common.logging_in"),
-                    link_text: '',
-                    no_account_text: '',
-                    no_account_link_text: '',
                   },
                 },
               }}
