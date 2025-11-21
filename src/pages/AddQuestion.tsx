@@ -45,7 +45,7 @@ import {
 } from "@/components/ui/tooltip";
 
 const SpeakingQuestionManager: React.FC = () => {
-  const { session } = useAuth();
+  const { session, user } = useAuth();
   const [currentTab, setCurrentTab] = useState<SpeakingPart>("Part 1.1");
   const [questionText, setQuestionText] = useState<string>("");
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
@@ -157,11 +157,15 @@ const SpeakingQuestionManager: React.FC = () => {
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      if (!user) {
+        showError("Faqat tizimga kirgan foydalanuvchilar rasm yuklay oladi.");
+        return;
+      }
       setIsUploading(true);
       showSuccess(t("add_question_page.success_video_saving"));
 
       const fileName = `${uuidv4()}-${file.name}`;
-      const filePath = `public/${fileName}`;
+      const filePath = `${user.id}/${fileName}`;
 
       try {
         const { error: uploadError } = await supabase.storage
