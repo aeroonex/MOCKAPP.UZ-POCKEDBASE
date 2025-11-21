@@ -72,7 +72,11 @@
     "privacy_policy": "Privacy Policy",
     "terms_of_use": "Terms of Use",
     "try_me_button": "Try Me (Guest Mode)",
-    "guest_mode_welcome": "Welcome, Guest! You are in a trial mode. Your progress will not be saved."
+    "guest_mode_welcome": "Welcome, Guest! You are in a trial mode. Your progress will not be saved.",
+    "process_step_edumock": "Edumock.uz",
+    "process_step_center": "Training Center",
+    "process_step_student": "Student",
+    "process_step_result": "Result"
   },
   "home_page": {
     "speaking_platform": "Speaking Platform",
@@ -174,7 +178,9 @@
     "question": "Question",
     "speak_text": "Please speak",
     "error_duplicate_question": "This question already exists in the system.",
-    "error_recording_not_supported_mobile": "Screen recording is not supported on mobile devices. Please use a desktop browser."
+    "error_recording_not_supported_mobile": "Screen recording is not supported on mobile devices. Please use a desktop browser.",
+    "added": "Added",
+    "last_used_full": "Last Used"
   },
   "mock_test_page": {
     "mock_speaking_test": "Mock Speaking Test",
