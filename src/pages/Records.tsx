@@ -34,6 +34,7 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthProvider";
 import * as tus from 'tus-js-client';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const Records: React.FC = () => {
   const [recordings, setRecordings] = useState<RecordedSession[]>([]);
@@ -352,17 +353,19 @@ const Records: React.FC = () => {
       <CefrCentreFooter />
       <Dialog open={isPricingDialogOpen} onOpenChange={setIsPricingDialogOpen}>
         <DialogContent className="sm:max-w-md p-0 overflow-hidden">
-          <div className="p-6 pb-0">
-            <DialogHeaderComponent>
-              <DialogTitleComponent>{t("records_page.guest_upload_title")}</DialogTitleComponent>
-              <DialogDescriptionComponent>
-                {t("records_page.guest_upload_description")}
-              </DialogDescriptionComponent>
-            </DialogHeaderComponent>
-          </div>
-          <div className="bg-background">
-            <PricingCard isDialog={true} />
-          </div>
+          <ScrollArea className="max-h-[90vh]">
+            <div className="p-6 pb-0">
+              <DialogHeaderComponent>
+                <DialogTitleComponent>{t("records_page.guest_upload_title")}</DialogTitleComponent>
+                <DialogDescriptionComponent>
+                  {t("records_page.guest_upload_description")}
+                </DialogDescriptionComponent>
+              </DialogHeaderComponent>
+            </div>
+            <div className="bg-background p-4">
+              <PricingCard isDialog={true} />
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </div>
