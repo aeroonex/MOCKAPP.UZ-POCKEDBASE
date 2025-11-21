@@ -14,11 +14,10 @@ const supabaseAdmin = createClient(
 
 // Fayl yo'lidan foydalanuvchi ID sini ajratib olish
 function getUserIdFromPath(path: string): string | null {
-  // Yo'l formati: bucket_name/user_id/file_name.webm
+  // Yo'l formati: user_id/file_name.webm
   const parts = path.split('/');
-  // Agar yo'l 'recordings/uuid/...' formatida bo'lsa, ikkinchi qism UUID bo'ladi
   if (parts.length >= 2) {
-    const userId = parts[1];
+    const userId = parts[0]; // Birinchi qism user_id bo'lishi kerak
     // Oddiy UUID tekshiruvi
     if (userId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
       return userId;
@@ -29,13 +28,12 @@ function getUserIdFromPath(path: string): string | null {
 
 // Foydalanuvchining barcha fayllari umumiy hajmini hisoblash
 async function calculateTotalStorageUsed(userId: string): Promise<number> {
-  console.log(`[Storage] Starting file listing for user: ${userId}`);
+  console.log(`[Storage] Listing files for user: ${userId}`);
   
   // Storage list chaqiruvi. Prefix sifatida userId ni ishlatamiz.
   const { data, error } = await supabaseAdmin.storage.from('recordings').list(userId, {
     limit: 1000, 
     offset: 0,
-    // Fayl nomlari user_id/file_name formatida bo'lgani uchun prefix to'g'ri ishlaydi.
   });
 
   if (error) {
@@ -48,7 +46,6 @@ async function calculateTotalStorageUsed(userId: string): Promise<number> {
   // Fayl hajmini metadata.size dan olish
   const totalSize = data.reduce((sum, file) => {
     // Supabase Storage list API'si metadata.size ni qaytarmaydi, faqat size ni qaytaradi.
-    // Lekin bizning triggerimizda metadata.size mavjud. Storage list chaqiruvida esa faqat `size` ustuni mavjud.
     const size = file.size || 0; 
     console.log(`[Storage] File: ${file.name}, Size: ${size}`);
     return sum + size;
@@ -69,26 +66,21 @@ serve(async (req) => {
     
     let path: string | undefined;
     
-    // Storage trigger payloadida path 'buckets/recordings/objects/user_id/file_name' formatida keladi.
-    // Bizning notify_storage_change funksiyamiz faqat 'user_id/file_name' qismini yuboradi.
-    // Lekin bizning notify_storage_change funksiyamizda `path` ustuni ishlatilgan.
-    // Keling, payload.new/old dan `path` ni emas, balki `name` ni olishga harakat qilamiz, chunki `name` ustuni `user_id/file_name` ni o'z ichiga oladi.
-    
+    // Storage trigger payloadida 'path' ustuni 'user_id/file_name' ni o'z ichiga oladi.
     if (eventType === 'INSERT' || eventType === 'UPDATE') {
-        path = payload.new?.name; // Storage object name (e.g., "user_id/file.webm")
+        path = payload.new?.path; 
     } else if (eventType === 'DELETE') {
-        path = payload.old?.name;
+        path = payload.old?.path;
     }
 
-    console.log(`[Trigger] Received event: ${eventType}, Object Name (Path): ${path}`);
+    console.log(`[Trigger] Received event: ${eventType}, Path: ${path}`);
 
     if (!path) {
-        console.warn(`[Trigger] Missing object name in payload for event type: ${eventType}`);
-        return new Response('Missing object name in payload', { status: 400, headers: corsHeaders });
+        console.warn(`[Trigger] Missing path in payload for event type: ${eventType}`);
+        return new Response('Missing path in payload', { status: 400, headers: corsHeaders });
     }
 
-    // Path formatini to'g'rilash: agar u "user_id/file_name" bo'lsa, bizga faqat "user_id" kerak.
-    userId = getUserIdFromPath(path);
+    const userId = getUserIdFromPath(path);
 
     if (!userId) {
       console.warn(`[Trigger] Could not extract user ID from path: ${path}`);
