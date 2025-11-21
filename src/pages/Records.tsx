@@ -45,15 +45,14 @@ const StorageUsageCard: React.FC = () => {
 
   if (loading || !profile) {
     return (
-      <Card className="p-6 mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-muted rounded-full h-10 w-10 animate-pulse"></div>
-            <div className="h-5 bg-muted rounded w-32 animate-pulse"></div>
+      <Card className="p-4 mb-6">
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <div className="h-5 bg-muted rounded w-1/3 animate-pulse"></div>
+            <div className="h-4 bg-muted rounded w-1/4 animate-pulse"></div>
           </div>
-          <div className="h-6 bg-muted rounded w-28 animate-pulse"></div>
+          <div className="h-3 bg-muted rounded-full w-full animate-pulse"></div>
         </div>
-        <div className="h-4 bg-muted rounded-full w-full animate-pulse"></div>
       </Card>
     );
   }
@@ -64,36 +63,40 @@ const StorageUsageCard: React.FC = () => {
 
   const getProgressColor = () => {
     if (usagePercentage >= 90) {
-      return "bg-red-500";
+      return "bg-orange-500"; // Yumshoqroq qizil
     }
     if (usagePercentage >= 75) {
-      return "bg-yellow-500";
+      return "bg-yellow-400"; // Yumshoqroq sariq
     }
-    return "bg-primary";
+    return "bg-sky-500"; // Chiroyli havorang
   };
 
   return (
-    <Card className="p-6 mb-6 border-border bg-card shadow-lg overflow-hidden relative">
-      <div className="absolute top-0 left-0 w-full h-1 bg-primary/20"></div>
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3">
-        <div className="flex items-center gap-3 mb-2 sm:mb-0">
-          <div className="p-2 bg-primary/10 rounded-full">
-            <Cloud className="h-6 w-6 text-primary" />
-          </div>
-          <h4 className="text-lg font-bold text-foreground">{t("user_profile_page.cloud_storage")}</h4>
+    <Card className="p-4 mb-6 bg-card border border-border/80 shadow-sm rounded-lg">
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex items-center gap-2">
+          <Cloud className="h-5 w-5 text-primary" />
+          <h4 className="text-base font-semibold text-foreground">{t("user_profile_page.cloud_storage")}</h4>
         </div>
-        <p className="text-sm font-mono font-semibold text-muted-foreground bg-secondary px-3 py-1 rounded-md">
-          {formatBytes(usedSpace)} / {formatBytes(totalLimit)}
+        <p className="text-sm font-medium text-muted-foreground">
+          <span className="font-semibold text-foreground">{formatBytes(usedSpace)}</span>
+          <span className="mx-1">/</span>
+          <span>{formatBytes(totalLimit)}</span>
         </p>
       </div>
-      <div className="w-full bg-secondary rounded-full h-4 dark:bg-gray-700 relative">
+      
+      {/* Maxsus Progress Bar */}
+      <div className="w-full bg-secondary rounded-full h-2.5 overflow-hidden">
         <div
-          className={`h-4 rounded-full transition-all duration-500 ease-out ${getProgressColor()}`}
+          className={`h-2.5 rounded-full transition-all duration-500 ease-out ${getProgressColor()}`}
           style={{ width: `${usagePercentage}%` }}
-        ></div>
-        <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white mix-blend-difference pointer-events-none">
+        />
+      </div>
+
+      <div className="flex justify-end mt-1.5">
+         <p className="text-xs text-muted-foreground">
           {t("records_page.used_percentage", { percentage: usagePercentage.toFixed(1) })}
-        </span>
+        </p>
       </div>
     </Card>
   );
