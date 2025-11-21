@@ -76,6 +76,7 @@ const Records: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { fetchProfile } = useProfile(); // fetchProfile ni qo'shdik
   const isGuestMode = localStorage.getItem("isGuestMode") === "true" && !user;
   const [uploadingRecordId, setUploadingRecordId] = useState<string | null>(null);
   const [uploadErrorRecordId, setUploadErrorRecordId] = useState<string | null>(null);
@@ -170,8 +171,8 @@ const Records: React.FC = () => {
             supabase_url: publicUrlData.publicUrl,
           });
 
-          // Xotira ishlatilishini yangilash uchun profillarni qayta yuklash kerak bo'lishi mumkin
-          // Lekin Edge Function buni avtomatik qiladi. Shunchaki UI ni yangilash uchun fetchRecordings ni chaqiramiz.
+          // Muvaffaqiyatli yuklashdan so'ng profil ma'lumotlarini yangilash
+          await fetchProfile(); 
           await fetchRecordings(); 
           showSuccess(t("records_page.upload_success"));
         } else {
@@ -199,7 +200,7 @@ const Records: React.FC = () => {
     });
 
     upload.start();
-  }, [t, fetchRecordings]);
+  }, [t, fetchRecordings, fetchProfile]); // fetchProfile ni dependency arrayga qo'shdik
 
   const handleUploadClick = (recording: RecordedSession) => {
     if (isGuestMode) {
@@ -254,14 +255,15 @@ const Records: React.FC = () => {
       const localDeleted = await deleteLocalRecording(recording.id);
       if (localDeleted) {
         // Agar bulutdan ham o'chirilgan bo'lsa, Edge Function profiles ni yangilaydi.
-        // Shuning uchun biz faqat ro'yxatni yangilaymiz.
+        // Shuning uchun biz faqat ro'yxatni yangilaymiz va profilni yangilaymiz.
         setRecordings(prev => prev.filter(rec => rec.id !== recording.id));
+        await fetchProfile(); // Profil ma'lumotlarini yangilash
         showSuccess(t("records_page.success_recording_deleted"));
       }
     } catch (error: any) {
       showError(`${t("records_page.error_deleting_recording")} ${error.message}`);
     }
-  }, [t]);
+  }, [t, fetchProfile]); // fetchProfile ni dependency arrayga qo'shdik
 
   return (
     <div className="min-h-screen flex flex-col">
