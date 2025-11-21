@@ -56,7 +56,7 @@ export const useProfile = () => {
       setProfile({
         id: user.id,
         username: user.email?.split('@')[0] || 'user',
-        storage_limit_bytes: 10737418240, // Default 10 GB
+        storage_limit_bytes: 10737418240, // Default 10 GB (10 * 1024 * 1024 * 1024)
         storage_used_bytes: 0,
       });
     }

@@ -32,6 +32,10 @@ const UserProfile: React.FC = () => {
       setFirstName(profile.first_name || "");
       setLastName(profile.last_name || "");
       setBio(profile.bio || "");
+      console.log("UserProfile: Profile loaded/updated:", {
+        used: profile.storage_used_bytes,
+        limit: profile.storage_limit_bytes
+      });
     }
   }, [profile]);
 
