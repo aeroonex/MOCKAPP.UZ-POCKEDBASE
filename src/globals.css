@@ -237,6 +237,22 @@
   background: linear-gradient(to right, #9333ea, #6d28d9); /* Slightly darker on hover */
 }
 
+/* Toast icon animation */
+@keyframes icon-pop {
+  0% {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 /* Toast text animation */
 @keyframes toast-text-intro {
   from {
@@ -249,12 +265,18 @@
   }
 }
 
+/* Apply animation to sonner toast icon when it's opening */
+[data-sonner-toast][data-state="opening"] [data-icon] {
+  animation: icon-pop 0.5s cubic-bezier(0.25, 0.25, 0.25, 1.25) forwards;
+}
+
 /* Apply animation to sonner toast title and description when it's opening */
 [data-sonner-toast][data-state="opening"] [data-title] {
   animation: toast-text-intro 0.4s ease-out;
+  animation-delay: 0.1s; /* Delay text to let icon pop first */
 }
 
 [data-sonner-toast][data-state="opening"] [data-description] {
   animation: toast-text-intro 0.4s ease-out;
-  animation-delay: 0.1s; /* Stagger the description animation slightly */
+  animation-delay: 0.2s; /* Stagger the description animation slightly more */
 }
