@@ -9,11 +9,9 @@ import ContactSection from "@/components/ContactSection";
 import PricingCard from "@/components/PricingCard";
 import LandingPageFooter from "@/components/LandingPageFooter";
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Auth } from '@supabase/auth-ui-react';
-import { ThemeSupa } from '@supabase/auth-ui-shared';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import CustomAuthForm from "@/components/CustomAuthForm";
 
 const Login: React.FC = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
@@ -30,8 +28,7 @@ const Login: React.FC = () => {
 
   const handleTryMe = () => {
     localStorage.setItem("isGuestMode", "true");
-    sessionStorage.setItem("showGuestGuide", "true"); // Qo'llanmani ko'rsatish uchun belgi
-    // toast.info(t("landing_page.guest_mode_welcome")); // Bu yerdan olib tashlandi, Home.tsx ga o'tkazildi
+    sessionStorage.setItem("showGuestGuide", "true");
     navigate("/home");
   };
 
@@ -39,7 +36,6 @@ const Login: React.FC = () => {
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         closeLoginModal();
-        navigate("/home");
       }
     });
 
@@ -88,44 +84,19 @@ const Login: React.FC = () => {
       </main>
 
       <Dialog open={isLoginDialogOpen} onOpenChange={closeLoginModal}>
-        <DialogContent className="sm:max-w-[425px] p-0">
-          <div className="p-6">
-            <Auth
-              supabaseClient={supabase}
-              providers={[]}
-              appearance={{
-                theme: ThemeSupa,
-                variables: {
-                  default: {
-                    colors: {
-                      brand: 'hsl(var(--primary))',
-                      brandAccent: 'hsl(var(--primary-foreground))',
-                    },
-                  },
-                },
-              }}
-              theme="light"
-              view="sign_in"
-              showLinks={false}
-              localization={{
-                variables: {
-                  sign_in: {
-                    email_label: t("common.email"),
-                    password_label: t("common.password"),
-                    email_input_placeholder: t("common.enter_your_email"),
-                    password_input_placeholder: t("common.enter_your_password"),
-                    button_label: t("common.login"),
-                    loading_button_label: t("common.logging_in"),
-                  },
-                },
-              }}
-            />
-            <div className="mt-4 text-center text-sm text-muted-foreground">
-              <p>{t("common.forgot_password_contact_admin_message")}</p>
-              <a href="tel:+998772077117" className="text-primary hover:underline font-semibold">
-                {t("common.admin_contact_phone")}
-              </a>
-            </div>
+        <DialogContent className="sm:max-w-[425px] p-6">
+          <DialogHeader>
+            <DialogTitle>{t("common.welcome")}</DialogTitle>
+            <DialogDescription>
+              {t("common.auth_description")}
+            </DialogDescription>
+          </DialogHeader>
+          <CustomAuthForm />
+          <div className="mt-4 text-center text-sm text-muted-foreground">
+            <p>{t("common.forgot_password_contact_admin_message")}</p>
+            <a href="tel:+998772077117" className="text-primary hover:underline font-semibold">
+              {t("common.admin_contact_phone")}
+            </a>
           </div>
         </DialogContent>
       </Dialog>

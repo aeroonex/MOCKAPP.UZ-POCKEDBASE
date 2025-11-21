@@ -31,7 +31,14 @@
     "system": "System",
     "forgot_password_contact_admin_message": "Forgot your password? Please contact the administrator.",
     "admin_contact_phone": "+998 77 207 71 17",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "sign_in": "Sign In",
+    "sign_up": "Sign Up",
+    "signing_up": "Signing up...",
+    "captcha_challenge_error": "Please complete the CAPTCHA challenge.",
+    "confirmation_email_sent": "Confirmation email sent. Please check your inbox.",
+    "welcome": "Welcome",
+    "auth_description": "Sign in or create an account to continue."
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",
