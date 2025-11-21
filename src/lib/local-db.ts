@@ -104,8 +104,8 @@ export const getSupabaseQuestions = async (): Promise<SpeakingQuestion[]> => {
     // Mehmon rejimida faqat user_id NULL bo'lgan savollarni ko'rsatish
     query = query.is('user_id', null);
   } else if (userId) {
-    // Tizimga kirgan foydalanuvchi uchun faqat o'zining savollarini ko'rsatish
-    query = query.eq('user_id', userId);
+    // Tizimga kirgan foydalanuvchi uchun o'zining savollarini (user_id = userId) VA ommaviy savollarni (user_id IS NULL) ko'rsatish
+    query = query.or(`user_id.eq.${userId},user_id.is.null`);
   } else {
     // Tizimga kirmagan va mehmon rejimida bo'lmagan foydalanuvchi uchun savollar yo'q
     return [];
@@ -218,7 +218,7 @@ export const resetSupabaseQuestionCooldowns = async (): Promise<boolean> => {
     .update({ last_used: null });
 
   if (userId) {
-    query = query.eq('user_id', userId);
+    query = query.or(`user_id.eq.${userId},user_id.is.null`); // O'zining va ommaviy savollarni reset qilish
   } else {
     // Guest user can reset cooldowns for public sample questions
     query = query.is('user_id', null);

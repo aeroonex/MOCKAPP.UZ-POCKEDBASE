@@ -317,15 +317,8 @@ export const useMockTestLogic = ({
         !q.last_used || (now.getTime() - new Date(q.last_used!).getTime() > twoHoursInMs)
       );
 
-      // Foydalanuvchi turiga qarab savollarni filtrlash
-      if (isGuestMode) {
-        eligibleQuestions = eligibleQuestions.filter(q => q.user_id === null); // Faqat ommaviy savollar
-      } else if (user?.id) {
-        eligibleQuestions = eligibleQuestions.filter(q => q.user_id === user.id); // Faqat foydalanuvchining o'z savollari
-      } else {
-        // Agar na mehmon, na tizimga kirgan bo'lsa, savollar yo'q
-        eligibleQuestions = [];
-      }
+      // Qayta filtrlash shart emas, chunki getSupabaseQuestions allaqachon to'g'ri savollar to'plamini (o'ziniki + ommaviy) yuklagan.
+      // Faqatgina cooldown tekshiruvi qoladi.
 
       if (part === "Part 1.1") {
         const allPart1_1SubQuestions: { questionId: string; subQuestion: string; originalQuestion: Part1_1Question }[] = [];
@@ -363,7 +356,7 @@ export const useMockTestLogic = ({
       return;
     }
 
-    // Mehmon rejimi uchun rasmlarni almashtirish
+    // Mehmon rejimi uchun rasmlarni almashtirish (bu qism o'zgarishsiz qoladi)
     if (isGuestMode) {
       const placeholderImageUrl = "https://media.istockphoto.com/id/517188688/photo/mountain-landscape.jpg?s=1024x1024&w=0&k=20&c=z8_rWaI8x4zApNEEG9DnWlGXyDIXe-OmsAyQ5fGPVV8=";
       for (const part of allSpeakingParts) {
@@ -379,13 +372,14 @@ export const useMockTestLogic = ({
 
     const questionsToUpdate = Object.values(selectedQuestionsForTest).flat();
     for (const q of questionsToUpdate) {
-      // Faqatgina foydalanuvchi o'zining savollarini yoki mehmon rejimida ommaviy savollarni yangilash
-      if (isGuestMode && q.user_id === null) {
+      // Faqatgina foydalanuvchi o'zining savollarini yoki ommaviy savollarni yangilash
+      if (q.user_id === null) {
+        // Ommaviy savollarni yangilash (cooldown)
         await updateSupabaseQuestion({ ...q, last_used: now.toISOString() });
       } else if (user?.id && q.user_id === user.id) {
+        // Foydalanuvchining shaxsiy savollarini yangilash (cooldown)
         await updateSupabaseQuestion({ ...q, last_used: now.toISOString() });
       }
-      // Boshqa holatlarda (masalan, mehmon rejimida shaxsiy savollarni yangilashga urinish) xato berilmaydi
     }
 
     setQuestions(selectedQuestionsForTest);
