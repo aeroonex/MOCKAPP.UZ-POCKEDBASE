@@ -25,7 +25,41 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Sonner position="top-left" richColors />
+        <Sonner 
+          position="top-left" 
+          richColors 
+          theme="system" // Tizim mavzusiga moslashish uchun
+          toastOptions={{
+            success: {
+              style: {
+                backgroundColor: 'hsl(var(--success-color) / 0.1)',
+                borderColor: 'hsl(var(--success-color))',
+                color: 'hsl(var(--foreground))',
+              },
+              iconTheme: {
+                primary: 'hsl(var(--success-color))',
+                secondary: 'hsl(var(--primary-foreground))',
+              },
+            },
+            error: {
+              style: {
+                backgroundColor: 'hsl(var(--error-color) / 0.1)',
+                borderColor: 'hsl(var(--error-color))',
+                color: 'hsl(var(--foreground))',
+              },
+              iconTheme: {
+                primary: 'hsl(var(--error-color))',
+                secondary: 'hsl(var(--primary-foreground))',
+              },
+            },
+            info: {
+              iconTheme: {
+                primary: 'hsl(var(--info-color))',
+                secondary: 'hsl(var(--primary-foreground))',
+              },
+            },
+          }}
+        />
         <BrowserRouter>
           <AuthProvider>
             <div className="pb-10 bg-background text-foreground min-h-screen">

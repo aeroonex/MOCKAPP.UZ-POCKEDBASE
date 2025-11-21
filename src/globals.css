@@ -88,6 +88,20 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  .dark {
+    /* Sonner uchun ranglarni aniqlash */
+    --success-color: 142 71% 45%; /* Yashil rang */
+    --error-color: 0 84.2% 60.2%; /* Qizil rang */
+    --info-color: 200 70% 60%; /* Havorang */
+  }
+
+  :root {
+    /* Sonner uchun ranglarni aniqlash */
+    --success-color: 142 71% 45%; /* Yashil rang */
+    --error-color: 0 84.2% 60.2%; /* Qizil rang */
+    --info-color: 200 80% 50%; /* Havorang */
+  }
 }
 
 @layer base {
