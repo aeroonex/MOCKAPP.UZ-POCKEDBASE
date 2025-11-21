@@ -41,12 +41,18 @@ async function calculateTotalStorageUsed(userId: string): Promise<number> {
     return 0;
   }
   
+  if (!data) {
+    console.log(`[Storage] No files found for user ${userId}.`);
+    return 0;
+  }
+
   console.log(`[Storage] Found ${data.length} files in the recordings bucket under prefix ${userId}.`);
 
   // Fayl hajmini metadata.size dan olish
   const totalSize = data.reduce((sum, file) => {
-    const size = file.size || 0; 
-    console.log(`[Storage] File: ${file.name}, Size: ${size}`);
+    // XATO TUZATILDI: file.size o'rniga file.metadata.size ishlatildi
+    const size = file.metadata?.size ?? 0; 
+    console.log(`[Storage] File: ${file.name}, Size: ${size}, Metadata: ${JSON.stringify(file.metadata)}`);
     return sum + size;
   }, 0);
   
