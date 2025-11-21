@@ -13,7 +13,7 @@ import {
   Part3Question,
 } from "@/lib/types";
 import { allSpeakingParts } from "@/lib/constants";
-import { getSupabaseQuestions, updateSupabaseQuestion } from "@/lib/local-db";
+import { getSupabaseQuestions, updateQuestionCooldown } from "@/lib/local-db";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/context/AuthProvider"; // useAuth import qilindi
 
@@ -369,30 +369,8 @@ export const useMockTestLogic = ({
 
     const questionsToUpdate = Object.values(selectedQuestionsForTest).flat();
     for (const q of questionsToUpdate) {
-      // Faqatgina foydalanuvchining savollarini yangilash (user_id tekshiruvi getSupabaseQuestions da allaqachon bajarilgan)
-      // Agar mehmon bo'lsa, q.user_id NULL bo'ladi. Agar tizimga kirgan bo'lsa, q.user_id user.id bo'ladi.
-      // updateSupabaseQuestion funksiyasi faqat user.id ga teng bo'lgan savollarni yangilay oladi.
-      // Shuning uchun, agar q.user_id NULL bo'lsa (mehmon savoli), va user?.id mavjud bo'lsa, biz uni yangilamaymiz.
-      
       if (user?.id && q.user_id === user.id) {
-        // Foydalanuvchining shaxsiy savollarini yangilash (cooldown)
-        await updateSupabaseQuestion({ ...q, last_used: now.toISOString() });
-      } else if (isGuestMode && q.user_id === null) {
-        // Mehmon rejimida ommaviy savollarni yangilash (cooldown)
-        // updateSupabaseQuestion funksiyasi user.id ni talab qiladi, shuning uchun bu yerda to'g'ridan-to'g'ri Supabase chaqiruvini ishlatamiz.
-        // Lekin, getSupabaseQuestions faqat user_id NULL bo'lgan savollarni qaytaradi.
-        // updateSupabaseQuestion funksiyasi faqat user.id ga teng bo'lgan savollarni yangilay oladi.
-        // Shuning uchun, mehmon rejimida cooldownni yangilash uchun maxsus logikani ishlatishimiz kerak.
-        // Hozircha, agar mehmon rejimida bo'lsa va savol ommaviy bo'lsa, uni yangilashga urinmaymiz, chunki bu xato beradi.
-        // Lekin, agar bizda `resetSupabaseQuestionCooldowns` kabi funksiya bo'lsa, u ishlaydi.
-        // Mock testda cooldownni yangilash uchun updateSupabaseQuestion ishlatilgan, bu esa faqat tizimga kirgan foydalanuvchilar uchun ishlaydi.
-        // Mehmon rejimida cooldownni yangilashni o'tkazib yuboramiz, chunki bu faqat o'z savollarini yangilash uchun mo'ljallangan.
-        // Agar mehmon rejimida cooldownni yangilash kerak bo'lsa, `updateSupabaseQuestion` ni o'zgartirish kerak, lekin hozircha faqat tizimga kirgan foydalanuvchilar uchun qoldiramiz.
-        
-        // Agar savol ommaviy bo'lsa (user_id: null) va biz mehmon rejimida bo'lsak, uni yangilashga urinmaymiz.
-        // Agar tizimga kirgan bo'lsak, faqat o'zimiznikini yangilaymiz.
-        
-        // Qisqacha: Faqat user.id ga ega bo'lgan savollarni yangilaymiz.
+        await updateQuestionCooldown(q.id);
       }
     }
 

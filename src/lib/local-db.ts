@@ -187,6 +187,31 @@ export const updateSupabaseQuestion = async (updatedQuestion: SpeakingQuestion):
   return data as SpeakingQuestion;
 };
 
+// Yangi funksiya: Faqat `last_used` maydonini yangilash uchun
+export const updateQuestionCooldown = async (questionId: string): Promise<boolean> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id;
+
+  if (!userId) {
+    console.warn("Cannot update cooldown without an authenticated user.");
+    // Mehmon rejimida ommaviy savollar uchun cooldownni yangilashga hojat yo'q
+    return true;
+  }
+
+  const { error } = await supabase
+    .from('questions')
+    .update({ last_used: new Date().toISOString() })
+    .eq('id', questionId)
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error(`Error updating cooldown for question ${questionId}:`, error.message);
+    // Foydalanuvchiga xato ko'rsatish shart emas, chunki bu fon jarayoni
+    return false;
+  }
+  return true;
+};
+
 export const deleteSupabaseQuestion = async (id: string): Promise<boolean> => {
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user?.id;
