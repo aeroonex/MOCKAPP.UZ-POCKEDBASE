@@ -236,3 +236,25 @@
 .bg-gradient-purple:hover {
   background: linear-gradient(to right, #9333ea, #6d28d9); /* Slightly darker on hover */
 }
+
+/* Toast text animation */
+@keyframes toast-text-intro {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Apply animation to sonner toast title and description when it's opening */
+[data-sonner-toast][data-state="opening"] [data-title] {
+  animation: toast-text-intro 0.4s ease-out;
+}
+
+[data-sonner-toast][data-state="opening"] [data-description] {
+  animation: toast-text-intro 0.4s ease-out;
+  animation-delay: 0.1s; /* Stagger the description animation slightly */
+}
