@@ -5,12 +5,14 @@ import Navbar from "@/components/Navbar";
 import { CefrCentreFooter } from "@/components/CefrCentreFooter";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { useRecorder } from "@/hooks/use-recorder";
-import { Video } from "lucide-react";
+import { Video, ArrowLeft } from "lucide-react";
 import StudentInfoForm from "@/components/StudentInfoForm";
 import { useMockTestLogic } from "@/hooks/use-mock-test-logic";
 import TestQuestionDisplay from "@/components/TestQuestionDisplay";
 import TestControls from "@/components/TestControls";
 import { useTranslation } from 'react-i18next';
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const MockTest: React.FC = () => {
   const { isRecording, startRecording, stopAllStreams, webcamStream, isRecordingSupported } = useRecorder(); // Get isRecordingSupported
@@ -80,9 +82,21 @@ const MockTest: React.FC = () => {
         )}
         
         <Card className="w-full max-w-2xl text-center relative mt-10">
-          <CardHeader className="flex flex-row items-center justify-center gap-4 py-6">
-            <div className="text-left">
-              <CardTitle className="text-3xl font-bold">{t("mock_test_page.mock_speaking_test")}</CardTitle>
+          <CardHeader className="py-6">
+            <div className="flex justify-between items-center w-full">
+              {!isTestStarted && (
+                <Link to="/home">
+                  <Button variant="default" className="bg-primary hover:bg-primary/90">
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    {t("common.back")}
+                  </Button>
+                </Link>
+              )}
+              <CardTitle className={`text-xl sm:text-3xl font-bold text-center flex-grow ${isTestStarted ? 'ml-0' : 'ml-4'}`}>
+                {t("mock_test_page.mock_speaking_test")}
+              </CardTitle>
+              {/* Joyni to'ldirish uchun bo'sh div */}
+              {!isTestStarted && <div className="w-[80px] h-4"></div>}
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
