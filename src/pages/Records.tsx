@@ -220,9 +220,9 @@ const Records: React.FC = () => {
       <Navbar />
       <main className="flex-grow container mx-auto p-4 flex items-center justify-center">
         <Card className="w-full max-w-3xl">
-          <CardHeader className="pt-8 text-center">
-            <div className="relative flex justify-center items-center mb-2">
-              <Link to="/home" className="absolute left-0">
+          <CardHeader className="pt-8">
+            <div className="flex justify-between items-center">
+              <Link to="/home">
                 <Button variant="default" className="bg-primary hover:bg-primary/90">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   {t("common.back")}
@@ -234,7 +234,7 @@ const Records: React.FC = () => {
               {/* Joyni to'ldirish uchun bo'sh div */}
               <div className="w-[80px] h-4"></div> 
             </div>
-            <CardDescription>{t("records_page.review_past_sessions")}</CardDescription>
+            <CardDescription className="text-center mt-2">{t("records_page.review_past_sessions")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {isLoading ? <p className="text-center">{t("common.loading")}</p> : recordings.length === 0 ? (
