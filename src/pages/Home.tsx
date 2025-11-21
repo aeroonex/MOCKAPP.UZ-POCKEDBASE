@@ -24,6 +24,12 @@ export default function Home() {
     if (isGuestMode && !session) {
       toast.info(t("landing_page.guest_mode_welcome"));
     }
+
+    const shouldShowGuide = sessionStorage.getItem("showGuestGuide") === "true";
+    if (isGuestMode && shouldShowGuide) {
+      setIsGuideDialogOpen(true);
+      sessionStorage.removeItem("showGuestGuide");
+    }
   }, [isGuestMode, session, t]);
 
   const handleLogout = async () => {
