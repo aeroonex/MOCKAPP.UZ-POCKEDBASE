@@ -363,6 +363,20 @@ export const useMockTestLogic = ({
       return;
     }
 
+    // Mehmon rejimi uchun rasmlarni almashtirish
+    if (isGuestMode) {
+      const placeholderImageUrl = "https://media.istockphoto.com/id/517188688/photo/mountain-landscape.jpg?s=1024x1024&w=0&k=20&c=z8_rWaI8x4zApNEEG9DnWlGXyDIXe-OmsAyQ5fGPVV8=";
+      for (const part of allSpeakingParts) {
+        selectedQuestionsForTest[part] = selectedQuestionsForTest[part].map(q => {
+          if (q.type === "Part 1.2" || q.type === "Part 2" || q.type === "Part 3") {
+            // Agar savol turi rasm talab qilsa, uni placeholder bilan almashtiramiz
+            return { ...q, image_urls: [placeholderImageUrl] };
+          }
+          return q;
+        });
+      }
+    }
+
     const questionsToUpdate = Object.values(selectedQuestionsForTest).flat();
     for (const q of questionsToUpdate) {
       // Faqatgina foydalanuvchi o'zining savollarini yoki mehmon rejimida ommaviy savollarni yangilash
