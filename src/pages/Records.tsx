@@ -275,17 +275,10 @@ const Records: React.FC = () => {
                               <Cloud className="h-4 w-4" /> {t("records_page.upload")}
                             </Button>
                           ) : isUploading ? (
-                            <div className="w-full sm:w-auto">
-                              <div className="relative w-full h-8 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden shadow-inner">
-                                <div
-                                  className="absolute top-0 left-0 h-full bg-primary transition-all duration-300"
-                                  style={{ width: `${progress}%` }}
-                                />
-                                <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white mix-blend-difference pointer-events-none">
-                                  {Math.round(progress)}%
-                                </span>
-                              </div>
-                            </div>
+                            <Button variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled>
+                              <Cloud className="h-4 w-4 animate-pulse" />
+                              {t("records_page.uploading_to_cloud")}
+                            </Button>
                           ) : recording.supabase_url && (
                             <Button onClick={() => handleDownload(recording)} variant="default" size="sm" className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 w-full sm:w-auto" disabled={isDownloading || isUploading}>
                               {isDownloading ? (
