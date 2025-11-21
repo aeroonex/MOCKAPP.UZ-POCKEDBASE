@@ -25,6 +25,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthProvider";
+import * as tus from 'tus-js-client';
 
 const Records: React.FC = () => {
   const [recordings, setRecordings] = useState<RecordedSession[]>([]);
@@ -34,6 +35,7 @@ const Records: React.FC = () => {
   const [uploadingRecordId, setUploadingRecordId] = useState<string | null>(null);
   const [uploadErrorRecordId, setUploadErrorRecordId] = useState<string | null>(null);
   const [downloadingRecordId, setDownloadingRecordId] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<Map<string, number>>(new Map());
 
   const fetchRecordings = useCallback(async () => {
     setIsLoading(true);
@@ -62,7 +64,8 @@ const Records: React.FC = () => {
   }, [fetchRecordings]);
 
   const handleUploadToSupabase = useCallback(async (recording: RecordedSession) => {
-    if (!user?.id) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
       showError(t("records_page.error_login_to_upload"));
       return;
     }
@@ -71,57 +74,75 @@ const Records: React.FC = () => {
       return;
     }
 
-    setUploadingRecordId(recording.id);
-    setUploadErrorRecordId(null);
-    showSuccess(t("records_page.uploading_to_cloud"));
     const blob = await getRecordingBlob(recording.id);
-
     if (!blob) {
       showError(t("records_page.error_no_video_data"));
-      setUploadingRecordId(null);
       return;
     }
 
-    const filePath = `${user.id}/${recording.id}.webm`;
-    const { data, error: uploadError } = await supabase.storage
-      .from('recordings')
-      .upload(filePath, blob, {
+    setUploadingRecordId(recording.id);
+    setUploadErrorRecordId(null);
+    setUploadProgress(prev => new Map(prev).set(recording.id, 0));
+
+    const filePath = `${session.user.id}/${recording.id}.webm`;
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+    const upload = new tus.Upload(blob, {
+      endpoint: `${supabaseUrl}/storage/v1/upload/resumable`,
+      retryDelays: [0, 3000, 5000, 10000, 20000],
+      headers: {
+        authorization: `Bearer ${session.access_token}`,
+        'x-upsert': 'false',
+        'apikey': supabaseAnonKey,
+      },
+      metadata: {
+        bucketName: 'recordings',
+        objectName: filePath,
+        contentType: 'video/webm',
         cacheControl: '3600',
-        upsert: false,
-      });
+      },
+      onProgress: (bytesUploaded, bytesTotal) => {
+        const percentage = (bytesUploaded / bytesTotal) * 100;
+        setUploadProgress(prev => new Map(prev).set(recording.id, percentage));
+      },
+      onSuccess: async () => {
+        const { data: publicUrlData } = supabase.storage
+          .from('recordings')
+          .getPublicUrl(filePath);
 
-    if (uploadError) {
-      showError(`${t("records_page.error_uploading_to_cloud")} ${uploadError.message}`);
-      setUploadErrorRecordId(recording.id);
-      setTimeout(() => setUploadErrorRecordId(null), 5000);
-    } else {
-      const { data: publicUrlData } = supabase.storage
-        .from('recordings')
-        .getPublicUrl(filePath);
-      
-      if (publicUrlData.publicUrl) {
-        await updateLocalRecordingSupabaseUrl(recording.id, publicUrlData.publicUrl);
-        await upsertRecordingMetadataToSupabase({
-          id: recording.id,
-          user_id: user.id,
-          timestamp: recording.timestamp,
-          duration: recording.duration,
-          student_id: recording.student_id,
-          student_name: recording.student_name,
-          student_phone: recording.student_phone,
-          supabase_url: publicUrlData.publicUrl,
-        });
+        if (publicUrlData.publicUrl) {
+          await updateLocalRecordingSupabaseUrl(recording.id, publicUrlData.publicUrl);
+          await upsertRecordingMetadataToSupabase({
+            id: recording.id,
+            user_id: session.user.id,
+            timestamp: recording.timestamp,
+            duration: recording.duration,
+            student_id: recording.student_id,
+            student_name: recording.student_name,
+            student_phone: recording.student_phone,
+            supabase_url: publicUrlData.publicUrl,
+          });
 
-        setRecordings(prev => prev.map(rec => rec.id === recording.id ? { ...rec, supabase_url: publicUrlData.publicUrl } : rec));
-        showSuccess(t("records_page.upload_success"));
-      } else {
-        showError(t("records_page.error_getting_public_url"));
+          setRecordings(prev => prev.map(rec => rec.id === recording.id ? { ...rec, supabase_url: publicUrlData.publicUrl } : rec));
+          showSuccess(t("records_page.upload_success"));
+        } else {
+          showError(t("records_page.error_getting_public_url"));
+          setUploadErrorRecordId(recording.id);
+        }
+        setUploadingRecordId(null);
+        setUploadProgress(prev => { const next = new Map(prev); next.delete(recording.id); return next; });
+      },
+      onError: (error) => {
+        showError(`${t("records_page.error_uploading_to_cloud")} ${error.message}`);
         setUploadErrorRecordId(recording.id);
-        setTimeout(() => setUploadErrorRecordId(null), 5000);
-      }
-    }
-    setUploadingRecordId(null);
-  }, [user, t]);
+        setUploadingRecordId(null);
+        setUploadProgress(prev => { const next = new Map(prev); next.delete(recording.id); return next; });
+      },
+    });
+
+    upload.start();
+  }, [t]);
 
   const handleDownload = useCallback(async (recording: RecordedSession) => {
     setDownloadingRecordId(recording.id);
@@ -210,6 +231,7 @@ const Records: React.FC = () => {
                   const isUploading = uploadingRecordId === recording.id;
                   const uploadError = uploadErrorRecordId === recording.id;
                   const isDownloading = downloadingRecordId === recording.id;
+                  const progress = uploadProgress.get(recording.id) || 0;
 
                   return (
                     <Card key={recording.id} className="p-4">
@@ -253,10 +275,17 @@ const Records: React.FC = () => {
                               <Cloud className="h-4 w-4" /> {t("records_page.upload")}
                             </Button>
                           ) : isUploading ? (
-                            <Button variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled>
-                              <Cloud className="h-4 w-4 animate-pulse" />
-                              {t("records_page.uploading_to_cloud")}
-                            </Button>
+                            <div className="w-full sm:w-auto">
+                              <div className="relative w-full h-8 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden shadow-inner">
+                                <div
+                                  className="absolute top-0 left-0 h-full bg-primary transition-all duration-300"
+                                  style={{ width: `${progress}%` }}
+                                />
+                                <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white mix-blend-difference pointer-events-none">
+                                  {Math.round(progress)}%
+                                </span>
+                              </div>
+                            </div>
                           ) : recording.supabase_url && (
                             <Button onClick={() => handleDownload(recording)} variant="default" size="sm" className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 w-full sm:w-auto" disabled={isDownloading || isUploading}>
                               {isDownloading ? (
