@@ -8,7 +8,7 @@ import i18n from './i18n'; // i18n instansiyasini import qilish
 
 createRoot(document.getElementById("root")!).render(
   <I18nextProvider i18n={i18n}> {/* App ni I18nextProvider bilan o'rash */}
-    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme" attribute="class">
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme" attribute="class">
       <App />
     </ThemeProvider>
   </I18nextProvider>
