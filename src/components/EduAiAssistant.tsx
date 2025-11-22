@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'; // Sheet o'rniga Dialog import qilindi
 import { Bot, Send, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
@@ -54,7 +54,7 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isTyping, setIsTyping] = useState<boolean>(false); // New state for typing indicator
+  const [isTyping, setIsTyping] = useState<boolean>(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -70,7 +70,7 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [chatHistory, isTyping]); // Scroll when typing indicator appears/disappears
+  }, [chatHistory, isTyping]);
 
   const fetchWithRetry = useCallback(async (payload: any, maxRetries = 5, delay = 1000): Promise<Response> => {
     if (!apiKey) {
@@ -112,7 +112,7 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
     setChatHistory(prev => [...prev, { role: "user", parts: [{ text: userQuery }] }]);
     setUserInput('');
     setIsLoading(true);
-    setIsTyping(true); // Start typing indicator
+    setIsTyping(true);
 
     const currentPayload = {
       contents: [...chatHistory, { role: "user", parts: [{ text: userQuery }] }],
@@ -149,7 +149,7 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
       setChatHistory(prev => [...prev, { role: "model", parts: [{ text: t("eduai_assistant.connection_error") }] }]);
     } finally {
       setIsLoading(false);
-      setIsTyping(false); // Stop typing indicator
+      setIsTyping(false);
     }
   };
 
@@ -159,27 +159,25 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="w-full sm:max-w-md flex flex-col p-0 bg-background text-foreground">
-        <SheetHeader className="p-4 border-b border-border bg-card rounded-t-xl">
-          <SheetTitle className="text-2xl font-bold text-primary">{t("eduai_assistant.title")}</SheetTitle>
-          <SheetDescription className="text-sm text-muted-foreground">{t("eduai_assistant.subtitle")}</SheetDescription>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="w-full max-w-md h-[85vh] flex flex-col p-0 bg-background text-foreground rounded-xl shadow-2xl"> {/* Max-width va height qo'shildi */}
+        <DialogHeader className="p-4 border-b border-border bg-card rounded-t-xl">
+          <DialogTitle className="text-2xl font-bold text-primary">{t("eduai_assistant.title")}</DialogTitle>
+          <DialogDescription className="text-sm text-muted-foreground">{t("eduai_assistant.subtitle")}</DialogDescription>
           <Button variant="ghost" size="icon" className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary" onClick={onClose}>
             <X className="h-4 w-4" />
             <span className="sr-only">Close</span>
           </Button>
-        </SheetHeader>
+        </DialogHeader>
 
         <div id="eduai-messages" className="flex-grow p-4 overflow-y-auto space-y-4 bg-background">
           {chatHistory.map((message, index) => (
             <div key={index} className={cn("flex", message.role === 'user' ? 'justify-end' : 'justify-start')}>
               <div className={cn(
-                "max-w-xl p-3 shadow-md transition-all duration-100 rounded-xl", // Changed to rounded-xl
+                "max-w-xl p-3 shadow-md transition-all duration-100 rounded-xl",
                 message.role === 'user' ? 'user-bubble rounded-tr-sm bg-primary text-primary-foreground' : 'ai-bubble rounded-tl-sm bg-secondary text-secondary-foreground'
               )}>
                 {renderMessageContent(message)}
-                {/* Sources are not directly available from the current Gemini API response structure in this simple setup,
-                    but if they were, they would be rendered here. */}
               </div>
             </div>
           ))}
@@ -226,8 +224,8 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
             </Button>
           </div>
         </form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 };
 
