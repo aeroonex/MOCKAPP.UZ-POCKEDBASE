@@ -38,6 +38,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useProfile, formatBytes } from "@/hooks/use-profile";
 import { Progress } from "@/components/ui/progress";
 import { useProgress, setProgress, removeProgress } from "@/utils/uploadProgress"; // useProgress ni import qilish
+import { Badge } from "@/components/ui/badge"; // Badge import qilindi
 
 // Xotira ishlatilishini ko'rsatuvchi kichik komponent
 const StorageUsageCard: React.FC = () => {
@@ -48,10 +49,8 @@ const StorageUsageCard: React.FC = () => {
     return (
       <Card className="p-4 mb-6">
         <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <div className="h-5 bg-muted rounded w-1/3 animate-pulse"></div>
-            <div className="h-4 bg-muted rounded w-1/4 animate-pulse"></div>
-          </div>
+          <div className="h-5 bg-muted rounded w-1/3 animate-pulse"></div>
+          <div className="h-4 bg-muted rounded w-1/4 animate-pulse"></div>
           <div className="h-3 bg-muted rounded-full w-full animate-pulse"></div>
         </div>
       </Card>
@@ -61,41 +60,51 @@ const StorageUsageCard: React.FC = () => {
   const totalLimit = profile.storage_limit_bytes || 0;
   const usedSpace = profile.storage_used_bytes || 0;
   const usagePercentage = totalLimit > 0 ? (usedSpace / totalLimit) * 100 : 0;
+  const isPremium = profile.tariff_name !== 'Basic';
 
   const getProgressColor = () => {
     if (usagePercentage >= 90) {
-      return "bg-orange-500"; // Yumshoqroq qizil
+      return "bg-red-500";
     }
     if (usagePercentage >= 75) {
-      return "bg-yellow-400"; // Yumshoqroq sariq
+      return "bg-yellow-400";
     }
-    return "bg-sky-500"; // Chiroyli havorang
+    return "bg-yellow-300"; // Premium rangga mos sariq
   };
 
   return (
-    <Card className="p-4 mb-6 bg-card border border-border/80 shadow-sm rounded-lg">
-      <div className="flex justify-between items-center mb-2">
+    <Card className="p-4 mb-6 bg-[#1A237E] text-white border-4 border-[#3F51B5] shadow-2xl rounded-xl">
+      <div className="flex justify-between items-center mb-3">
         <div className="flex items-center gap-2">
-          <Cloud className="h-5 w-5 text-primary" />
-          <h4 className="text-base font-semibold text-foreground">{t("user_profile_page.cloud_storage")}</h4>
+          <Cloud className="h-6 w-6 text-yellow-300" />
+          <h4 className="text-xl font-bold">{t("user_profile_page.cloud_storage")}</h4>
+          {isPremium && (
+            <Badge className="bg-yellow-400 text-black font-bold hover:bg-yellow-500">
+              PREMIUM
+            </Badge>
+          )}
         </div>
-        <p className="text-sm font-medium text-muted-foreground">
-          <span className="font-semibold text-foreground">{formatBytes(usedSpace)}</span>
-          <span className="mx-1">/</span>
-          <span>{formatBytes(totalLimit)}</span>
+      </div>
+      
+      <div className="flex justify-between items-baseline mb-1">
+        <p className="text-3xl font-bold">
+          {formatBytes(usedSpace)}
+        </p>
+        <p className="text-lg font-medium text-gray-300">
+          / {formatBytes(totalLimit)}
         </p>
       </div>
       
       {/* Maxsus Progress Bar */}
-      <div className="w-full bg-secondary rounded-full h-2.5 overflow-hidden">
+      <div className="w-full bg-[#3F51B5] rounded-full h-2.5 overflow-hidden mb-1">
         <div
           className={`h-2.5 rounded-full transition-all duration-500 ease-out ${getProgressColor()}`}
           style={{ width: `${usagePercentage}%` }}
         />
       </div>
 
-      <div className="flex justify-end mt-1.5">
-         <p className="text-xs text-muted-foreground">
+      <div className="flex justify-end">
+         <p className="text-sm text-gray-300">
           {t("records_page.used_percentage", { percentage: usagePercentage.toFixed(1) })}
         </p>
       </div>

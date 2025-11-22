@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { showSuccess, showError } from "@/utils/toast";
 import { useProfile, formatBytes } from "@/hooks/use-profile"; // Yangi hook va yordamchi funksiyalar
 import { Progress } from "@/components/ui/progress"; // Progress komponenti
+import { Badge } from "@/components/ui/badge"; // Badge import qilindi
 
 const UserProfile: React.FC = () => {
   const { t } = useTranslation();
@@ -54,7 +55,6 @@ const UserProfile: React.FC = () => {
           first_name: firstName.trim(),
           last_name: lastName.trim(),
           bio: bio.trim(),
-          // updated_at maydoni sxemada mavjud emas, shuning uchun uni olib tashladim.
         })
         .eq('id', user.id);
 
@@ -96,6 +96,17 @@ const UserProfile: React.FC = () => {
   const totalLimit = profile?.storage_limit_bytes || 0;
   const usedSpace = profile?.storage_used_bytes || 0;
   const usagePercentage = totalLimit > 0 ? (usedSpace / totalLimit) * 100 : 0;
+  const isPremium = profile?.tariff_name !== 'Basic';
+
+  const getProgressColor = () => {
+    if (usagePercentage >= 90) {
+      return "bg-red-500";
+    }
+    if (usagePercentage >= 75) {
+      return "bg-yellow-400";
+    }
+    return "bg-yellow-300";
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -118,16 +129,42 @@ const UserProfile: React.FC = () => {
               <p className="text-muted-foreground">{user?.email || "guest@example.com"}</p>
             </div>
 
-            {/* Storage Usage Section */}
-            <div className="space-y-2 p-4 border rounded-lg bg-secondary">
-              <div className="flex items-center gap-2">
-                <Cloud className="h-5 w-5 text-primary" />
-                <Label className="text-base font-semibold">{t("user_profile_page.cloud_storage")}</Label>
+            {/* Storage Usage Section (Premium Design) */}
+            <div className="p-4 bg-[#1A237E] text-white border-4 border-[#3F51B5] shadow-2xl rounded-xl">
+              <div className="flex justify-between items-center mb-3">
+                <div className="flex items-center gap-2">
+                  <Cloud className="h-6 w-6 text-yellow-300" />
+                  <h4 className="text-xl font-bold">{t("user_profile_page.cloud_storage")}</h4>
+                  {isPremium && (
+                    <Badge className="bg-yellow-400 text-black font-bold hover:bg-yellow-500">
+                      PREMIUM
+                    </Badge>
+                  )}
+                </div>
               </div>
-              <Progress value={usagePercentage} className="h-3" />
-              <p className="text-sm text-muted-foreground text-right">
-                {formatBytes(usedSpace)} / {formatBytes(totalLimit)} ({usagePercentage.toFixed(1)}%)
-              </p>
+              
+              <div className="flex justify-between items-baseline mb-1">
+                <p className="text-3xl font-bold">
+                  {formatBytes(usedSpace)}
+                </p>
+                <p className="text-lg font-medium text-gray-300">
+                  / {formatBytes(totalLimit)}
+                </p>
+              </div>
+              
+              {/* Maxsus Progress Bar */}
+              <div className="w-full bg-[#3F51B5] rounded-full h-2.5 overflow-hidden mb-1">
+                <div
+                  className={`h-2.5 rounded-full transition-all duration-500 ease-out ${getProgressColor()}`}
+                  style={{ width: `${usagePercentage}%` }}
+                />
+              </div>
+
+              <div className="flex justify-end">
+                <p className="text-sm text-gray-300">
+                  {t("records_page.used_percentage", { percentage: usagePercentage.toFixed(1) })}
+                </p>
+              </div>
             </div>
 
             <div className="space-y-4">
