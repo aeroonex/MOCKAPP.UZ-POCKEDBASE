@@ -135,14 +135,24 @@
 
 /* Styling for the messages in JS to use enhanced bubbles */
 .ai-bubble {
-    background-color: hsl(var(--secondary));
+    background-color: hsla(var(--secondary), 0.7); /* Semi-transparent secondary */
     border-radius: 0.75rem; /* rounded-xl */
     border-top-left-radius: 0.25rem; /* rounded-sm */
+    border: 1px solid hsla(var(--border), 0.3); /* Subtle border */
+    backdrop-filter: blur(8px); /* Glass blur effect */
+    -webkit-backdrop-filter: blur(8px); /* For Safari */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Enhanced shadow */
+    background-image: linear-gradient(to bottom right, hsla(var(--secondary), 0.7), hsla(var(--secondary), 0.5)); /* Subtle gradient */
 }
 .user-bubble {
-    background-color: hsl(var(--primary));
+    background-color: hsla(var(--primary), 0.7); /* Semi-transparent primary */
     border-radius: 0.75rem; /* rounded-xl */
     border-top-right-radius: 0.25rem; /* rounded-sm */
+    border: 1px solid hsla(var(--primary), 0.3); /* Subtle border */
+    backdrop-filter: blur(8px); /* Glass blur effect */
+    -webkit-backdrop-filter: blur(8px); /* For Safari */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Enhanced shadow */
+    background-image: linear-gradient(to bottom right, hsla(var(--primary), 0.7), hsla(var(--primary), 0.5)); /* Subtle gradient */
 }
 
 /* Custom CSS from provided HTML */
