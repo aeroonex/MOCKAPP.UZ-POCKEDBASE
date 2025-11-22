@@ -33,8 +33,6 @@
     "admin_contact_phone": "+998 77 207 71 17",
     "saving": "Saving...",
     "sign_in": "Sign In",
-    "sign_up": "Sign Up",
-    "signing_up": "Signing up...",
     "captcha_challenge_error": "Please complete the CAPTCHA challenge.",
     "confirmation_email_sent": "Confirmation email sent. Please check your inbox.",
     "welcome": "Welcome",
@@ -299,15 +297,5 @@
     "cloud_storage": "Cloud Storage",
     "error_loading_profile": "Error loading profile:",
     "error_login_to_save": "Please log in to save your profile."
-  },
-  "guide_dialog": {
-    "title": "Guide",
-    "description": "Important instructions for correct application usage:",
-    "rule1_title": "Browser Storage:",
-    "rule1_text": "Your recorded videos are saved locally in your browser's storage. This means they are only accessible from the browser you used for the recording (e.g., Google Chrome). Use the same browser to access your local recordings.",
-    "rule2_title": "Data Safety:",
-    "rule2_text": "To prevent accidental loss of your recordings from clearing browser history, cache, or cookies, it is highly recommended to upload your videos to the cloud storage as soon as possible after the test.",
-    "rule3_title": "Starting Screen Recording:",
-    "rule3_text": "When starting the test, select 'Entire Screen' in the pop-up window, check the 'Also share system audio' box, and click the 'Share' button. The exam will begin after this."
   }
 }
