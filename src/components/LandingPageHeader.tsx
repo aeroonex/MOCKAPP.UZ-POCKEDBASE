@@ -18,7 +18,7 @@ const LandingPageHeader: React.FC<LandingPageHeaderProps> = ({ onOpenLogin }) =>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-14">
         <div className="flex items-center">
           <a href="#" className="text-xl font-bold text-foreground">
-            Edumock<span className="text-primary">.uz</span> <span className="text-primary">Plus</span> {/* "Plus" yozuvi qo'shildi */}
+            Edumock<span className="text-primary">.uz</span>
           </a>
         </div>
         <div className="flex items-center space-x-3">
