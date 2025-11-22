@@ -49,6 +49,9 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Yangi yashil rang */
+    --green-500: 142 71% 45%;
   }
 
   .dark {
@@ -87,13 +90,14 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
-  }
 
-  .dark {
     /* Sonner uchun ranglarni aniqlash */
     --success-color: 142 71% 45%; /* Yashil rang */
     --error-color: 0 84.2% 60.2%; /* Qizil rang */
     --info-color: 200 70% 60%; /* Havorang */
+
+    /* Yangi yashil rang */
+    --green-500: 142 71% 45%;
   }
 
   :root {
@@ -135,24 +139,26 @@
 
 /* Styling for the messages in JS to use enhanced bubbles */
 .ai-bubble {
-    background-color: hsla(var(--secondary), 0.7); /* Semi-transparent secondary */
+    background-color: hsla(var(--secondary), 0.9); /* Semi-transparent secondary, higher opacity */
     border-radius: 0.75rem; /* rounded-xl */
     border-top-left-radius: 0.25rem; /* rounded-sm */
-    border: 1px solid hsla(var(--border), 0.3); /* Subtle border */
+    border: 1px solid hsla(var(--border), 0.5); /* More visible border */
     backdrop-filter: blur(8px); /* Glass blur effect */
     -webkit-backdrop-filter: blur(8px); /* For Safari */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Enhanced shadow */
-    background-image: linear-gradient(to bottom right, hsla(var(--secondary), 0.7), hsla(var(--secondary), 0.5)); /* Subtle gradient */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Enhanced shadow */
+    background-image: linear-gradient(to bottom right, hsla(var(--secondary), 0.9), hsla(var(--secondary), 0.7)); /* Subtle gradient */
+    color: hsl(var(--secondary-foreground)); /* Ensure text is visible */
 }
 .user-bubble {
-    background-color: hsla(var(--primary), 0.7); /* Semi-transparent primary */
+    background-color: hsla(var(--green-500), 0.9); /* Green with higher opacity */
     border-radius: 0.75rem; /* rounded-xl */
     border-top-right-radius: 0.25rem; /* rounded-sm */
-    border: 1px solid hsla(var(--primary), 0.3); /* Subtle border */
+    border: 1px solid hsla(var(--green-500), 0.5); /* Subtle green border */
     backdrop-filter: blur(8px); /* Glass blur effect */
     -webkit-backdrop-filter: blur(8px); /* For Safari */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Enhanced shadow */
-    background-image: linear-gradient(to bottom right, hsla(var(--primary), 0.7), hsla(var(--primary), 0.5)); /* Subtle gradient */
+    box-shadow: 0 4px 12px hsla(var(--green-500), 0.2); /* Green shadow */
+    background-image: linear-gradient(to bottom right, hsla(var(--green-500), 0.9), hsla(var(--green-500), 0.7)); /* Subtle green gradient */
+    color: hsl(var(--primary-foreground)); /* Ensure text is white */
 }
 
 /* Custom CSS from provided HTML */
