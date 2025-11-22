@@ -14,15 +14,15 @@ const LandingPageHeader: React.FC<LandingPageHeaderProps> = ({ onOpenLogin }) =>
   const { t } = useTranslation();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border shadow-sm"> {/* bg-white/80 -> bg-background/80, border-gray-100 -> border-border */}
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-14">
         <div className="flex items-center">
-          <a href="#" className="text-xl font-bold text-foreground">Edumock<span className="text-primary">.uz</span></a> {/* text-gray-900 -> text-foreground */}
+          <a href="#" className="text-xl font-bold text-foreground">
+            Edumock<span className="text-primary">.uz</span> <span className="text-primary">Plus</span> {/* "Plus" yozuvi qo'shildi */}
+          </a>
         </div>
         <div className="flex items-center space-x-3">
-          <a href="#" className="hidden sm:inline-block px-4 py-2 bg-primary text-white font-semibold rounded-full hover:bg-primary/90 transition duration-150 text-sm">
-            Edumock Plus
-          </a>
+          {/* "Edumock Plus" tugmasi olib tashlandi */}
           <LanguageSwitcher />
           <ThemeToggle />
           <button onClick={onOpenLogin} className="text-primary hover:text-primary/80">
