@@ -130,7 +130,7 @@
     "last_used": "Last: {{date}}",
     "not_used": "Not used",
     "delete_question_confirm_title": "Are you sure you want to delete this question?",
-    "delete_question_confirm_description": "This action cannot be undone. This question will be permanently deleted.",
+    "delete_question_confirm_description": "This action cannot be undone. This recording will be permanently deleted.",
     "delete": "Delete",
     "reset_all_cooldowns": "Reset all question cooldowns",
     "error_select_mood": "Please select a mood.",
@@ -297,5 +297,15 @@
     "cloud_storage": "Cloud Storage",
     "error_loading_profile": "Error loading profile:",
     "error_login_to_save": "Please log in to save your profile."
+  },
+  "guide_dialog": {
+    "title": "Guide",
+    "description": "Important instructions for proper application usage:",
+    "rule1_title": "Browser Storage:",
+    "rule1_text": "Your recorded videos are saved locally in your browser's storage. This means they are only accessible from the browser you used to record (e.g., Google Chrome). Use the same browser to access your local recordings.",
+    "rule2_title": "Data Security:",
+    "rule2_text": "To prevent accidental loss of your recordings due to clearing browser history, cache, or cookies, it is highly recommended to upload your videos to cloud storage as soon as possible after the test.",
+    "rule3_title": "Starting Screen Recording:",
+    "rule3_text": "When starting the test, select 'Entire Screen' in the pop-up window, check the 'Also share system audio' box, and click the 'Share' button. The exam will start after this."
   }
 }
