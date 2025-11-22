@@ -335,6 +335,7 @@
     "connection_error": "I'm sorry, I encountered a connection error or failed to get a valid response. Please check your connection and try again in a moment.",
     "sources_label": "Sources:",
     "open_assistant": "Open EduAi Assistant",
-    "typing": "Typing..."
+    "typing": "Typing...",
+    "chat_button_label": "Chat"
   }
 }

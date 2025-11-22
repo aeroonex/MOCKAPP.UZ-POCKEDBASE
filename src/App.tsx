@@ -100,13 +100,13 @@ const App = () => {
             {/* Floating EduAi Assistant Button */}
             <Button
               variant="default"
-              size="icon"
-              // Vaqtincha stilni soddalashtirib, z-indexni oshirdim, ko'rinishini ta'minlash uchun
-              className="fixed bottom-4 right-4 z-[99] h-14 w-14 rounded-full shadow-lg bg-blue-500 text-white transition-all duration-300"
+              // size="icon" // Ikonka o'rniga matn bo'lgani uchun size="icon" olib tashlandi
+              className="fixed bottom-4 right-4 z-[99] h-14 px-6 rounded-full shadow-lg bg-gradient-purple text-white transition-all duration-300 animate-button-pulse btn-hover-glow flex items-center justify-center"
               onClick={() => setIsEduAiAssistantOpen(true)}
               aria-label={t("eduai_assistant.open_assistant")}
             >
-              <Bot className="h-7 w-7" />
+              {/* <Bot className="h-7 w-7" /> */}
+              <span className="text-lg font-semibold">{t("eduai_assistant.chat_button_label")}</span>
             </Button>
 
             <EduAiAssistant isOpen={isEduAiAssistantOpen} onClose={() => setIsEduAiAssistantOpen(false)} />
