@@ -35,8 +35,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthProvider";
 import * as tus from 'tus-js-client';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useProfile, formatBytes } from "@/hooks/use-profile"; // useProfile va formatBytes import qilindi
-import { Progress } from "@/components/ui/progress"; // Progress komponenti
+import { useProfile, formatBytes } from "@/hooks/use-profile";
+import { Progress } from "@/components/ui/progress";
+import { useProgress, setProgress, removeProgress } from "@/utils/uploadProgress"; // useProgress ni import qilish
 
 // Xotira ishlatilishini ko'rsatuvchi kichik komponent
 const StorageUsageCard: React.FC = () => {
@@ -108,14 +109,15 @@ const Records: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { profile, fetchProfile } = useProfile(); // fetchProfile ni qo'shdik
+  const { profile, fetchProfile } = useProfile();
   const isGuestMode = localStorage.getItem("isGuestMode") === "true" && !user;
   const [uploadingRecordId, setUploadingRecordId] = useState<string | null>(null);
   const [uploadErrorRecordId, setUploadErrorRecordId] = useState<string | null>(null);
-  const [downloadingRecordId, setDownloadingRecordId] = useState<string | null>(null);
-  const [downloadProgress, setDownloadProgress] = useState<Map<string, number>>(new Map()); // Yangi holat
-  const [uploadProgress, setUploadProgress] = useState<Map<string, number>>(new Map());
   const [isPricingDialogOpen, setIsPricingDialogOpen] = useState(false);
+  
+  // useProgress hookidan foydalanish
+  const progressMap = useProgress();
+  const isDownloading = Array.from(progressMap.keys()).some(key => key.startsWith('download-'));
 
   const fetchRecordings = useCallback(async () => {
     setIsLoading(true);
@@ -167,7 +169,7 @@ const Records: React.FC = () => {
 
     setUploadingRecordId(recording.id);
     setUploadErrorRecordId(null);
-    setUploadProgress(prev => new Map(prev).set(recording.id, 0));
+    setProgress(recording.id, 0); // Upload progressni boshlash
 
     const filePath = `${session.user.id}/${recording.id}.webm`;
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -189,7 +191,7 @@ const Records: React.FC = () => {
       },
       onProgress: (bytesUploaded, bytesTotal) => {
         const percentage = (bytesUploaded / bytesTotal) * 100;
-        setUploadProgress(prev => new Map(prev).set(recording.id, percentage));
+        setProgress(recording.id, percentage);
       },
       onSuccess: async () => {
         const { data: publicUrlData } = supabase.storage
@@ -209,7 +211,6 @@ const Records: React.FC = () => {
             supabase_url: publicUrlData.publicUrl,
           });
 
-          // Muvaffaqiyatli yuklashdan so'ng profil ma'lumotlarini yangilash
           await fetchProfile(); 
           await fetchRecordings(); 
           showSuccess(t("records_page.upload_success"));
@@ -218,14 +219,13 @@ const Records: React.FC = () => {
           setUploadErrorRecordId(recording.id);
         }
         setUploadingRecordId(null);
-        setUploadProgress(prev => { const next = new Map(prev); next.delete(recording.id); return next; });
+        removeProgress(recording.id);
       },
       onError: (error) => {
         console.error("Tus upload error:", error);
         
         let errorMessage = `${t("records_page.error_uploading_to_cloud")} ${error.message}`;
         
-        // Check for 413 error code (Payload Too Large)
         if (error.originalRequest && (error.originalRequest as any).response && (error.originalRequest as any).response.getStatus() === 413) {
           errorMessage = t("records_page.error_max_size_exceeded");
         }
@@ -233,12 +233,12 @@ const Records: React.FC = () => {
         showError(errorMessage);
         setUploadErrorRecordId(recording.id);
         setUploadingRecordId(null);
-        setUploadProgress(prev => { const next = new Map(prev); next.delete(recording.id); return next; });
+        removeProgress(recording.id);
       },
     });
 
     upload.start();
-  }, [t, fetchRecordings, fetchProfile, profile]); // fetchProfile ni dependency arrayga qo'shdik
+  }, [t, fetchRecordings, fetchProfile, profile]);
 
   const handleUploadClick = (recording: RecordedSession) => {
     if (isGuestMode) {
@@ -249,9 +249,9 @@ const Records: React.FC = () => {
   };
 
   const handleDownload = useCallback(async (recording: RecordedSession) => {
-    setDownloadingRecordId(recording.id);
-    setDownloadProgress(prev => new Map(prev).set(recording.id, 0));
-
+    const downloadId = `download-${recording.id}`;
+    setProgress(downloadId, 0);
+    
     try {
       let urlToDownload = recording.video_url;
       let filename = `recording_${recording.id}.webm`;
@@ -268,46 +268,43 @@ const Records: React.FC = () => {
         filename = `${cleanPhone}.webm`;
       }
       
-      const response = await fetch(urlToDownload);
-      if (!response.body) throw new Error("Response body is null");
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', urlToDownload, true);
+      xhr.responseType = 'blob';
 
-      const contentLength = response.headers.get('content-length');
-      const total = contentLength ? parseInt(contentLength, 10) : 0;
-      let loaded = 0;
-
-      const reader = response.body.getReader();
-      const chunks: Uint8Array[] = [];
-
-      // Yuklab olish jarayonini kuzatish
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        chunks.push(value);
-        loaded += value.length;
-
-        if (total) {
-          const percentage = (loaded / total) * 100;
-          setDownloadProgress(prev => new Map(prev).set(recording.id, percentage));
+      xhr.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentage = (event.loaded / event.total) * 100;
+          setProgress(downloadId, percentage);
         }
-      }
+      };
 
-      const blob = new Blob(chunks, { type: response.headers.get('content-type') || 'video/webm' });
-      const url = URL.createObjectURL(blob);
+      await new Promise<Blob>((resolve, reject) => {
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            resolve(xhr.response);
+          } else {
+            reject(new Error(`HTTP error! Status: ${xhr.status}`));
+          }
+        };
+        xhr.onerror = () => reject(new Error('Network error during download.'));
+        xhr.send();
+      }).then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showSuccess(t("records_page.success_downloaded"));
+      });
 
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showSuccess(t("records_page.success_downloaded"));
     } catch (error: any) {
       showError(`${t("records_page.error_downloading_video")} ${error.message}`);
     } finally {
-      setDownloadingRecordId(null);
-      setDownloadProgress(prev => { const next = new Map(prev); next.delete(recording.id); return next; });
+      removeProgress(downloadId);
     }
   }, [t]);
 
@@ -318,16 +315,14 @@ const Records: React.FC = () => {
       }
       const localDeleted = await deleteLocalRecording(recording.id);
       if (localDeleted) {
-        // Agar bulutdan ham o'chirilgan bo'lsa, Edge Function profiles ni yangilaydi.
-        // Shuning uchun biz faqat ro'yxatni yangilaymiz va profilni yangilaymiz.
         setRecordings(prev => prev.filter(rec => rec.id !== recording.id));
-        await fetchProfile(); // Profil ma'lumotlarini yangilash
+        await fetchProfile();
         showSuccess(t("records_page.success_recording_deleted"));
       }
     } catch (error: any) {
       showError(`${t("records_page.error_deleting_recording")} ${error.message}`);
     }
-  }, [t, fetchProfile]); // fetchProfile ni dependency arrayga qo'shdik
+  }, [t, fetchProfile]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -380,9 +375,11 @@ const Records: React.FC = () => {
                 {recordings.map((recording, index) => {
                   const isUploading = uploadingRecordId === recording.id;
                   const uploadError = uploadErrorRecordId === recording.id;
-                  const isDownloading = downloadingRecordId === recording.id;
-                  const uploadP = uploadProgress.get(recording.id) || 0;
-                  const downloadP = downloadProgress.get(recording.id) || 0; // Yangi progress
+                  
+                  // Progressni yuklash va yuklab olish uchun alohida olish
+                  const uploadProgressValue = progressMap.get(recording.id) || 0;
+                  const downloadProgressValue = progressMap.get(`download-${recording.id}`) || 0;
+                  const isCurrentlyDownloading = downloadProgressValue > 0 && downloadProgressValue < 100;
 
                   return (
                     <Card key={recording.id} className="p-4">
@@ -424,13 +421,13 @@ const Records: React.FC = () => {
                           {isUploading ? (
                             <Button variant="outline" size="sm" className="flex items-center gap-1 w-full sm:w-auto" disabled>
                               <Cloud className="h-4 w-4 animate-pulse" />
-                              {t("records_page.uploading_to_cloud")} ({uploadP.toFixed(0)}%)
+                              {t("records_page.uploading_to_cloud")} ({uploadProgressValue.toFixed(0)}%)
                             </Button>
                           ) : recording.supabase_url ? (
-                            <Button onClick={() => handleDownload(recording)} variant="default" size="sm" className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 w-full sm:w-auto" disabled={isDownloading || isUploading}>
-                              {isDownloading ? (
+                            <Button onClick={() => handleDownload(recording)} variant="default" size="sm" className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 w-full sm:w-auto" disabled={isDownloading}>
+                              {isCurrentlyDownloading ? (
                                 <>
-                                  <Zap className="h-4 w-4 animate-pulse" /> {t("records_page.downloading")} ({downloadP.toFixed(0)}%)
+                                  <Zap className="h-4 w-4 animate-pulse" /> {t("records_page.downloading")} ({downloadProgressValue.toFixed(0)}%)
                                 </>
                               ) : (
                                 <>
@@ -468,12 +465,6 @@ const Records: React.FC = () => {
                           </AlertDialog>
                         </div>
                       </div>
-                      {/* Yuklab olish progress barini ko'rsatish */}
-                      {isDownloading && (
-                        <div className="mt-2">
-                          <Progress value={downloadP} className="h-2" />
-                        </div>
-                      )}
                       {recording.student_name && (
                         <div className="text-left text-sm text-muted-foreground mt-2 border-t pt-2">
                           <p><strong>{t("mock_test_page.student_id")}:</strong> {recording.student_id}</p>
