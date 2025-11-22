@@ -3,8 +3,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'; // Sheet o'rniga Dialog import qilindi
-import { Bot, Send, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Bot, Send } => 'lucide-react'; // X icon removed as it's no longer needed for the custom close button
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
@@ -160,14 +160,11 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-md h-[85vh] flex flex-col p-0 bg-background text-foreground rounded-xl shadow-2xl"> {/* Max-width va height qo'shildi */}
+      <DialogContent className="w-full max-w-md h-[85vh] flex flex-col p-0 bg-background text-foreground rounded-xl shadow-2xl">
         <DialogHeader className="p-4 border-b border-border bg-card rounded-t-xl">
           <DialogTitle className="text-2xl font-bold text-primary">{t("eduai_assistant.title")}</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">{t("eduai_assistant.subtitle")}</DialogDescription>
-          <Button variant="ghost" size="icon" className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary" onClick={onClose}>
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </Button>
+          {/* The default close button is provided by DialogContent, so this custom button is removed. */}
         </DialogHeader>
 
         <div id="eduai-messages" className="flex-grow p-4 overflow-y-auto space-y-4 bg-background">
