@@ -84,7 +84,13 @@
     "process_step_edumock": "Edumock.uz",
     "process_step_center": "Учебный Центр",
     "process_step_student": "Студент",
-    "process_step_result": "Результат"
+    "process_step_result": "Результат",
+    "footer_protected_by": "Защищено",
+    "footer_powered_by": "Работает на",
+    "footer_data_secured": "Данные защищены",
+    "footer_cloudflare_title": "Сайт защищен Cloudflare",
+    "footer_educloud_title": "Часть экосистемы EduCloud",
+    "footer_ssl_title": "Данные зашифрованы и безопасны"
   },
   "home_page": {
     "speaking_platform": "Платформа для разговорной практики",

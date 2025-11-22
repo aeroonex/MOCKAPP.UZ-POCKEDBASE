@@ -2,7 +2,7 @@
 
 import React, { useRef } from "react";
 import Navbar from "@/components/Navbar";
-import { CefrCentreFooter } from "@/components/CefrCentreFooter";
+import AppFooter from "@/components/AppFooter"; // Yangi import
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { useRecorder } from "@/hooks/use-recorder";
 import { Video, ArrowLeft } from "lucide-react";
@@ -123,8 +123,7 @@ const MockTest: React.FC = () => {
           </CardContent>
         </Card>
       </main>
-      <CefrCentreFooter />
-
+      <AppFooter />
       <StudentInfoForm
         isOpen={isStudentInfoFormOpen}
         onClose={() => setIsStudentInfoFormOpen(false)}

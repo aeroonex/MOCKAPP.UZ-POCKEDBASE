@@ -2,7 +2,7 @@
 
 import React from "react";
 import Navbar from "@/components/Navbar";
-import { CefrCentreFooter } from "@/components/CefrCentreFooter";
+import AppFooter from "@/components/AppFooter"; // Yangi import
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useTranslation } from 'react-i18next';
 import { ShieldCheck } from "lucide-react";
@@ -47,7 +47,7 @@ const SuperAdminDashboard: React.FC = () => {
           </CardContent>
         </Card>
       </main>
-      <CefrCentreFooter />
+      <AppFooter />
     </div>
   );
 };

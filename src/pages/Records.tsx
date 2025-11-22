@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar";
-import { CefrCentreFooter } from "@/components/CefrCentreFooter";
+import AppFooter from "@/components/AppFooter"; // Yangi import
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, PlayCircle, Trash2, ArrowLeft, Cloud, Zap, CheckCircle2, Lock } from "lucide-react";
@@ -524,7 +524,7 @@ const Records: React.FC = () => {
           </CardContent>
         </Card>
       </main>
-      <CefrCentreFooter />
+      <AppFooter />
       <Dialog open={isPricingDialogOpen} onOpenChange={setIsPricingDialogOpen}>
         <DialogContent className="sm:max-w-md p-0 overflow-hidden">
           <ScrollArea className="max-h-[90vh]">

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import JournalEntryForm from "@/components/JournalEntryForm";
 import MoodEntryCard from "@/components/MoodEntryCard";
-import { CefrCentreFooter } from "@/components/CefrCentreFooter";
+import AppFooter from "@/components/AppFooter"; // Yangi import
 import {
   Select,
   SelectContent,
@@ -111,7 +111,7 @@ const MoodJournal: React.FC = () => {
           </div>
         )}
       </main>
-      <CefrCentreFooter />
+      <AppFooter />
     </div>
   );
 };

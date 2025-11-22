@@ -82,7 +82,13 @@
     "process_step_edumock": "Edumock.uz",
     "process_step_center": "Training Center",
     "process_step_student": "Student",
-    "process_step_result": "Result"
+    "process_step_result": "Result",
+    "footer_protected_by": "Protected by",
+    "footer_powered_by": "Powered by",
+    "footer_data_secured": "Data Secured",
+    "footer_cloudflare_title": "Site protected by Cloudflare",
+    "footer_educloud_title": "Part of the EduCloud ecosystem",
+    "footer_ssl_title": "Data is encrypted and secure"
   },
   "home_page": {
     "speaking_platform": "Speaking Platform",
