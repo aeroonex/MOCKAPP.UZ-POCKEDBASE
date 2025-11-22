@@ -17,11 +17,11 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import SuperAdminRoute from "./components/SuperAdminRoute";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import { AuthProvider } from "./context/AuthProvider";
-import EduAiAssistant from "./components/EduAiAssistant"; // Import EduAiAssistant
-import { useState } from "react"; // Import useState
-import { Button } from "./components/ui/button"; // Import Button
-import { Bot } from "lucide-react"; // Import Bot icon
-import { useTranslation } from 'react-i18next'; // Import useTranslation
+import EduAiAssistant from "./components/EduAiAssistant";
+import { useState } from "react";
+import { Button } from "./components/ui/button";
+import { Bot } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 const queryClient = new QueryClient();
 
@@ -36,7 +36,7 @@ const App = () => {
         <Sonner 
           position="top-left" 
           richColors 
-          theme="system" // Tizim mavzusiga moslashish uchun
+          theme="system"
           toastOptions={{
             success: {
               style: {
@@ -101,11 +101,12 @@ const App = () => {
             <Button
               variant="default"
               size="icon"
-              className="fixed bottom-4 right-4 z-50 h-14 w-14 rounded-full shadow-lg bg-gradient-purple transition-all duration-300 animate-button-pulse btn-hover-glow"
+              // Vaqtincha stilni soddalashtirib, z-indexni oshirdim, ko'rinishini ta'minlash uchun
+              className="fixed bottom-4 right-4 z-[99] h-14 w-14 rounded-full shadow-lg bg-blue-500 text-white transition-all duration-300"
               onClick={() => setIsEduAiAssistantOpen(true)}
               aria-label={t("eduai_assistant.open_assistant")}
             >
-              <Bot className="h-7 w-7 text-primary-foreground" />
+              <Bot className="h-7 w-7" />
             </Button>
 
             <EduAiAssistant isOpen={isEduAiAssistantOpen} onClose={() => setIsEduAiAssistantOpen(false)} />
