@@ -1,6 +1,6 @@
 import { openDB, IDBPDatabase } from 'idb';
 import { v4 as uuidv4 } from 'uuid';
-import { SpeakingQuestion, MoodEntry, RecordedSession, Part1_1Question, Part1_2Question, Part2Question, Part3Question, IeltsTest, CEFRQuestion, CEFRSection } from './types';
+import { SpeakingQuestion, MoodEntry, RecordedSession, Part1_1Question, Part1_2Question, Part2Question, Part3Question } from './types';
 import { supabase } from '@/integrations/supabase/client';
 import { showError } from '@/utils/toast';
 import i18n from '@/i18n';
@@ -119,88 +119,6 @@ export const getSupabaseQuestions = async (): Promise<SpeakingQuestion[]> => {
   }
   return data as SpeakingQuestion[];
 };
-
-// Yangi funksiya: CEFR test savollarini yuklash va SpeakingQuestion formatiga o'tkazish
-export const getCefrTestQuestions = async (testId: string): Promise<SpeakingQuestion[]> => {
-  const { data: sectionsData, error: sectionsError } = await supabase
-    .from('cefr_sections')
-    .select(`
-      id,
-      type,
-      cefr_questions (
-        id,
-        question_text,
-        audio_url,
-        image_urls,
-        correct_answer,
-        question_type,
-        word_limit,
-        sub_questions,
-        created_at,
-        updated_at
-      )
-    `)
-    .eq('test_id', testId)
-    .eq('type', 'Speaking'); // Faqat Speaking bo'limini olamiz
-
-  if (sectionsError) {
-    showError(i18n.t("cefr_start_test_page.error_loading_sections", { message: sectionsError.message }));
-    return [];
-  }
-
-  const speakingQuestions: SpeakingQuestion[] = [];
-
-  sectionsData?.forEach((section: CEFRSection & { cefr_questions: CEFRQuestion[] }) => {
-    section.cefr_questions.forEach((q: CEFRQuestion) => {
-      const baseQuestion = {
-        id: q.id,
-        user_id: q.user_id || 'system_generated', // CEFR savollari uchun user_id ni belgilash
-        date: q.created_at,
-        last_used: q.updated_at, // last_used sifatida updated_at dan foydalanish
-      };
-
-      switch (q.question_type) {
-        case "system_generated_part1_1":
-          speakingQuestions.push({
-            ...baseQuestion,
-            type: "Part 1.1",
-            sub_questions: q.sub_questions || [],
-          } as Part1_1Question);
-          break;
-        case "system_generated_part1_2":
-          speakingQuestions.push({
-            ...baseQuestion,
-            type: "Part 1.2",
-            image_urls: q.image_urls || [],
-            sub_questions: q.sub_questions || [],
-          } as Part1_2Question);
-          break;
-        case "system_generated_part2":
-          speakingQuestions.push({
-            ...baseQuestion,
-            type: "Part 2",
-            image_urls: q.image_urls || [],
-            question_text: q.question_text || "",
-          } as Part2Question);
-          break;
-        case "system_generated_part3":
-          speakingQuestions.push({
-            ...baseQuestion,
-            type: "Part 3",
-            image_urls: q.image_urls || [], // Part 3 da ham image_urls bo'lishi mumkin
-            question_text: q.question_text || "",
-          } as Part3Question);
-          break;
-        default:
-          console.warn(`Unknown CEFR speaking question type: ${q.question_type}`);
-          break;
-      }
-    });
-  });
-
-  return speakingQuestions;
-};
-
 
 export const addSupabaseQuestion = async (question: Omit<SpeakingQuestion, 'id' | 'date' | 'user_id'>): Promise<SpeakingQuestion | null> => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -648,17 +566,4 @@ export const deleteLocalRecording = async (id: string): Promise<boolean> => {
 
   // Return true if either local deletion happened, or it was a cloud-only recording and cloud deletion succeeded.
   return localDeletionPerformed || (supabaseMetadataExists && supabaseDeletionSuccessful);
-};
-
-export const getIeltsTests = async (): Promise<IeltsTest[]> => {
-  const { data, error } = await supabase
-    .from('ielts_tests')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    showError(i18n.t("cefr_tests_page.error_loading_tests", { message: error.message }));
-    return [];
-  }
-  return data as IeltsTest[];
 };

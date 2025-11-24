@@ -11,15 +11,13 @@ import { useMockTestLogic } from "@/hooks/use-mock-test-logic";
 import TestQuestionDisplay from "@/components/TestQuestionDisplay";
 import TestControls from "@/components/TestControls";
 import { useTranslation } from 'react-i18next';
-import { Link, useLocation } from "react-router-dom"; // useLocation import qilindi
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const MockTest: React.FC = () => {
   const { isRecording, startRecording, stopAllStreams, webcamStream, isRecordingSupported } = useRecorder(); // Get isRecordingSupported
   const webcamVideoRef = useRef<HTMLVideoElement>(null);
   const { t } = useTranslation();
-  const location = useLocation(); // useLocation hookidan foydalanish
-  const cefrTestId = (location.state as { cefrTestId?: string })?.cefrTestId; // cefrTestId ni olish
 
   const {
     isTestStarted,
@@ -38,7 +36,7 @@ const MockTest: React.FC = () => {
     handleResetTest,
     getCurrentQuestion,
     allSpeakingParts,
-  } = useMockTestLogic({ startRecording, stopAllStreams, cefrTestId }); // cefrTestId ni uzatish
+  } = useMockTestLogic({ startRecording, stopAllStreams });
 
   const currentPartName = allSpeakingParts[currentPartIndex];
   const currentQ = getCurrentQuestion();

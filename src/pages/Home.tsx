@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Book, PlusCircle, ListChecks, Video, Settings as SettingsIcon, User as UserIcon, Home as HomeIcon, LogOut, Info, Send, BookOpen } from "lucide-react";
+import { Book, PlusCircle, ListChecks, Video, Settings as SettingsIcon, User as UserIcon, Home as HomeIcon, LogOut, Info, Send } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { showSuccess } from "@/utils/toast";
@@ -49,12 +49,6 @@ export default function Home() {
 
   const items = [
     {
-      icon: <BookOpen className="w-10 h-10" />,
-      title: t("home_page.cefr_tests"),
-      subtitle: t("home_page.select_cefr_test"),
-      path: "/cefr-tests",
-    },
-    {
       icon: <Book className="w-10 h-10" />,
       title: t("home_page.questions"),
       subtitle: t("home_page.view_all_questions"),
@@ -64,7 +58,7 @@ export default function Home() {
       icon: <PlusCircle className="w-10 h-10" />,
       title: t("home_page.add_question"),
       subtitle: t("home_page.add_new_question"),
-      path: "/add-question", // Yangi marshrutga yo'naltirish
+      path: "/add-question",
     },
     {
       icon: <ListChecks className="w-10 h-10" />,
