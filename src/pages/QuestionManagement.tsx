@@ -9,7 +9,8 @@ import { ArrowLeft, Volume2, BookText, PenSquare, Mic } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import AddSpeakingQuestion from "@/components/AddSpeakingQuestion";
-import { Button } from "@/components/ui/button"; // Button komponentini import qilish
+import AddListeningQuestion from "@/components/AddListeningQuestion"; // Yangi komponentni import qilish
+import { Button } from "@/components/ui/button";
 
 type QuestionTypeTab = "speaking" | "listening" | "reading" | "writing";
 
@@ -56,9 +57,7 @@ const QuestionManagement: React.FC = () => {
                 <AddSpeakingQuestion />
               </TabsContent>
               <TabsContent value="listening" className="mt-4">
-                <div className="p-4 border rounded-lg bg-card text-center text-muted-foreground">
-                  {t("question_management_page.listening_section_placeholder")}
-                </div>
+                <AddListeningQuestion /> {/* Yangi komponent */}
               </TabsContent>
               <TabsContent value="reading" className="mt-4">
                 <div className="p-4 border rounded-lg bg-card text-center text-muted-foreground">

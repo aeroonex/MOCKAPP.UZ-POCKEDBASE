@@ -1,40 +1,54 @@
 // src/lib/types.ts
 
 export type SpeakingPart = "Part 1.1" | "Part 1.2" | "Part 2" | "Part 3";
+export type ListeningQuestionType = "Complete Section" | "Multiple Choice" | "Short Answer"; // Yangi: Listening savol turlari
 
-export interface BaseSpeakingQuestion {
+export interface BaseQuestion {
   id: string; // uuid
   user_id: string; // Lokal rejimda 'local_user' bo'ladi
   date: string; // ISO string
   last_used?: string; // ISO string
-  type: SpeakingPart;
+  type: string; // SpeakingPart yoki ListeningQuestionType bo'lishi mumkin
   isSimilar?: boolean; // Yangi: Savolning o'xshashligini belgilash uchun
 }
 
-export interface Part1_1Question extends BaseSpeakingQuestion {
+export interface Part1_1Question extends BaseQuestion {
   type: "Part 1.1";
   sub_questions: string[];
 }
 
-export interface Part1_2Question extends BaseSpeakingQuestion {
+export interface Part1_2Question extends BaseQuestion {
   type: "Part 1.2";
   image_urls: string[]; // Base64 stringlari bo'lishi mumkin
   sub_questions: string[];
 }
 
-export interface Part2Question extends BaseSpeakingQuestion {
+export interface Part2Question extends BaseQuestion {
   type: "Part 2";
   image_urls: string[]; // Base64 stringlari bo'lishi mumkin
   question_text: string;
 }
 
-export interface Part3Question extends BaseSpeakingQuestion {
+export interface Part3Question extends BaseQuestion {
   type: "Part 3";
   question_text: string;
   image_urls: string[]; // Base64 stringlari bo'lishi mumkin
 }
 
 export type SpeakingQuestion = Part1_1Question | Part1_2Question | Part2Question | Part3Question;
+
+// Yangi: Listening savol interfeyslari
+export interface CompleteSectionQuestion extends BaseQuestion {
+  type: "Complete Section";
+  audio_url: string; // Audio fayl manzili
+  question_html: string; // Jadvalni o'z ichiga olgan HTML matni
+  answers: {
+    id: string; // Savolning ichidagi javob maydonining IDsi (masalan, {fish})
+    correct_answer: string; // To'g'ri javob
+  }[];
+}
+
+export type ListeningQuestion = CompleteSectionQuestion; // Kelajakda boshqa turlar qo'shilishi mumkin
 
 export interface StudentInfo {
   id: string;

@@ -198,7 +198,22 @@
     "error_recording_not_supported_mobile": "Screen recording is not supported on mobile devices. Please use a desktop browser.",
     "added": "Added",
     "last_used_full": "Last Used",
-    "guest_mode_add_question_warning": "Adding and editing questions is disabled in guest mode. Please log in to use this feature."
+    "guest_mode_add_question_warning": "Adding and editing questions is disabled in guest mode. Please log in to use this feature.",
+    "upload_audio": "Upload Audio File",
+    "uploading_audio": "Uploading audio...",
+    "audio_preview": "Audio Preview:",
+    "question_html_content": "Question HTML Content",
+    "enter_html_for_listening_question": "Enter the HTML content for the listening question here. Use {answer_id} for answer fields.",
+    "html_placeholder_info": "Example: <p>Complete the table below. Write {ONE_WORD} for each answer.</p>",
+    "correct_answers": "Correct Answers",
+    "enter_correct_answer_for": "Enter correct answer for {{id}}",
+    "error_upload_audio": "Please upload an audio file.",
+    "error_enter_question_html": "Please enter the question HTML content.",
+    "error_fill_all_answers": "Please fill in all correct answers.",
+    "add_listening_question": "Add Listening Question",
+    "question_type": "Question Type",
+    "select_question_type": "Select question type",
+    "complete_section": "Complete Section"
   },
   "mock_test_page": {
     "mock_speaking_test": "Mock Speaking Test",
