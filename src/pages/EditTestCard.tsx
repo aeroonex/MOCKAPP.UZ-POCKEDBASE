@@ -10,11 +10,11 @@ import { Link, useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { showError, showSuccess } from "@/utils/toast";
-import { IeltsTest } from "@/lib/types";
-import ListeningSectionEditor from "@/components/ListeningSectionEditor"; // Yangi komponent
-import ReadingSectionEditor from "@/components/ReadingSectionEditor";   // Yangi komponent
-import WritingSectionEditor from "@/components/WritingSectionEditor";   // Yangi komponent
-import SpeakingSectionDisplay from "@/components/SpeakingSectionDisplay"; // Yangi komponent
+import { CEFRTest } from "@/lib/types"; // Yangi CEFRTest interfeysini import qilish
+import ListeningSectionEditor from "@/components/ListeningSectionEditor";
+import ReadingSectionEditor from "@/components/ReadingSectionEditor";
+import WritingSectionEditor from "@/components/WritingSectionEditor";
+import SpeakingSectionDisplay from "@/components/SpeakingSectionDisplay";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type SectionType = "Listening" | "Reading" | "Writing" | "Speaking";
@@ -24,8 +24,8 @@ const EditTestCard: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const [test, setTest] = useState<IeltsTest | null>(null);
-  const [sections, setSections] = useState<any[]>([]); // IELTS sections
+  const [test, setTest] = useState<CEFRTest | null>(null); // CEFRTest tipidan foydalanish
+  const [sections, setSections] = useState<any[]>([]); // CEFR sections
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentSectionTab, setCurrentSectionTab] = useState<SectionType>("Listening");
 
@@ -38,7 +38,7 @@ const EditTestCard: React.FC = () => {
     }
 
     const { data: testData, error: testError } = await supabase
-      .from('ielts_tests')
+      .from('cefr_tests') // Yangi jadval nomi
       .select('*')
       .eq('id', testId)
       .single();
@@ -51,7 +51,7 @@ const EditTestCard: React.FC = () => {
     setTest(testData);
 
     const { data: sectionsData, error: sectionsError } = await supabase
-      .from('ielts_sections')
+      .from('cefr_sections') // Yangi jadval nomi
       .select('*')
       .eq('test_id', testId)
       .order('order', { ascending: true });

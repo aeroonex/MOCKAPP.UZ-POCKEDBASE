@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
 import { showError } from "@/utils/toast";
 import { Mic } from "lucide-react";
-import { SpeakingQuestion } from "@/lib/types";
+import { CEFRQuestion } from "@/lib/types"; // Yangi CEFRQuestion interfeysini import qilish
 
 interface SpeakingSectionDisplayProps {
   sectionId: string | undefined;
@@ -14,7 +14,7 @@ interface SpeakingSectionDisplayProps {
 
 const SpeakingSectionDisplay: React.FC<SpeakingSectionDisplayProps> = ({ sectionId }) => {
   const { t } = useTranslation();
-  const [questions, setQuestions] = useState<SpeakingQuestion[]>([]);
+  const [questions, setQuestions] = useState<CEFRQuestion[]>([]); // CEFRQuestion tipidan foydalanish
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const fetchSpeakingQuestions = useCallback(async () => {
@@ -25,7 +25,7 @@ const SpeakingSectionDisplay: React.FC<SpeakingSectionDisplayProps> = ({ section
       return;
     }
     const { data, error } = await supabase
-      .from('ielts_questions')
+      .from('cefr_questions') // Yangi jadval nomi
       .select('*')
       .eq('section_id', sectionId)
       .order('created_at', { ascending: true });
@@ -34,7 +34,7 @@ const SpeakingSectionDisplay: React.FC<SpeakingSectionDisplayProps> = ({ section
       showError(`${t("question_management_page.error_loading_questions")} ${error.message}`);
       setQuestions([]);
     } else {
-      setQuestions(data as SpeakingQuestion[]);
+      setQuestions(data as CEFRQuestion[]);
     }
     setIsLoading(false);
   }, [sectionId, t]);
@@ -43,14 +43,14 @@ const SpeakingSectionDisplay: React.FC<SpeakingSectionDisplayProps> = ({ section
     fetchSpeakingQuestions();
   }, [fetchSpeakingQuestions]);
 
-  const renderQuestionContent = (q: SpeakingQuestion) => {
+  const renderQuestionContent = (q: CEFRQuestion) => {
     switch (q.question_type) {
       case "system_generated_part1_1":
         return (
           <div>
             <p className="font-semibold">{q.question_text}</p>
             <ul className="list-disc list-inside text-sm text-muted-foreground">
-              {(q as any).sub_questions?.map((subQ: string, i: number) => <li key={i}>{subQ}</li>)}
+              {q.sub_questions?.map((subQ: string, i: number) => <li key={i}>{subQ}</li>)}
             </ul>
           </div>
         );

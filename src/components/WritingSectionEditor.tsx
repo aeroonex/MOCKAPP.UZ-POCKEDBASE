@@ -22,20 +22,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { CEFRQuestion, CEFRWritingRubric } from "@/lib/types"; // Yangi interfeyslarni import qilish
 
-interface WritingRubric {
-  id?: string;
-  criterion: string;
-  description: string;
-  score_range: string;
-}
-
-interface WritingQuestion {
-  id: string;
-  question_text: string; // Writing task description
-  word_limit: number;
-  question_type: string; // 'writing_task'
-  rubrics: WritingRubric[];
+interface WritingQuestion extends CEFRQuestion {
+  rubrics: CEFRWritingRubric[];
 }
 
 interface WritingSectionEditorProps {
@@ -52,7 +42,7 @@ const WritingSectionEditor: React.FC<WritingSectionEditorProps> = ({ sectionId }
   // Form states
   const [writingTask, setWritingTask] = useState<string>("");
   const [wordLimit, setWordLimit] = useState<number>(150);
-  const [rubrics, setRubrics] = useState<WritingRubric[]>([
+  const [rubrics, setRubrics] = useState<({ id?: string } & Omit<CEFRWritingRubric, 'id' | 'question_id' | 'created_at' | 'updated_at'>)[]>([
     { criterion: t("question_management_page.task_achievement"), description: "", score_range: "0-9" },
     { criterion: t("question_management_page.coherence_cohesion"), description: "", score_range: "0-9" },
   ]);
@@ -65,13 +55,13 @@ const WritingSectionEditor: React.FC<WritingSectionEditorProps> = ({ sectionId }
       return;
     }
     const { data, error } = await supabase
-      .from('ielts_questions')
+      .from('cefr_questions') // Yangi jadval nomi
       .select(`
         id,
         question_text,
         word_limit,
         question_type,
-        ielts_rubrics (id, criterion, description, score_range)
+        cefr_rubrics (id, criterion, description, score_range)
       `)
       .eq('section_id', sectionId)
       .order('created_at', { ascending: true });
@@ -82,7 +72,7 @@ const WritingSectionEditor: React.FC<WritingSectionEditorProps> = ({ sectionId }
     } else {
       setQuestions(data.map(q => ({
         ...q,
-        rubrics: q.ielts_rubrics || []
+        rubrics: q.cefr_rubrics || []
       })) as WritingQuestion[]);
     }
     setIsLoading(false);
@@ -102,7 +92,7 @@ const WritingSectionEditor: React.FC<WritingSectionEditorProps> = ({ sectionId }
     setEditingQuestion(null);
   };
 
-  const handleRubricChange = (index: number, field: keyof WritingRubric, value: string) => {
+  const handleRubricChange = (index: number, field: keyof CEFRWritingRubric, value: string) => {
     const newRubrics = [...rubrics];
     (newRubrics[index][field] as string) = value;
     setRubrics(newRubrics);
@@ -131,7 +121,7 @@ const WritingSectionEditor: React.FC<WritingSectionEditorProps> = ({ sectionId }
       if (editingQuestion) {
         // Update existing question
         const { error: qError } = await supabase
-          .from('ielts_questions')
+          .from('cefr_questions') // Yangi jadval nomi
           .update({
             question_text: writingTask.trim(),
             word_limit: wordLimit,
@@ -144,12 +134,12 @@ const WritingSectionEditor: React.FC<WritingSectionEditorProps> = ({ sectionId }
         await Promise.all(rubrics.map(async (rub, index) => {
           if (rub.id) { // Existing rubric
             await supabase
-              .from('ielts_rubrics')
+              .from('cefr_rubrics') // Yangi jadval nomi
               .update({ criterion: rub.criterion.trim(), description: rub.description.trim(), score_range: rub.score_range, updated_at: new Date().toISOString() })
               .eq('id', rub.id);
           } else { // New rubric
             await supabase
-              .from('ielts_rubrics')
+              .from('cefr_rubrics') // Yangi jadval nomi
               .insert({ question_id: editingQuestion.id, criterion: rub.criterion.trim(), description: rub.description.trim(), score_range: rub.score_range });
           }
         }));
@@ -157,14 +147,14 @@ const WritingSectionEditor: React.FC<WritingSectionEditorProps> = ({ sectionId }
         const existingRubricIds = new Set(rubrics.filter(r => r.id).map(r => r.id));
         const rubricsToDelete = editingQuestion.rubrics.filter(r => !existingRubricIds.has(r.id));
         if (rubricsToDelete.length > 0) {
-          await supabase.from('ielts_rubrics').delete().in('id', rubricsToDelete.map(r => r.id));
+          await supabase.from('cefr_rubrics').delete().in('id', rubricsToDelete.map(r => r.id)); // Yangi jadval nomi
         }
 
         showSuccess(t("question_management_page.question_updated_successfully"));
       } else {
         // Create new question
         const { data: newQuestion, error: qError } = await supabase
-          .from('ielts_questions')
+          .from('cefr_questions') // Yangi jadval nomi
           .insert({
             section_id: sectionId,
             question_text: writingTask.trim(),
@@ -176,7 +166,7 @@ const WritingSectionEditor: React.FC<WritingSectionEditorProps> = ({ sectionId }
         if (qError) throw qError;
 
         await supabase
-          .from('ielts_rubrics')
+          .from('cefr_rubrics') // Yangi jadval nomi
           .insert(rubrics.map(rub => ({
             question_id: newQuestion.id,
             criterion: rub.criterion.trim(),
@@ -197,8 +187,8 @@ const WritingSectionEditor: React.FC<WritingSectionEditorProps> = ({ sectionId }
 
   const handleEditQuestionClick = (question: WritingQuestion) => {
     setEditingQuestion(question);
-    setWritingTask(question.question_text);
-    setWordLimit(question.word_limit);
+    setWritingTask(question.question_text || "");
+    setWordLimit(question.word_limit || 150);
     setRubrics(question.rubrics.map(rub => ({ id: rub.id, criterion: rub.criterion, description: rub.description, score_range: rub.score_range })));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -207,7 +197,7 @@ const WritingSectionEditor: React.FC<WritingSectionEditorProps> = ({ sectionId }
     setIsLoading(true);
     try {
       const { error } = await supabase
-        .from('ielts_questions')
+        .from('cefr_questions') // Yangi jadval nomi
         .delete()
         .eq('id', questionId);
       if (error) throw error;

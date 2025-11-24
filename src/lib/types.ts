@@ -2,6 +2,7 @@
 
 export type SpeakingPart = "Part 1.1" | "Part 1.2" | "Part 2" | "Part 3";
 export type ListeningQuestionType = "Complete Section" | "Multiple Choice" | "Short Answer"; // Yangi: Listening savol turlari
+export type CEFRSectionType = "Listening" | "Reading" | "Writing" | "Speaking";
 
 export interface BaseQuestion {
   id: string; // uuid
@@ -78,8 +79,54 @@ export interface RecordedSession {
   isLocalBlobAvailable?: boolean; // Yangi: video blob mahalliy IndexedDBda mavjudligini bildiradi
 }
 
-export interface IeltsTest {
+// Yangi CEFR test turlari
+export interface CEFRTest {
   id: string;
+  user_id: string;
   title: string;
+  is_active: boolean;
   created_at: string;
+  updated_at: string;
+}
+
+export interface CEFRSection {
+  id: string;
+  test_id: string;
+  type: CEFRSectionType;
+  order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CEFRQuestion {
+  id: string;
+  section_id: string;
+  question_text?: string;
+  audio_url?: string;
+  image_urls?: string[];
+  correct_answer?: string;
+  question_type: string; // 'multiple_choice', 'writing_task', 'system_generated_part1_1', etc.
+  word_limit?: number;
+  sub_questions?: string[]; // For Speaking Part 1.1
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CEFRQuestionOption {
+  id: string;
+  question_id: string;
+  option_text: string;
+  is_correct: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CEFRWritingRubric {
+  id: string;
+  question_id: string;
+  criterion: string;
+  description: string;
+  score_range: string;
+  created_at: string;
+  updated_at: string;
 }

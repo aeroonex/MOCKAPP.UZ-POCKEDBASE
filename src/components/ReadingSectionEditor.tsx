@@ -12,13 +12,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { showSuccess, showError } from "@/utils/toast";
 import { v4 as uuidv4 } from 'uuid';
 import { Trash2, PlusCircle, BookText, Pencil, XCircle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { CEFRQuestion, CEFRQuestionOption } from "@/lib/types"; // Yangi interfeyslarni import qilish
 
-interface ReadingQuestion {
-  id: string;
-  question_text: string; // Reading passage
-  image_urls: string[]; // Optional images for the passage
-  question_type: string; // 'multiple_choice'
-  options: { id: string; option_text: string; is_correct: boolean }[];
+interface ReadingQuestion extends CEFRQuestion {
+  options: CEFRQuestionOption[];
 }
 
 interface ReadingSectionEditorProps {
@@ -36,7 +44,7 @@ const ReadingSectionEditor: React.FC<ReadingSectionEditorProps> = ({ sectionId }
   const [readingPassage, setReadingPassage] = useState<string>("");
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [questionText, setQuestionText] = useState<string>(""); // For the actual question about the passage
-  const [options, setOptions] = useState<{ text: string; isCorrect: boolean }[]>([
+  const [options, setOptions] = useState<{ id?: string; text: string; isCorrect: boolean }[]>([
     { text: "", isCorrect: false },
     { text: "", isCorrect: false },
   ]);
@@ -50,13 +58,14 @@ const ReadingSectionEditor: React.FC<ReadingSectionEditorProps> = ({ sectionId }
       return;
     }
     const { data, error } = await supabase
-      .from('ielts_questions')
+      .from('cefr_questions') // Yangi jadval nomi
       .select(`
         id,
         question_text,
         image_urls,
         question_type,
-        ielts_options (id, option_text, is_correct)
+        correct_answer,
+        cefr_options (id, option_text, is_correct)
       `)
       .eq('section_id', sectionId)
       .order('created_at', { ascending: true });
@@ -67,7 +76,7 @@ const ReadingSectionEditor: React.FC<ReadingSectionEditorProps> = ({ sectionId }
     } else {
       setQuestions(data.map(q => ({
         ...q,
-        options: q.ielts_options || []
+        options: q.cefr_options || []
       })) as ReadingQuestion[]);
     }
     setIsLoading(false);
@@ -95,12 +104,21 @@ const ReadingSectionEditor: React.FC<ReadingSectionEditorProps> = ({ sectionId }
     setIsUploadingImage(true);
     showSuccess(t("add_question_page.success_video_saving"));
 
+    const userResponse = await supabase.auth.getUser();
+    const userId = userResponse.data.user?.id;
+
+    if (!userId) {
+      showError(t("add_question_page.error_login_to_upload"));
+      setIsUploadingImage(false);
+      return;
+    }
+
     const fileName = `${uuidv4()}-${file.name}`;
-    const filePath = `${supabase.auth.getUser().then(u => u.data.user?.id)}/ielts-reading-images/${fileName}`;
+    const filePath = `${userId}/cefr-reading-images/${fileName}`; // Yangi bucket nomi
 
     try {
       const { error: uploadError } = await supabase.storage
-        .from('ielts-reading-images')
+        .from('cefr-reading-images') // Yangi bucket nomi
         .upload(filePath, file);
 
       if (uploadError) {
@@ -108,7 +126,7 @@ const ReadingSectionEditor: React.FC<ReadingSectionEditorProps> = ({ sectionId }
       }
 
       const { data } = supabase.storage
-        .from('ielts-reading-images')
+        .from('cefr-reading-images') // Yangi bucket nomi
         .getPublicUrl(filePath);
 
       if (!data.publicUrl) {
@@ -159,7 +177,7 @@ const ReadingSectionEditor: React.FC<ReadingSectionEditorProps> = ({ sectionId }
       if (editingQuestion) {
         // Update existing question
         const { error: qError } = await supabase
-          .from('ielts_questions')
+          .from('cefr_questions') // Yangi jadval nomi
           .update({
             question_text: readingPassage.trim(), // Main text is stored here
             image_urls: imagePreviewUrls,
@@ -173,26 +191,26 @@ const ReadingSectionEditor: React.FC<ReadingSectionEditorProps> = ({ sectionId }
         await Promise.all(options.map(async (opt, index) => {
           if (opt.id) { // Existing option
             await supabase
-              .from('ielts_options')
+              .from('cefr_options') // Yangi jadval nomi
               .update({ option_text: opt.text.trim(), is_correct: opt.isCorrect, updated_at: new Date().toISOString() })
               .eq('id', opt.id);
           } else { // New option
             await supabase
-              .from('ielts_options')
+              .from('cefr_options') // Yangi jadval nomi
               .insert({ question_id: editingQuestion.id, option_text: opt.text.trim(), is_correct: opt.isCorrect });
           }
         }));
         const existingOptionIds = new Set(options.filter(o => o.id).map(o => o.id));
         const optionsToDelete = editingQuestion.options.filter(o => !existingOptionIds.has(o.id));
         if (optionsToDelete.length > 0) {
-          await supabase.from('ielts_options').delete().in('id', optionsToDelete.map(o => o.id));
+          await supabase.from('cefr_options').delete().in('id', optionsToDelete.map(o => o.id)); // Yangi jadval nomi
         }
 
         showSuccess(t("question_management_page.question_updated_successfully"));
       } else {
         // Create new question
         const { data: newQuestion, error: qError } = await supabase
-          .from('ielts_questions')
+          .from('cefr_questions') // Yangi jadval nomi
           .insert({
             section_id: sectionId,
             question_text: readingPassage.trim(), // Main text is stored here
@@ -205,7 +223,7 @@ const ReadingSectionEditor: React.FC<ReadingSectionEditorProps> = ({ sectionId }
         if (qError) throw qError;
 
         await supabase
-          .from('ielts_options')
+          .from('cefr_options') // Yangi jadval nomi
           .insert(options.map(opt => ({
             question_id: newQuestion.id,
             option_text: opt.text.trim(),
@@ -225,7 +243,7 @@ const ReadingSectionEditor: React.FC<ReadingSectionEditorProps> = ({ sectionId }
 
   const handleEditQuestionClick = (question: ReadingQuestion) => {
     setEditingQuestion(question);
-    setReadingPassage(question.question_text);
+    setReadingPassage(question.question_text || "");
     setImagePreviewUrls(question.image_urls || []);
     setQuestionText(question.correct_answer || ""); // The actual question about the passage
     setOptions(question.options.map(opt => ({ id: opt.id, text: opt.option_text, isCorrect: opt.is_correct })));
@@ -236,7 +254,7 @@ const ReadingSectionEditor: React.FC<ReadingSectionEditorProps> = ({ sectionId }
     setIsLoading(true);
     try {
       const { error } = await supabase
-        .from('ielts_questions')
+        .from('cefr_questions') // Yangi jadval nomi
         .delete()
         .eq('id', questionId);
       if (error) throw error;

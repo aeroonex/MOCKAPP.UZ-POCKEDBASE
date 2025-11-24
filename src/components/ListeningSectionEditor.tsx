@@ -12,13 +12,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { showSuccess, showError } from "@/utils/toast";
 import { v4 as uuidv4 } from 'uuid';
 import { Trash2, PlusCircle, Volume2, Pencil, XCircle } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { CEFRQuestion, CEFRQuestionOption } from "@/lib/types"; // Yangi interfeyslarni import qilish
 
-interface ListeningQuestion {
-  id: string;
-  question_text: string;
-  audio_url: string;
-  question_type: string; // 'multiple_choice'
-  options: { id: string; option_text: string; is_correct: boolean }[];
+interface ListeningQuestion extends CEFRQuestion {
+  options: CEFRQuestionOption[];
 }
 
 interface ListeningSectionEditorProps {
@@ -36,7 +44,7 @@ const ListeningSectionEditor: React.FC<ListeningSectionEditorProps> = ({ section
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [questionText, setQuestionText] = useState<string>("");
-  const [options, setOptions] = useState<{ text: string; isCorrect: boolean }[]>([
+  const [options, setOptions] = useState<{ id?: string; text: string; isCorrect: boolean }[]>([
     { text: "", isCorrect: false },
     { text: "", isCorrect: false },
   ]);
@@ -50,13 +58,13 @@ const ListeningSectionEditor: React.FC<ListeningSectionEditorProps> = ({ section
       return;
     }
     const { data, error } = await supabase
-      .from('ielts_questions')
+      .from('cefr_questions') // Yangi jadval nomi
       .select(`
         id,
         question_text,
         audio_url,
         question_type,
-        ielts_options (id, option_text, is_correct)
+        cefr_options (id, option_text, is_correct)
       `)
       .eq('section_id', sectionId)
       .order('created_at', { ascending: true });
@@ -67,7 +75,7 @@ const ListeningSectionEditor: React.FC<ListeningSectionEditorProps> = ({ section
     } else {
       setQuestions(data.map(q => ({
         ...q,
-        options: q.ielts_options || []
+        options: q.cefr_options || []
       })) as ListeningQuestion[]);
     }
     setIsLoading(false);
@@ -95,12 +103,21 @@ const ListeningSectionEditor: React.FC<ListeningSectionEditorProps> = ({ section
     setIsUploadingAudio(true);
     showSuccess(t("add_question_page.success_video_saving"));
 
+    const userResponse = await supabase.auth.getUser();
+    const userId = userResponse.data.user?.id;
+
+    if (!userId) {
+      showError(t("add_question_page.error_login_to_upload"));
+      setIsUploadingAudio(false);
+      return;
+    }
+
     const fileName = `${uuidv4()}-${file.name}`;
-    const filePath = `${supabase.auth.getUser().then(u => u.data.user?.id)}/ielts-audios/${fileName}`;
+    const filePath = `${userId}/cefr-audios/${fileName}`; // Yangi bucket nomi
 
     try {
       const { error: uploadError } = await supabase.storage
-        .from('ielts-audios')
+        .from('cefr-audios') // Yangi bucket nomi
         .upload(filePath, file);
 
       if (uploadError) {
@@ -108,7 +125,7 @@ const ListeningSectionEditor: React.FC<ListeningSectionEditorProps> = ({ section
       }
 
       const { data } = supabase.storage
-        .from('ielts-audios')
+        .from('cefr-audios') // Yangi bucket nomi
         .getPublicUrl(filePath);
 
       if (!data.publicUrl) {
@@ -159,7 +176,7 @@ const ListeningSectionEditor: React.FC<ListeningSectionEditorProps> = ({ section
       if (editingQuestion) {
         // Update existing question
         const { error: qError } = await supabase
-          .from('ielts_questions')
+          .from('cefr_questions') // Yangi jadval nomi
           .update({
             question_text: questionText.trim(),
             audio_url: audioUrl,
@@ -172,12 +189,12 @@ const ListeningSectionEditor: React.FC<ListeningSectionEditorProps> = ({ section
         await Promise.all(options.map(async (opt, index) => {
           if (opt.id) { // Existing option
             await supabase
-              .from('ielts_options')
+              .from('cefr_options') // Yangi jadval nomi
               .update({ option_text: opt.text.trim(), is_correct: opt.isCorrect, updated_at: new Date().toISOString() })
               .eq('id', opt.id);
           } else { // New option
             await supabase
-              .from('ielts_options')
+              .from('cefr_options') // Yangi jadval nomi
               .insert({ question_id: editingQuestion.id, option_text: opt.text.trim(), is_correct: opt.isCorrect });
           }
         }));
@@ -185,14 +202,14 @@ const ListeningSectionEditor: React.FC<ListeningSectionEditorProps> = ({ section
         const existingOptionIds = new Set(options.filter(o => o.id).map(o => o.id));
         const optionsToDelete = editingQuestion.options.filter(o => !existingOptionIds.has(o.id));
         if (optionsToDelete.length > 0) {
-          await supabase.from('ielts_options').delete().in('id', optionsToDelete.map(o => o.id));
+          await supabase.from('cefr_options').delete().in('id', optionsToDelete.map(o => o.id)); // Yangi jadval nomi
         }
 
         showSuccess(t("question_management_page.question_updated_successfully"));
       } else {
         // Create new question
         const { data: newQuestion, error: qError } = await supabase
-          .from('ielts_questions')
+          .from('cefr_questions') // Yangi jadval nomi
           .insert({
             section_id: sectionId,
             question_text: questionText.trim(),
@@ -204,7 +221,7 @@ const ListeningSectionEditor: React.FC<ListeningSectionEditorProps> = ({ section
         if (qError) throw qError;
 
         await supabase
-          .from('ielts_options')
+          .from('cefr_options') // Yangi jadval nomi
           .insert(options.map(opt => ({
             question_id: newQuestion.id,
             option_text: opt.text.trim(),
@@ -224,8 +241,8 @@ const ListeningSectionEditor: React.FC<ListeningSectionEditorProps> = ({ section
 
   const handleEditQuestionClick = (question: ListeningQuestion) => {
     setEditingQuestion(question);
-    setAudioUrl(question.audio_url);
-    setQuestionText(question.question_text);
+    setAudioUrl(question.audio_url || null);
+    setQuestionText(question.question_text || "");
     setOptions(question.options.map(opt => ({ id: opt.id, text: opt.option_text, isCorrect: opt.is_correct })));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -234,7 +251,7 @@ const ListeningSectionEditor: React.FC<ListeningSectionEditorProps> = ({ section
     setIsLoading(true);
     try {
       const { error } = await supabase
-        .from('ielts_questions')
+        .from('cefr_questions') // Yangi jadval nomi
         .delete()
         .eq('id', questionId);
       if (error) throw error;

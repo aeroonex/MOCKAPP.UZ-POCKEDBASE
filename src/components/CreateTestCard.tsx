@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { IeltsTest } from "@/lib/types";
+import { CEFRTest } from "@/lib/types"; // Yangi CEFRTest interfeysini import qilish
 
 const CreateTestCard: React.FC = () => {
   const { t } = useTranslation();
@@ -34,7 +34,7 @@ const CreateTestCard: React.FC = () => {
   const [testTitle, setTestTitle] = useState<string>("");
   const [isActive, setIsActive] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [tests, setTests] = useState<IeltsTest[]>([]);
+  const [tests, setTests] = useState<CEFRTest[]>([]); // CEFRTest tipidan foydalanish
   const [editingTestId, setEditingTestId] = useState<string | null>(null);
 
   const fetchTests = useCallback(async () => {
@@ -45,7 +45,7 @@ const CreateTestCard: React.FC = () => {
       return;
     }
     const { data, error } = await supabase
-      .from('ielts_tests')
+      .from('cefr_tests') // Yangi jadval nomi
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
@@ -88,7 +88,7 @@ const CreateTestCard: React.FC = () => {
       if (editingTestId) {
         // Update existing test
         const { error } = await supabase
-          .from('ielts_tests')
+          .from('cefr_tests') // Yangi jadval nomi
           .update({ title: testTitle.trim(), is_active: isActive, updated_at: new Date().toISOString() })
           .eq('id', editingTestId)
           .eq('user_id', user.id);
@@ -99,7 +99,7 @@ const CreateTestCard: React.FC = () => {
         // Create new test
         const newTestId = uuidv4();
         const { data: newTest, error: testError } = await supabase
-          .from('ielts_tests')
+          .from('cefr_tests') // Yangi jadval nomi
           .insert({ id: newTestId, user_id: user.id, title: testTitle.trim(), is_active: isActive })
           .select()
           .single();
@@ -115,7 +115,7 @@ const CreateTestCard: React.FC = () => {
         ];
 
         const { error: sectionsError } = await supabase
-          .from('ielts_sections')
+          .from('cefr_sections') // Yangi jadval nomi
           .insert(sectionsToCreate.map(s => ({
             test_id: newTestId,
             type: s.type,
@@ -125,7 +125,7 @@ const CreateTestCard: React.FC = () => {
         if (sectionsError) throw sectionsError;
 
         // Auto-create system-generated Speaking questions
-        const speakingSection = (await supabase.from('ielts_sections').select('id').eq('test_id', newTestId).eq('type', 'Speaking').single()).data;
+        const speakingSection = (await supabase.from('cefr_sections').select('id').eq('test_id', newTestId).eq('type', 'Speaking').single()).data; // Yangi jadval nomi
         if (speakingSection) {
           const systemSpeakingQuestions = [
             {
@@ -147,7 +147,7 @@ const CreateTestCard: React.FC = () => {
             }
           ];
           const { error: speakingQError } = await supabase
-            .from('ielts_questions')
+            .from('cefr_questions') // Yangi jadval nomi
             .insert(systemSpeakingQuestions);
           if (speakingQError) throw speakingQError;
         }
@@ -163,7 +163,7 @@ const CreateTestCard: React.FC = () => {
     }
   };
 
-  const handleEditClick = (test: IeltsTest) => {
+  const handleEditClick = (test: CEFRTest) => {
     setEditingTestId(test.id);
     setTestTitle(test.title);
     setIsActive(test.is_active);
@@ -182,7 +182,7 @@ const CreateTestCard: React.FC = () => {
     setIsLoading(true);
     try {
       const { error } = await supabase
-        .from('ielts_tests')
+        .from('cefr_tests') // Yangi jadval nomi
         .delete()
         .eq('id', testId)
         .eq('user_id', user.id);

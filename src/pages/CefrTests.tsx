@@ -8,22 +8,55 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, BookOpen } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
-import { IeltsTest } from "@/lib/types";
-import { getIeltsTests } from "@/lib/local-db";
+import { CEFRTest } from "@/lib/types"; // Yangi CEFRTest interfeysini import qilish
+import { supabase } from "@/integrations/supabase/client"; // Supabase import qilish
 import { showError } from "@/utils/toast";
 import CefrTestCard from "@/components/CefrTestCard";
 
 const CefrTests: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [tests, setTests] = useState<IeltsTest[]>([]);
+  const [tests, setTests] = useState<CEFRTest[]>([]); // CEFRTest tipidan foydalanish
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchTests = useCallback(async () => {
     setIsLoading(true);
     try {
-      const fetchedTests = await getIeltsTests();
-      setTests(fetchedTests);
+      const { data: testsData, error: testsError } = await supabase
+        .from('cefr_tests') // Yangi jadval nomi
+        .select(`
+          *,
+          cefr_sections (
+            id,
+            type,
+            cefr_questions (
+              id
+            )
+          )
+        `)
+        .eq('is_active', true); // Faqat faol testlarni olish
+
+      if (testsError) {
+        showError(`${t("cefr_tests_page.error_loading_tests")} ${testsError.message}`);
+        setTests([]);
+        return;
+      }
+
+      const filteredTests = testsData.filter(test => {
+        const listeningSection = test.cefr_sections.find((s: any) => s.type === 'Listening');
+        const readingSection = test.cefr_sections.find((s: any) => s.type === 'Reading');
+        const writingSection = test.cefr_sections.find((s: any) => s.type === 'Writing');
+        const speakingSection = test.cefr_sections.find((s: any) => s.type === 'Speaking'); // Speaking har doim mavjud deb hisoblanadi
+
+        const hasListeningQuestions = listeningSection && listeningSection.cefr_questions.length > 0;
+        const hasReadingQuestions = readingSection && readingSection.cefr_questions.length > 0;
+        const hasWritingQuestions = writingSection && writingSection.cefr_questions.length > 0;
+        const hasSpeakingSection = !!speakingSection; // Speaking bo'limi mavjudligini tekshirish
+
+        return hasListeningQuestions && hasReadingQuestions && hasWritingQuestions && hasSpeakingSection;
+      });
+
+      setTests(filteredTests as CEFRTest[]);
     } catch (error: any) {
       showError(`${t("cefr_tests_page.error_loading_tests")} ${error.message}`);
     } finally {
@@ -36,10 +69,7 @@ const CefrTests: React.FC = () => {
   }, [fetchTests]);
 
   const handleSelectTest = (testId: string) => {
-    // Bu yerda tanlangan test IDsi bilan mock test sahifasiga yo'naltirish mumkin
-    // Hozircha shunchaki konsolga chiqariladi
     console.log("Selected test ID:", testId);
-    // navigate(`/mock-test?testId=${testId}`); // Agar mock-test sahifasi test IDsini qabul qilsa
     showError(t("cefr_tests_page.test_selection_not_implemented"));
   };
 
