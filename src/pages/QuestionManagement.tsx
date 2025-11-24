@@ -8,7 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Volume2, BookText, PenSquare, Mic } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
-import AddSpeakingQuestion from "@/components/AddSpeakingQuestion"; // Yangi komponentni import qilish
+import AddSpeakingQuestion from "@/components/AddSpeakingQuestion";
+import { Button } from "@/components/ui/button"; // Button komponentini import qilish
 
 type QuestionTypeTab = "speaking" | "listening" | "reading" | "writing";
 
