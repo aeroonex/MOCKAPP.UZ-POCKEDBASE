@@ -62,9 +62,11 @@ const StartCefrTest: React.FC = () => {
   }, [fetchTestDetails]);
 
   const handleStartTest = () => {
-    // Bu yerda testni boshlash logikasi bo'ladi
-    // Masalan, /mock-test sahifasiga yo'naltirish va testId ni parametr sifatida berish
-    showError(t("cefr_start_test_page.start_test_logic_not_implemented"));
+    if (testId) {
+      navigate(`/mock-test`, { state: { cefrTestId: testId } });
+    } else {
+      showError(t("cefr_start_test_page.error_test_id_missing"));
+    }
   };
 
   if (isLoading) {

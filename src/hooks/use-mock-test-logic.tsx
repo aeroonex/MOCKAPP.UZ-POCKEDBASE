@@ -13,7 +13,7 @@ import {
   Part3Question,
 } from "@/lib/types";
 import { allSpeakingParts } from "@/lib/constants";
-import { getSupabaseQuestions, updateQuestionCooldown } from "@/lib/local-db";
+import { getSupabaseQuestions, updateQuestionCooldown, getCefrTestQuestions } from "@/lib/local-db"; // getCefrTestQuestions import qilindi
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/context/AuthProvider"; // useAuth import qilindi
 
@@ -35,6 +35,7 @@ export type TestPhase = "idle" | "pre_test_countdown" | "reading_question" | "pr
 interface UseMockTestLogicProps {
   startRecording: (studentInfo: StudentInfo) => Promise<boolean>;
   stopAllStreams: () => void;
+  cefrTestId?: string; // Yangi prop
 }
 
 function getRandomElements<T>(arr: T[], num: number): T[] {
@@ -47,6 +48,7 @@ function getRandomElements<T>(arr: T[], num: number): T[] {
 export const useMockTestLogic = ({
   startRecording,
   stopAllStreams,
+  cefrTestId, // Yangi prop qabul qilindi
 }: UseMockTestLogicProps) => {
   const [isTestStarted, setIsTestStarted] = useState<boolean>(false);
   const [questions, setQuestions] = useState<Record<SpeakingPart, SpeakingQuestion[]>>({
@@ -149,7 +151,13 @@ export const useMockTestLogic = ({
   }, [currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, questions, currentPhase, stopAllStreams, getCurrentQuestion, t]);
 
   const loadAllQuestions = useCallback(async () => {
-    const data = await getSupabaseQuestions();
+    let data: SpeakingQuestion[] = [];
+    if (cefrTestId) {
+      data = await getCefrTestQuestions(cefrTestId); // CEFR test savollarini yuklash
+    } else {
+      data = await getSupabaseQuestions(); // Oddiy savollarni yuklash
+    }
+    
     const loadedQuestions: Record<SpeakingPart, SpeakingQuestion[]> = {
       "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
     };
@@ -159,7 +167,7 @@ export const useMockTestLogic = ({
       }
     });
     allAvailableQuestionsRef.current = loadedQuestions;
-  }, []);
+  }, [cefrTestId]); // cefrTestId ni dependency ga qo'shish
 
   useEffect(() => {
     loadAllQuestions();
