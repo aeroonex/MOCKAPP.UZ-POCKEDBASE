@@ -7,7 +7,7 @@ import NotFound from "./pages/NotFound";
 import MoodJournal from "./pages/MoodJournal";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
-import QuestionManagement from "./pages/QuestionManagement"; // Yangi nom bilan import
+import QuestionManagement from "./pages/QuestionManagement";
 import MockTest from "./pages/MockTest";
 import Settings from "./pages/Settings";
 import UserProfile from "./pages/UserProfile";
@@ -17,6 +17,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import SuperAdminRoute from "./components/SuperAdminRoute";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import CefrTests from "./pages/CefrTests";
+import EditTestCard from "./pages/EditTestCard"; // Yangi import
 import { AuthProvider } from "./context/AuthProvider";
 import EduAiAssistant from "./components/EduAiAssistant";
 import { useState } from "react";
@@ -86,7 +87,8 @@ const App = () => {
                 {/* Oddiy foydalanuvchilar uchun himoyalangan marshrutlar guruhi */}
                 <Route element={<ProtectedRoute />}>
                   <Route path="/home" element={<Home />} />
-                  <Route path="/add-question" element={<QuestionManagement />} /> {/* Marshrutni yangilash */}
+                  <Route path="/add-question" element={<QuestionManagement />} />
+                  <Route path="/edit-test-card/:testId" element={<EditTestCard />} /> {/* Yangi marshrut */}
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/user-profile" element={<UserProfile />} />
                   <Route path="/questions" element={<Questions />} />

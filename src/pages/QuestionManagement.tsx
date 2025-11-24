@@ -5,14 +5,15 @@ import Navbar from "@/components/Navbar";
 import AppFooter from "@/components/AppFooter";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Volume2, BookText, PenSquare, Mic } from "lucide-react";
+import { ArrowLeft, Volume2, BookText, PenSquare, Mic, LayoutGrid } from "lucide-react"; // LayoutGrid iconini qo'shish
 import { Link } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import AddSpeakingQuestion from "@/components/AddSpeakingQuestion";
-import AddListeningQuestion from "@/components/AddListeningQuestion"; // Yangi komponentni import qilish
+import AddListeningQuestion from "@/components/AddListeningQuestion";
+import CreateTestCard from "@/components/CreateTestCard"; // Yangi komponentni import qilish
 import { Button } from "@/components/ui/button";
 
-type QuestionTypeTab = "speaking" | "listening" | "reading" | "writing";
+type QuestionTypeTab = "speaking" | "listening" | "reading" | "writing" | "create-test-card"; // Yangi tab turi
 
 const QuestionManagement: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<QuestionTypeTab>("speaking");
@@ -39,7 +40,7 @@ const QuestionManagement: React.FC = () => {
           </CardHeader>
           <CardContent>
             <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as QuestionTypeTab)} className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5"> {/* Grid ustunlari sonini 5 ga o'zgartirish */}
                 <TabsTrigger value="speaking" className="flex items-center gap-2">
                   <Mic className="h-4 w-4" /> {t("question_management_page.add_speaking")}
                 </TabsTrigger>
@@ -52,12 +53,15 @@ const QuestionManagement: React.FC = () => {
                 <TabsTrigger value="writing" className="flex items-center gap-2">
                   <PenSquare className="h-4 w-4" /> {t("question_management_page.add_writing")}
                 </TabsTrigger>
+                <TabsTrigger value="create-test-card" className="flex items-center gap-2">
+                  <LayoutGrid className="h-4 w-4" /> {t("question_management_page.create_test_card")} {/* Yangi tab */}
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="speaking" className="mt-4">
                 <AddSpeakingQuestion />
               </TabsContent>
               <TabsContent value="listening" className="mt-4">
-                <AddListeningQuestion /> {/* Yangi komponent */}
+                <AddListeningQuestion />
               </TabsContent>
               <TabsContent value="reading" className="mt-4">
                 <div className="p-4 border rounded-lg bg-card text-center text-muted-foreground">
@@ -68,6 +72,9 @@ const QuestionManagement: React.FC = () => {
                 <div className="p-4 border rounded-lg bg-card text-center text-muted-foreground">
                   {t("question_management_page.writing_section_placeholder")}
                 </div>
+              </TabsContent>
+              <TabsContent value="create-test-card" className="mt-4"> {/* Yangi tab kontenti */}
+                <CreateTestCard />
               </TabsContent>
             </Tabs>
           </CardContent>
