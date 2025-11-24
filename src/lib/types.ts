@@ -130,3 +130,19 @@ export interface CEFRWritingRubric {
   created_at: string;
   updated_at: string;
 }
+
+// Extended CEFRQuestion to include options/rubrics when fetched
+export interface FetchedCEFRQuestion extends CEFRQuestion {
+  cefr_options?: CEFRQuestionOption[]; // For Listening/Reading multiple choice
+  cefr_rubrics?: CEFRWritingRubric[]; // For Writing tasks
+}
+
+// Extended CEFRSection to include questions
+export interface FetchedCEFRSection extends CEFRSection {
+  cefr_questions: FetchedCEFRQuestion[];
+}
+
+// Full CEFR Test structure
+export interface FullCEFRTest extends IeltsTest { // IeltsTest is used for cefr_tests table
+  cefr_sections: FetchedCEFRSection[];
+}

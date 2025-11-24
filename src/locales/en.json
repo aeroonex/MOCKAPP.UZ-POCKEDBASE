@@ -213,7 +213,8 @@
     "add_listening_question": "Add Listening Question",
     "question_type": "Question Type",
     "select_question_type": "Select question type",
-    "complete_section": "Complete Section"
+    "complete_section": "Complete Section",
+    "unknown_section_type": "Unknown section type."
   },
   "mock_test_page": {
     "mock_speaking_test": "Mock Speaking Test",
@@ -446,5 +447,23 @@
     "error_loading_sections": "Error loading sections for this test:",
     "test_not_found": "Test not found.",
     "start_test_logic_not_implemented": "Test start logic is not yet implemented. This will navigate to the actual test interface."
+  },
+  "cefr_test_page": {
+    "prepare_for_section": "Prepare for {{section}} section",
+    "listening_instruction_title": "Listening Section Instructions",
+    "listening_instruction_text": "You will now hear a recording. Listen carefully and answer the questions. You will hear the recording only once.",
+    "listening_audio_playing": "Listening to audio...",
+    "listen_carefully": "Listen carefully...",
+    "answer_the_question": "Answer the question:",
+    "reading_instruction_title": "Reading Section Instructions",
+    "reading_instruction_text": "Read the passage carefully and answer the multiple-choice questions that follow.",
+    "read_the_passage": "Read the passage:",
+    "writing_instruction_title": "Writing Section Instructions",
+    "writing_instruction_text": "You will be given a writing task. Plan, write, and revise your response within the given word limit.",
+    "write_your_essay": "Write your response:",
+    "words": "words",
+    "start_writing_here": "Start writing your response here...",
+    "speaking_instruction_title": "Speaking Section Instructions",
+    "speaking_instruction_text": "This is the Speaking section. You will be asked a series of questions. Speak clearly and naturally."
   }
 }

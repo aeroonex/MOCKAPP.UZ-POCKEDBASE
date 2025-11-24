@@ -213,7 +213,8 @@
     "add_listening_question": "Добавить вопрос по аудированию",
     "question_type": "Тип вопроса",
     "select_question_type": "Выберите тип вопроса",
-    "complete_section": "Завершить раздел"
+    "complete_section": "Завершить раздел",
+    "unknown_section_type": "Неизвестный тип раздела."
   },
   "mock_test_page": {
     "mock_speaking_test": "Пробный тест",
@@ -446,5 +447,23 @@
     "error_loading_sections": "Ошибка загрузки разделов для этого теста:",
     "test_not_found": "Тест не найден.",
     "start_test_logic_not_implemented": "Логика запуска теста еще не реализована. Это переведет вас в фактический интерфейс теста."
+  },
+  "cefr_test_page": {
+    "prepare_for_section": "Подготовьтесь к разделу {{section}}",
+    "listening_instruction_title": "Инструкции по разделу аудирования",
+    "listening_instruction_text": "Сейчас вы услышите запись. Внимательно прослушайте и ответьте на вопросы. Вы услышите запись только один раз.",
+    "listening_audio_playing": "Прослушивание аудио...",
+    "listen_carefully": "Слушайте внимательно...",
+    "answer_the_question": "Ответьте на вопрос:",
+    "reading_instruction_title": "Инструкции по разделу чтения",
+    "reading_instruction_text": "Внимательно прочитайте текст и ответьте на вопросы с множественным выбором.",
+    "read_the_passage": "Прочитайте текст:",
+    "writing_instruction_title": "Инструкции по разделу письма",
+    "writing_instruction_text": "Вам будет предложено выполнить письменное задание. Спланируйте, напишите и отредактируйте свой ответ в пределах заданного лимита слов.",
+    "write_your_essay": "Напишите свой ответ:",
+    "words": "слов",
+    "start_writing_here": "Начните писать свой ответ здесь...",
+    "speaking_instruction_title": "Инструкции по разделу разговорной речи",
+    "speaking_instruction_text": "Это раздел разговорной речи. Вам будет задан ряд вопросов. Говорите четко и естественно."
   }
 }
