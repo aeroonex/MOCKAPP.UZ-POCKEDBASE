@@ -55,7 +55,6 @@
 
     /* Yangi yashil rang */
     --green-500: 142 71% 45%;
-    --green-500-rgb: 93 196 33; /* HSL(142, 71%, 45%) ning RGB qiymati */
   }
 
   .dark {
@@ -102,7 +101,6 @@
 
     /* Yangi yashil rang */
     --green-500: 142 71% 45%;
-    --green-500-rgb: 93 196 33; /* HSL(142, 71%, 45%) ning RGB qiymati */
   }
 
   :root {
@@ -169,12 +167,14 @@
 
 /* Custom CSS from provided HTML */
 .fixed-login-button {
-    /* Old styles removed, now uses btn-glow */
-    color: white; /* Ensure text remains white */
-    --glow-color: rgba(var(--green-500-rgb), 0.5);
+    transition: all 0.3s ease;
+    background-color: hsl(var(--primary));
+    box-shadow: 0 10px 20px hsl(var(--primary) / 0.4);
 }
 .fixed-login-button:hover {
-    /* Old hover styles removed, now uses btn-glow hover */
+    transform: scale(1.05);
+    background-color: hsl(var(--primary-foreground));
+    box-shadow: 0 15px 30px hsl(var(--primary) / 0.6);
 }
 
 .price-option {
@@ -384,8 +384,8 @@
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
 }
 
-/* Custom glow for buttons */
-@keyframes generic-glow-pulse {
+/* Custom glow for Onex Projects button */
+@keyframes onex-glow-pulse {
   0% {
     transform: scale(0.8);
     opacity: 0.5;
@@ -400,55 +400,37 @@
   }
 }
 
-.btn-glow {
+.btn-onex-glow {
   position: relative;
   overflow: hidden;
   z-index: 1;
   transition: all 0.3s ease-in-out;
   background-color: transparent; /* Make button background transparent to show glow */
   border: 1px solid transparent; /* Initial transparent border */
-  color: white; /* Default text color for glow buttons */
 }
 
-.btn-glow::before {
+.btn-onex-glow::before {
   content: '';
   position: absolute;
   top: -10px;
   left: -10px;
   right: -10px;
   bottom: -10px;
-  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.3) 0%, var(--glow-color) 50%, transparent 100%);
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.3) 0%, rgba(var(--green-500), 0.5) 50%, transparent 100%);
   filter: blur(10px); /* Glow effect */
   opacity: 0.7; /* Make it visible by default */
   z-index: -1;
   border-radius: inherit;
-  animation: generic-glow-pulse 2s infinite ease-in-out; /* Apply continuous animation */
+  animation: onex-glow-pulse 2s infinite ease-in-out; /* Apply continuous animation */
 }
 
-.btn-glow:hover::before {
+.btn-onex-glow:hover::before {
   opacity: 1;
   transform: scale(1);
   animation: none; /* Disable continuous pulse on hover if desired, or adjust */
 }
 
-.btn-glow:hover {
-  border-color: var(--glow-color); /* Add a subtle border on hover */
-}
-
-/* Specific glow button styles */
-.btn-onex-glow {
-  --glow-color: rgba(var(--green-500-rgb), 0.5);
-}
-
-.fixed-login-button {
-  --glow-color: rgba(var(--green-500-rgb), 0.5);
-  /* Remove original background and shadow, let btn-glow handle it */
-  background-color: transparent; /* Override any default button background */
-  box-shadow: none; /* Remove default button shadow */
-}
-.fixed-login-button:hover {
-  /* Remove original hover styles, let btn-glow handle it */
-  transform: none;
-  background-color: transparent;
-  box-shadow: none;
+.btn-onex-glow:hover {
+  color: hsl(var(--primary)); /* Ensure text color changes on hover if needed */
+  border-color: hsl(var(--green-500)); /* Add a subtle border on hover */
 }
