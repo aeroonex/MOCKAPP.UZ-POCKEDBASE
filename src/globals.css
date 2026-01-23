@@ -488,8 +488,8 @@
   position: relative;
   transition: all 0.2s;
   height: 32px; /* Fixed height for sm button size */
-  width: 100%; /* Ensure it takes full width on small screens */
-  justify-content: center; /* Center content */
+  /* width: 100%; Removed to allow content-based width */
+  justify-content: flex-start; /* Align content to start */
 }
 
 .Download-button svg {

@@ -525,7 +525,7 @@ const Records: React.FC = () => {
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <button 
-                                className="Download-button destructive-download-button" // Add destructive class
+                                className="Download-button destructive-download-button"
                                 disabled={isDownloading || isUploading}
                               >
                                 <Trash2 className="h-4 w-4" />
