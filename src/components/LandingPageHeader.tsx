@@ -19,9 +19,9 @@ const LandingPageHeader: React.FC<LandingPageHeaderProps> = ({ onOpenLogin }) =>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-14">
         <div className="flex items-center space-x-4"> {/* space-x-4 qo'shildi */}
           <a href="#" className="text-xl font-bold text-foreground">Edumock<span className="text-primary">.uz</span></a>
-          <Button asChild variant="ghost" className="text-sm font-semibold text-foreground hover:text-primary transition-colors">
+          <Button asChild variant="ghost" className="text-sm font-semibold text-foreground hover:text-primary transition-colors btn-onex-glow">
             <a href="https://speakify.uz" target="_blank" rel="noopener noreferrer">
-              {t("common.onex_projects")}
+              <span className="text-white">One</span><span className="text-green-500">X</span> Projects
             </a>
           </Button>
         </div>
