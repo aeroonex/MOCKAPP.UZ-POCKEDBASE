@@ -39,7 +39,8 @@
     "confirmation_email_sent": "Письмо с подтверждением отправлено. Пожалуйста, проверьте свой почтовый ящик.",
     "welcome": "Добро пожаловать",
     "auth_description": "Войдите или создайте учетную запись, чтобы продолжить.",
-    "coming_soon": "Скоро"
+    "coming_soon": "Скоро",
+    "onex_projects": "Onex Projects"
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",
