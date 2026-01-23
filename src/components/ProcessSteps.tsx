@@ -16,19 +16,19 @@ const ProcessSteps: React.FC = () => {
     },
     {
       icon: <Building className="h-8 w-8 process-card-icon mx-auto mb-2" />,
-      textKey: "landing_page.process_step_center",
+      textKey: "landing_page.process_step_cdi_mock",
       delay: "0.3s",
       status: "upcoming"
     },
     {
       icon: <User className="h-8 w-8 process-card-icon mx-auto mb-2" />,
-      textKey: "landing_page.process_step_student",
+      textKey: "landing_page.process_step_cefr_mock_student",
       delay: "0.6s",
       status: "upcoming"
     },
     {
       icon: <TrendingUp className="h-8 w-8 process-card-icon mx-auto mb-2" />,
-      textKey: "landing_page.process_step_result",
+      textKey: "landing_page.process_step_cefr_mock_result",
       delay: "0.9s",
       status: "upcoming"
     },
@@ -40,8 +40,8 @@ const ProcessSteps: React.FC = () => {
         <React.Fragment key={index}>
           <div
             className={cn(
-              `process-card p-4 rounded-xl text-center shadow-lg animated-card relative`, // Added relative for absolute badge
-              step.status === 'active' ? 'border-primary border-2 btn-hover-glow' : 'border-border border-dashed cursor-default opacity-70', // Different border and opacity for upcoming
+              `process-card p-4 rounded-xl text-center shadow-lg animated-card relative`,
+              step.status === 'active' ? 'border-primary border-2 btn-hover-glow' : 'border-border border-dashed cursor-default opacity-70',
             )}
             style={{ animationDelay: step.delay }}
           >
