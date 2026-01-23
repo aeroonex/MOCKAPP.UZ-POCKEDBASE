@@ -17,7 +17,8 @@ import LoadingSpinner from "@/components/LoadingSpinner"; // Import the new comp
 
 const Login: React.FC = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
-  const [isLoadingTryMe, setIsLoadingTryMe] = useState(false); // New state for loading
+  const [isLoadingTryMe, setIsLoadingTryMe] = useState(false); // State for 'Try Me' button loading
+  const [isLoadingLogin, setIsLoadingLogin] = useState(false); // New state for login loading
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -41,15 +42,20 @@ const Login: React.FC = () => {
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        closeLoginModal();
+      if (session && !isLoadingLogin) { // Faqatgina login jarayoni tugagan bo'lsa va spinner ishlamayotgan bo'lsa
+        setIsLoadingLogin(true); // Login spinnerini ishga tushirish
+        setTimeout(() => {
+          closeLoginModal();
+          navigate("/home");
+          setIsLoadingLogin(false); // Spinnerni o'chirish
+        }, 2500); // 2.5 soniya kechikish
       }
     });
 
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, isLoadingLogin]); // isLoadingLogin ni dependency qilib qo'shish
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -75,14 +81,14 @@ const Login: React.FC = () => {
               <Button
                 onClick={handleTryMe}
                 className="bg-gradient-purple text-white text-base px-6 py-4 rounded-full shadow-lg transition-all duration-300 animate-button-pulse btn-hover-glow"
-                disabled={isLoadingTryMe} // Disable button while loading
+                disabled={isLoadingTryMe || isLoadingLogin} // Disable button while loading
               >
                 {t("landing_page.try_me_button")}
               </Button>
               <Button
                 onClick={openLoginModal}
                 className="fixed-login-button text-white focus:outline-none focus:ring-4 focus:ring-primary focus:ring-opacity-50 rounded-xl flex items-center gap-2"
-                disabled={isLoadingTryMe} // Disable button while loading
+                disabled={isLoadingTryMe || isLoadingLogin} // Disable button while loading
               >
                 {t("common.login")}
               </Button>
@@ -115,7 +121,7 @@ const Login: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
-      {isLoadingTryMe && <LoadingSpinner />} {/* Conditionally render spinner */}
+      {(isLoadingTryMe || isLoadingLogin) && <LoadingSpinner />} {/* Conditionally render spinner */}
       <AppFooter />
     </div>
   );
