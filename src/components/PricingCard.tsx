@@ -1,16 +1,10 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from 'react-i18next';
 import { CheckCircle } from 'lucide-react';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 
 interface PriceOption {
@@ -22,70 +16,70 @@ interface PriceOption {
 }
 
 const prices: { [key: string]: PriceOption } = {
-  "1": { 
-    price: 499000, 
+  "1": {
+    price: 499000,
     display: "499,000 so'm",
     features: [
-      "unlimited_attempts", 
-      "unlimited_downloads", 
+      "unlimited_attempts",
+      "unlimited_downloads",
       "cloud_storage_2gb",
-      "add_custom_questions", 
-      "edit_questions", 
+      "add_custom_questions",
+      "edit_questions",
       "support_service_24_7"
     ]
   },
-  "3": { 
-    price: 1199000, 
-    display: "1,199,000 so'm", 
+  "3": {
+    price: 1199000,
+    display: "1,199,000 so'm",
     originalPrice: 1497000, // 3 * 499,000
     discount: "-20%",
     features: [
-      "unlimited_attempts", 
-      "unlimited_downloads", 
+      "unlimited_attempts",
+      "unlimited_downloads",
       "cloud_storage_10gb",
-      "add_custom_questions", 
-      "edit_questions", 
+      "add_custom_questions",
+      "edit_questions",
       "priority_support"
     ]
   },
-  "6": { 
-    price: 2599000, 
-    display: "2,599,000 so'm", 
+  "6": {
+    price: 2599000,
+    display: "2,599,000 so'm",
     originalPrice: 2994000, // 6 * 499,000
     discount: "-13%",
     features: [
-      "unlimited_attempts", 
-      "unlimited_downloads", 
+      "unlimited_attempts",
+      "unlimited_downloads",
       "cloud_storage_25gb",
-      "add_custom_questions", 
-      "edit_questions", 
+      "add_custom_questions",
+      "edit_questions",
       "premium_support"
     ]
   },
-  "12": { 
-    price: 4999000, 
-    display: "4,999,000 so'm", 
+  "12": {
+    price: 4999000,
+    display: "4,999,000 so'm",
     originalPrice: 5988000, // 12 * 499,000
     discount: "-16.5%",
     features: [
-      "unlimited_attempts", 
-      "unlimited_downloads", 
+      "unlimited_attempts",
+      "unlimited_downloads",
       "cloud_storage_50gb",
-      "add_custom_questions", 
-      "edit_questions", 
+      "add_custom_questions",
+      "edit_questions",
       "premium_support",
       "faster_cloud_sync"
     ]
   },
-  "lifetime": { 
-    price: 6599000, 
+  "lifetime": {
+    price: 6599000,
     display: "6,599,000 so'm",
     features: [
-      "unlimited_attempts", 
-      "unlimited_downloads", 
+      "unlimited_attempts",
+      "unlimited_downloads",
       "cloud_storage_100gb_lifetime",
-      "add_custom_questions", 
-      "edit_questions", 
+      "add_custom_questions",
+      "edit_questions",
       "vip_support",
       "priority_cloud_backup",
       "exclusive_features_unlock"
@@ -109,7 +103,6 @@ const PricingCard: React.FC<PricingCardProps> = ({ isDialog = false }) => {
   }, [openAccordionValue]);
 
   const totalPrice = prices[selectedPriceKey];
-
   // Har bir karta uchun fon klasslarini belgilash
   const cardBackgrounds: { [key: string]: string } = {
     "1": "bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900",
@@ -128,13 +121,7 @@ const PricingCard: React.FC<PricingCardProps> = ({ isDialog = false }) => {
         "font-bold text-foreground",
         isDialog ? "text-base mb-2" : "text-xl mb-6"
       )}>{t("landing_page.select_tariff")}</h2>
-
-      <Accordion 
-        type="single" 
-        collapsible 
-        value={openAccordionValue} 
-        onValueChange={setOpenAccordionValue}
-      >
+      <Accordion type="single" collapsible value={openAccordionValue} onValueChange={setOpenAccordionValue}>
         {Object.keys(prices).map((key) => {
           const option = key;
           const priceData = prices[option];
@@ -142,9 +129,9 @@ const PricingCard: React.FC<PricingCardProps> = ({ isDialog = false }) => {
           const isBusinessCard = option === "lifetime"; // Business kartasini aniqlash
 
           return (
-            <AccordionItem 
-              key={option} 
-              value={option} 
+            <AccordionItem
+              key={option}
+              value={option}
               className={cn(
                 "price-option flex flex-col border border-border rounded-xl relative mb-2 last:mb-0",
                 cardBackgrounds[option],
@@ -204,7 +191,6 @@ const PricingCard: React.FC<PricingCardProps> = ({ isDialog = false }) => {
           );
         })}
       </Accordion>
-
       <Button asChild className={cn(
         "w-full mt-2 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition duration-150 shadow-md",
         isDialog ? "py-1.5 text-sm" : "py-4 text-lg"
