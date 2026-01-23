@@ -38,7 +38,8 @@
     "captcha_challenge_error": "Пожалуйста, пройдите проверку CAPTCHA.",
     "confirmation_email_sent": "Письмо с подтверждением отправлено. Пожалуйста, проверьте свой почтовый ящик.",
     "welcome": "Добро пожаловать",
-    "auth_description": "Войдите или создайте учетную запись, чтобы продолжить."
+    "auth_description": "Войдите или создайте учетную запись, чтобы продолжить.",
+    "coming_soon": "Скоро"
   },
   "landing_page": {
     "title_part1": "Edumock Plus –",
