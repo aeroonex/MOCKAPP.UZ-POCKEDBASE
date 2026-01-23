@@ -385,6 +385,21 @@
 }
 
 /* Custom glow for Onex Projects button */
+@keyframes onex-glow-pulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+}
+
 .btn-onex-glow {
   position: relative;
   overflow: hidden;
@@ -403,16 +418,16 @@
   bottom: -10px;
   background: radial-gradient(circle at center, rgba(255, 255, 255, 0.3) 0%, rgba(var(--green-500), 0.5) 50%, transparent 100%);
   filter: blur(10px); /* Glow effect */
-  opacity: 0;
+  opacity: 0.7; /* Make it visible by default */
   z-index: -1;
-  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
   border-radius: inherit;
-  transform: scale(0.8);
+  animation: onex-glow-pulse 2s infinite ease-in-out; /* Apply continuous animation */
 }
 
 .btn-onex-glow:hover::before {
   opacity: 1;
   transform: scale(1);
+  animation: none; /* Disable continuous pulse on hover if desired, or adjust */
 }
 
 .btn-onex-glow:hover {
