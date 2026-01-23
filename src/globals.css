@@ -552,3 +552,17 @@
   border-bottom-left-radius: 0px;
   transform: translate(-5px, 15px) rotate(45deg);
 }
+
+/* Destructive variant for Download-button (e.g., for Delete) */
+.destructive-download-button {
+  background: linear-gradient(144deg, #ff4040, #f3425b 50%, #eb0000); /* Red gradient */
+  box-shadow: 0 0.7em 1.5em -0.5em rgba(255, 64, 64, 0.527);
+}
+
+.destructive-download-button:hover {
+  box-shadow: 0 0.5em 1.5em -0.5em #ff4040;
+}
+
+.destructive-download-button:active {
+  box-shadow: 0 0.3em 1em -0.5em #ff4040;
+}

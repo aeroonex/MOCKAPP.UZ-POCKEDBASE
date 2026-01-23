@@ -18,13 +18,13 @@ import { Dialog, DialogContent, DialogDescription as DialogDescriptionComponent,
 import PricingCard from "@/components/PricingCard";
 import { useTranslation } from 'react-i18next';
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/context/AuthProvider";
 import * as tus from 'tus-js-client';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useProfile, formatBytes } from "@/hooks/use-profile";
 import { Progress } from "@/components/ui/progress";
 import { useProgress, setProgress, removeProgress } from "@/utils/uploadProgress"; // useProgress ni import qilish
 import { Badge } from "@/components/ui/badge"; // Badge import qilindi
+import { useAuth } from "@/context/AuthProvider"; // useAuth import qilindi
 
 // Xotira ishlatilishini ko'rsatuvchi kichik komponent
 const StorageUsageCard: React.FC<{ isGuest: boolean, onOpenPricing: () => void }> = ({ isGuest, onOpenPricing }) => {
@@ -437,17 +437,21 @@ const Records: React.FC = () => {
                         </div>
                         
                         <div className="flex flex-wrap justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
-                          <Button asChild size="sm" className="flex items-center gap-1 w-full sm:w-auto">
-                            <a href={recording.video_url} target="_blank" rel="noopener noreferrer">
-                              <PlayCircle className="h-4 w-4" />
-                              {t("records_page.play")}
-                            </a>
-                          </Button>
+                          {/* Play Button */}
+                          <button 
+                            onClick={() => window.open(recording.video_url, '_blank')}
+                            className="Download-button"
+                            disabled={isDownloading || isUploading}
+                          >
+                            <PlayCircle className="h-4 w-4" />
+                            <span>{t("records_page.play")}</span>
+                          </button>
                           
+                          {/* Download Local Button */}
                           {recording.isLocalBlobAvailable && (
                             <button 
                               onClick={() => handleDownload({ ...recording, supabase_url: undefined })} 
-                              className="Download-button" // Apply new class
+                              className="Download-button"
                               disabled={isDownloading || isUploading}
                             >
                               <svg
@@ -465,6 +469,7 @@ const Records: React.FC = () => {
                             </button>
                           )}
                           
+                          {/* Upload Button */}
                           {isUploading ? (
                             <Button 
                               variant="outline" 
@@ -478,12 +483,12 @@ const Records: React.FC = () => {
                           ) : recording.supabase_url ? (
                             <button 
                               onClick={() => handleDownload(recording)} 
-                              className="Download-button" // Apply new class
+                              className="Download-button"
                               disabled={isDownloading}
                             >
                               {isCurrentlyDownloading ? (
                                 <>
-                                  <Zap className="h-4 w-4 animate-pulse" /> {/* Keep Zap icon for downloading animation */}
+                                  <Zap className="h-4 w-4 animate-pulse" />
                                   <span>{t("records_page.downloading")} ({downloadProgressValue.toFixed(0)}%)</span>
                                 </>
                               ) : (
@@ -516,17 +521,16 @@ const Records: React.FC = () => {
                             </Button>
                           )}
                           
+                          {/* Delete Button */}
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button 
-                                variant="destructive" 
-                                size="sm" 
-                                className="flex items-center gap-1 w-full sm:w-auto"
+                              <button 
+                                className="Download-button destructive-download-button" // Add destructive class
                                 disabled={isDownloading || isUploading}
                               >
                                 <Trash2 className="h-4 w-4" />
-                                {t("records_page.delete")}
-                              </Button>
+                                <span>{t("records_page.delete")}</span>
+                              </button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
