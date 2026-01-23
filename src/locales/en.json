@@ -85,7 +85,7 @@
     "process_step_edumock": "Edumock.uz",
     "process_step_cdi_mock": "CDI MOCK",
     "process_step_cefr_mock_student": "CEFR MOCK",
-    "process_step_cefr_mock_result": "CEFR MOCK",
+    "process_step_result": "Result",
     "footer_protected_by": "Protected by",
     "footer_powered_by": "Powered by",
     "footer_data_secured": "Data Secured",

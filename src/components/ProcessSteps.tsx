@@ -28,7 +28,7 @@ const ProcessSteps: React.FC = () => {
     },
     {
       icon: <TrendingUp className="h-8 w-8 process-card-icon mx-auto mb-2" />,
-      textKey: "landing_page.process_step_cefr_mock_result",
+      textKey: "landing_page.process_step_result",
       delay: "0.9s",
       status: "upcoming"
     },
@@ -48,7 +48,7 @@ const ProcessSteps: React.FC = () => {
             {step.icon}
             <p className="text-sm font-semibold text-foreground">{t(step.textKey)}</p>
             {step.status === 'upcoming' && (
-              <span className="absolute top-2 right-2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full shadow-md">
+              <span className="coming-soon-badge">
                 {t("common.coming_soon")}
               </span>
             )}

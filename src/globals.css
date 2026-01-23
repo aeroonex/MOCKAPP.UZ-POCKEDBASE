@@ -362,3 +362,24 @@
 .typing-dot:nth-child(1) { animation-delay: -0.32s; }
 .typing-dot:nth-child(2) { animation-delay: -0.16s; }
 .typing-dot:nth-child(3) { animation-delay: 0s; }
+
+/* New styling for Coming Soon badge */
+.coming-soon-badge {
+  position: absolute;
+  top: 0.5rem; /* top-2 */
+  right: 0.5rem; /* right-2 */
+  background: linear-gradient(to right, #3b82f6, #9333ea); /* blue-500 to purple-600 */
+  color: white;
+  font-size: 0.75rem; /* text-xs */
+  font-weight: 600; /* font-semibold */
+  padding: 0.25rem 0.75rem; /* px-3 py-1 */
+  border-radius: 9999px; /* rounded-full */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* shadow-lg */
+  transition: all 0.3s ease-in-out;
+  z-index: 10; /* Ensure it's above the card content */
+}
+
+.coming-soon-badge:hover {
+  transform: scale(1.08);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
