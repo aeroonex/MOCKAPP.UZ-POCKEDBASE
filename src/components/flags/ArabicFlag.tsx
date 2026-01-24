@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { useTranslation } = 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface ArabicFlagProps {
