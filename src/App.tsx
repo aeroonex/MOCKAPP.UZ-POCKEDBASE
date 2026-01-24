@@ -22,7 +22,8 @@ import { useState } from "react";
 import { Button } from "./components/ui/button";
 import { Bot } from "lucide-react";
 import { useTranslation } from 'react-i18next';
-import { motion } from "framer-motion"; // framer-motion import qilindi
+import { motion } from "framer-motion";
+import LanguageBackground from "./components/LanguageBackground";
 
 const queryClient = new QueryClient();
 
@@ -34,9 +35,9 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Sonner 
-          position="top-left" 
-          richColors 
+        <Sonner
+          position="top-left"
+          richColors
           theme="system"
           toastOptions={{
             success: {
@@ -71,12 +72,13 @@ const App = () => {
         />
         <BrowserRouter>
           <AuthProvider>
-            <div className="pb-10 bg-background text-foreground min-h-screen">
+            <div className="pb-10 bg-background text-foreground min-h-screen relative">
+              <LanguageBackground />
               <Routes>
                 <Route path="/" element={<Login />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/mock-test" element={<MockTest />} />
-                
+
                 {/* Super Admin uchun himoyalangan marshrut */}
                 <Route element={<SuperAdminRoute />}>
                   <Route path="/superadmin" element={<SuperAdminDashboard />} />
@@ -97,13 +99,13 @@ const App = () => {
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
-            
+
             {/* Floating EduAi Assistant Button */}
             <motion.div
-              initial={{ opacity: 0, y: 50 }} 
+              initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 1 }}
-              className="fixed bottom-4 right-4 z-[9999]" 
+              className="fixed bottom-4 right-4 z-[9999]"
             >
               <Button
                 variant="default"

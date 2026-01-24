@@ -38,19 +38,12 @@
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* Yangi yashil rang */
@@ -102,13 +95,13 @@
     /* Yangi yashil rang */
     --green-500: 142 71% 45%;
   }
+}
 
-  :root {
-    /* Sonner uchun ranglarni aniqlash */
-    --success-color: 142 71% 45%; /* Yashil rang */
-    --error-color: 0 84.2% 60.2%; /* Qizil rang */
-    --info-color: 200 80% 50%; /* Havorang */
-  }
+:root {
+  /* Sonner uchun ranglarni aniqlash */
+  --success-color: 142 71% 45%; /* Yashil rang */
+  --error-color: 0 84.2% 60.2%; /* Qizil rang */
+  --info-color: 200 80% 50%; /* Havorang */
 }
 
 @layer base {
@@ -120,7 +113,7 @@
     @apply bg-background text-foreground;
     /* EduAi Assistant uchun qo'shilgan fon va shrift */
     font-family: 'Inter', sans-serif;
-    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--secondary)) 100%); 
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--secondary)) 100%);
     color: hsl(var(--foreground));
   }
 }
@@ -565,4 +558,35 @@
 
 .destructive-download-button:active {
   box-shadow: 0 0.3em 1em -0.5em #ff4040;
+}
+
+/* Language Background Styles */
+.language-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.language-char {
+  position: absolute;
+  font-size: 2rem;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.1);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  filter: blur(1px);
+  animation: float 15s infinite linear;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  100% {
+    transform: translateY(-100vh) rotate(360deg);
+  }
 }
