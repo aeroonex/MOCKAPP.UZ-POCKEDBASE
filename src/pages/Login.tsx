@@ -67,7 +67,7 @@ const Login: React.FC = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <LandingPageHeader onOpenLogin={openLoginModal} />
 
-      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 hero-section">
+      <main className="flex-grow w-full mx-auto px-4 sm:px-6 lg:px-8 hero-section">
         <div className="lg:flex lg:space-x-12">
           <div className="lg:w-3/5 pb-10">
             <motion.div
