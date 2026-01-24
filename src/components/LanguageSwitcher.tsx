@@ -12,7 +12,7 @@ import {
 import { Globe } from 'lucide-react';
 
 const LanguageSwitcher: React.FC = () => {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
@@ -21,7 +21,6 @@ const LanguageSwitcher: React.FC = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        {/* Tugma stilini oq fonda ko'rinadigan qilib o'zgartirdim */}
         <Button variant="ghost" size="icon" className="text-gray-700 hover:text-lime-500">
           <Globe className="h-5 w-5" />
           <span className="sr-only">Change language</span>
@@ -33,6 +32,12 @@ const LanguageSwitcher: React.FC = () => {
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => changeLanguage('en')}>
           English
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => changeLanguage('tr')}>
+          {t("common.turkish")} {/* Turkcha til nomi uchun tarjima kalitidan foydalanish */}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => changeLanguage('ar')}>
+          {t("common.arabic")} {/* Arabcha til nomi uchun tarjima kalitidan foydalanish */}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

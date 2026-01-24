@@ -4,6 +4,8 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 import enTranslation from './locales/en.json';
 import ruTranslation from './locales/ru.json';
+import trTranslation from './locales/tr.json'; // Turkcha tarjimani import qilish
+import arTranslation from './locales/ar.json'; // Arabcha tarjimani import qilish
 
 i18n
   .use(LanguageDetector)
@@ -15,6 +17,12 @@ i18n
       },
       ru: {
         translation: ruTranslation,
+      },
+      tr: { // Turkcha resursni qo'shish
+        translation: trTranslation,
+      },
+      ar: { // Arabcha resursni qo'shish
+        translation: arTranslation,
       },
     },
     fallbackLng: 'en', // Sukut bo'yicha ingliz tili

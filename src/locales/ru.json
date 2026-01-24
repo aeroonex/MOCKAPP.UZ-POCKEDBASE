@@ -39,6 +39,8 @@
     "confirmation_email_sent": "Письмо с подтверждением отправлено. Пожалуйста, проверьте свой почтовый ящик.",
     "welcome": "Добро пожаловать",
     "auth_description": "Войдите или создайте учетную запись, чтобы продолжить.",
+    "turkish": "Турецкий",
+    "arabic": "Арабский",
     "coming_soon": "Скоро",
     "onex_projects": "Onex Projects"
   },
@@ -321,27 +323,27 @@
     "rule3_text": "When starting the test, select 'Entire Screen' in the pop-up window, check the 'Also share system audio' box, and click the 'Share' button. The exam will start after this."
   },
   "superadmin_page": {
-    "dashboard_title": "Панель Super Admin",
-    "welcome_message": "Добро пожаловать в панель управления Super Admin. Используйте этот интерфейс для управления пользователями, просмотра аналитики и мониторинга состояния системы.",
-    "user_management": "Управление пользователями",
-    "user_management_desc": "Управление ролями пользователей, блокировка/разблокировка учетных записей и просмотр сведений о профиле.",
-    "analytics": "Системная аналитика",
-    "analytics_desc": "Просмотр общего дохода, статистики пользователей и использования хранилища на всей платформе.",
-    "system_logs": "Системные журналы",
-    "system_logs_desc": "Мониторинг системной активности в реальном времени и журналов отладки.",
-    "warning": "⚠️ Внимание: Доступ к этой странице разрешен только пользователям с ролью 'developer'."
+    "dashboard_title": "Super Admin Dashboard",
+    "welcome_message": "Welcome to the Super Admin control panel. Use this interface to manage users, view analytics, and monitor system health.",
+    "user_management": "User Management",
+    "user_management_desc": "Manage user roles, block/unblock accounts, and view profile details.",
+    "analytics": "System Analytics",
+    "analytics_desc": "View total income, user statistics, and storage usage across the platform.",
+    "system_logs": "System Logs",
+    "system_logs_desc": "Monitor real-time system activity and debug logs.",
+    "warning": "⚠️ Caution: Only users with 'developer' role can access this page."
   },
   "eduai_assistant": {
     "title": "EduAi",
-    "subtitle": "Помощник Edumock.uz",
-    "input_placeholder": "Задайте EduAi вопрос об Edumock.uz...",
-    "send_button": "Отправить",
-    "initial_greeting": "Здравствуйте! Я **EduAi**, помощник Edumock.uz. Я могу помочь ответить на ваши вопросы о нашей платформе для разговорной практики, тарифах, функциях и технических инструкциях. Чем могу помочь сегодня?",
-    "empty_response_error": "Извините, я получил пустой ответ. Не могли бы вы попробовать задать вопрос по-другому?",
-    "connection_error": "Извините, произошла ошибка подключения или не удалось получить действительный ответ. Пожалуйста, проверьте ваше соединение и попробуйте еще раз через некоторое время.",
-    "sources_label": "Источники:",
-    "open_assistant": "Открыть помощника EduAi",
-    "typing": "Печатает...",
-    "chat_button_label": "Чат"
+    "subtitle": "Edumock.uz Assistant",
+    "input_placeholder": "Ask EduAi a question about Edumock.uz...",
+    "send_button": "Send",
+    "initial_greeting": "Hello! I am **EduAi**, the assistant for Edumock.uz. I can help answer your questions about our Speaking Platform, tariffs, features, and technical instructions. How can I assist you today?",
+    "empty_response_error": "I apologize, but I received an empty response. Could you please try asking in a different way?",
+    "connection_error": "I'm sorry, I encountered a connection error or failed to get a valid response. Please check your connection and try again in a moment.",
+    "sources_label": "Sources:",
+    "open_assistant": "Open EduAi Assistant",
+    "typing": "Typing...",
+    "chat_button_label": "Chat"
   }
 }
