@@ -3,22 +3,16 @@
 import React from "react";
 import { User } from "lucide-react";
 import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './LanguageSwitcher';
 import { ThemeToggle } from './ThemeToggle';
 import { Button } from '@/components/ui/button'; // Button komponentini import qilish
-import EnglishFlag from './flags/EnglishFlag';
-import TurkishFlag from './flags/TurkishFlag';
-import ArabicFlag from './flags/ArabicFlag';
 
 interface LandingPageHeaderProps {
   onOpenLogin: () => void;
 }
 
 const LandingPageHeader: React.FC<LandingPageHeaderProps> = ({ onOpenLogin }) => {
-  const { t, i18n } = useTranslation();
-
-  const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng);
-  };
+  const { t } = useTranslation();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border shadow-sm">
@@ -34,11 +28,10 @@ const LandingPageHeader: React.FC<LandingPageHeaderProps> = ({ onOpenLogin }) =>
           </Button>
         </div>
         <div className="flex items-center space-x-3">
-          {/* Language Flags */}
-          <EnglishFlag onClick={() => changeLanguage('en')} isActive={i18n.language === 'en'} />
-          <TurkishFlag onClick={() => changeLanguage('tr')} isActive={i18n.language === 'tr'} />
-          <ArabicFlag onClick={() => changeLanguage('ar')} isActive={i18n.language === 'ar'} />
-          
+          <a href="#" className="hidden sm:inline-block px-4 py-2 bg-primary text-white font-semibold rounded-full hover:bg-primary/90 transition duration-150 text-sm">
+            Edumock Plus
+          </a>
+          <LanguageSwitcher />
           <ThemeToggle />
           <button onClick={onOpenLogin} className="text-primary hover:text-primary/80">
             <User className="h-5 w-5" />

@@ -39,6 +39,8 @@
     "auth_description": "سجل الدخول أو أنشئ حسابًا للمتابعة.",
     "sign_up": "إنشاء حساب",
     "signing_up": "جار إنشاء الحساب...",
+    "turkish": "التركية",
+    "arabic": "العربية",
     "coming_soon": "قريباً",
     "onex_projects": "مشاريع Onex"
   },
@@ -250,12 +252,12 @@
     "success_downloaded": "تم التنزيل بنجاح!",
     "error_cloud_delete_failed_local_kept": "فشل حذف السحابة. تم الاحتفاظ بالنسخة المحلية.",
     "upload_success": "تم تحميل الفيديو بنجاح إلى EduCloud!",
-    "guest_upload_title": "EduCloud Upload",
+    "guest_upload_title": "تحميل EduCloud",
     "guest_upload_description": "هذه الميزة متاحة للمشتركين. يرجى تحديد خطة تعريفة لتحميل تسجيلاتك إلى EduCloud والوصول إليها من أي جهاز.",
     "error_max_size_exceeded": "خطأ في التحميل: حجم ملف الفيديو يتجاوز الحد الأقصى المسموح به للتخزين السحابي. إذا كنت بحاجة إلى حد أكبر، يرجى الاتصال بالدعم.",
     "used_percentage": "المستخدم: {{percentage}}%",
     "error_storage_limit_exceeded": "فشل التحميل: مساحة تخزين EduCloud غير كافية. يرجى حذف التسجيلات القديمة لتوفير مساحة.",
-    "guest_storage_description": "اشترك في خطة تعريفة لتحميل تسجيلاتك إلى EduCloud والوصol إليها من أي جهاز.",
+    "guest_storage_description": "اشترك في خطة تعريفة لتحميل تسجيلاتك إلى EduCloud والوصول إليها من أي جهاز.",
     "view_plans": "عرض الخطط"
   },
   "mood_journal_page": {

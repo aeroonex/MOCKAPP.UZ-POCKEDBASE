@@ -39,6 +39,8 @@
     "auth_description": "Devam etmek için giriş yapın veya bir hesap oluşturun.",
     "sign_up": "Kaydol",
     "signing_up": "Kaydolunuyor...",
+    "" : "Türkçe",
+    "arabic": "Arapça",
     "coming_soon": "Çok Yakında",
     "onex_projects": "Onex Projeleri"
   },
@@ -254,7 +256,7 @@
     "guest_upload_description": "Bu özellik aboneler için mevcuttur. Kayıtlarınızı EduCloud'a yüklemek ve herhangi bir cihazdan erişmek için lütfen bir tarife planı seçin.",
     "error_max_size_exceeded": "Yükleme hatası: Video dosya boyutu izin verilen maksimum bulut depolama limitini aşıyor. Daha büyük bir limite ihtiyacınız varsa, lütfen destekle iletişime geçin.",
     "used_percentage": "Kullanılan: {{percentage}}%",
-    "error_storage_limit_exceeded": "Yükleme başarısiz oldu: Yetersiz EduCloud depolama alanı. Lütfen yer açmak için eski kayıtları silin.",
+    "error_storage_limit_exceeded": "Yükleme başarısız oldu: Yetersiz EduCloud depolama alanı. Lütfen yer açmak için eski kayıtları silin.",
     "guest_storage_description": "Kayıtlarınızı EduCloud'a yüklemek ve herhangi bir cihazdan erişmek için bir tarife planına abone olun.",
     "view_plans": "Planları Görüntüle"
   },
