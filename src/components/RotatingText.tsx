@@ -44,7 +44,8 @@ const RotatingText: React.FC<RotatingTextProps> = ({ type }) => {
   const containerDimensions = {
     // `h` qiymatlari `h1` va `p` teglarining `line-height` qiymatlariga mos keladi.
     // `min-w` qiymatlari eng uzun tarjimani sig'dira olishi uchun oshirildi.
-    title: "h-[2.5rem] sm:h-[3rem] lg:h-[3.75rem] min-w-[250px] sm:min-w-[350px] lg:min-w-[600px]",
+    // Rus tilidagi matn ikki qatorga sig'ishi uchun balandlik oshirildi.
+    title: "h-[4.75rem] sm:h-[5.75rem] lg:h-[6rem] min-w-[250px] sm:min-w-[350px] lg:min-w-[500px]",
     subtitle: "h-[1.75rem] sm:h-[2.25rem] min-w-[150px] sm:min-w-[300px]",
   };
 
@@ -60,7 +61,7 @@ const RotatingText: React.FC<RotatingTextProps> = ({ type }) => {
           exit={{ opacity: 0, y: -20, filter: 'blur(5px)' }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
           className={cn(
-            "absolute left-0 top-0 w-full h-full flex items-center justify-start whitespace-nowrap",
+            "absolute left-0 top-0 w-full h-full flex items-center justify-start", // `whitespace-nowrap` olib tashlandi
             {
               // Rus tilidagi sarlavha uchun kichikroq shrift o'lchamlarini qo'llash
               'text-3xl sm:text-4xl lg:text-4xl': currentLang === 'ru' && type === 'title',
