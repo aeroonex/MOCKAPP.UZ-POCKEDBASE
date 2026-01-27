@@ -42,8 +42,10 @@ const RotatingText: React.FC<RotatingTextProps> = ({ type }) => {
   // Bu balandliklar ota-elementlardagi h1/p elementlarining line-height qiymatlariga asoslangan.
   // Tailwind CSS ning default `leading-tight` qiymatlari asosida hisoblangan.
   const containerDimensions = {
-    title: "h-[2.5rem] sm:h-[3rem] lg:h-[3.75rem] min-w-[250px] sm:min-w-[350px] lg:min-w-[600px]", // text-4xl (lh 2.5rem), sm:text-5xl (lh 1), lg:text-6xl (lh 1)
-    subtitle: "h-[1.75rem] sm:h-[2.25rem] min-w-[150px] sm:min-w-[300px]", // text-xl (lh 1.75rem), sm:text-3xl (lh 2.25rem)
+    // `h` qiymatlari `h1` va `p` teglarining `line-height` qiymatlariga mos keladi.
+    // `min-w` qiymatlari eng uzun tarjimani sig'dira olishi uchun oshirildi.
+    title: "h-[2.8125rem] sm:h-[3rem] lg:h-[3.75rem] min-w-[300px] sm:min-w-[450px] lg:min-w-[750px]",
+    subtitle: "h-[1.75rem] sm:h-[2.25rem] min-w-[150px] sm:min-w-[300px]",
   };
 
   return (
@@ -55,7 +57,7 @@ const RotatingText: React.FC<RotatingTextProps> = ({ type }) => {
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           exit={{ opacity: 0, y: -20, filter: 'blur(5px)' }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
-          className="absolute left-0 top-0 w-full h-full flex items-center justify-start" // Ota-elementni to'ldiradi va matnni tekislaydi
+          className="absolute left-0 top-0 w-full h-full flex items-center justify-start whitespace-nowrap" // `whitespace-nowrap` qo'shildi
         >
           {currentTextArray[currentIndex].text}
         </motion.span>
