@@ -52,7 +52,7 @@ const RotatingText: React.FC<RotatingTextProps> = ({ type }) => {
   const currentLang = currentTextArray[currentIndex].lang;
 
   return (
-    <div className={cn("relative block overflow-hidden", containerDimensions[type])}> {/* overflow-hidden qo'shildi */}
+    <div className={cn("relative block", containerDimensions[type])}> {/* inline-block o'rniga block qilindi */}
       <AnimatePresence mode="wait">
         <motion.span
           key={currentIndex}
@@ -61,7 +61,7 @@ const RotatingText: React.FC<RotatingTextProps> = ({ type }) => {
           exit={{ opacity: 0, y: -20, filter: 'blur(5px)' }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
           className={cn(
-            "absolute left-0 top-0 w-full h-full flex items-start justify-start text-primary", // items-center o'rniga items-start qilindi va text-primary qo'shildi
+            "absolute left-0 top-0 w-full h-full flex items-center justify-start",
             {
               // Rus tilidagi sarlavha uchun kichikroq shrift o'lchamlarini qo'llash
               'text-3xl sm:text-4xl lg:text-4xl': currentLang === 'ru' && type === 'title',
