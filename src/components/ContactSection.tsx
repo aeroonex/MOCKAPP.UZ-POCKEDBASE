@@ -15,7 +15,7 @@ const ContactSection: React.FC = () => {
       </div>
 
       {/* Yangilangan Aloqa Bo'limi Dizayni */}
-      <Card className="animated-card" style={{ animationDelay: '1.3s' }}>
+      <Card className="animated-card card-glow" style={{ animationDelay: '1.3s' }}>
         <CardHeader>
           <CardTitle className="flex items-center text-2xl font-bold text-foreground">
             <div className="bg-primary rounded-full p-2 mr-3">

@@ -7,7 +7,7 @@ const AppFooter: React.FC = () => {
   const { t } = useTranslation();
 
   return (
-    <footer className="mt-auto bg-card border-t border-border py-12 text-foreground">
+    <footer className="mt-auto bg-card border-t border-border py-12 text-foreground footer-glow">
       <div className="container mx-auto px-4 flex flex-col items-center space-y-8">
 
         {/* Brand Info */}
