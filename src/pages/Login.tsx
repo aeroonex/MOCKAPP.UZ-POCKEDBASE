@@ -75,7 +75,7 @@ const Login: React.FC = () => {
               animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
               transition={{ duration: 1, delay: 0.2 }}
             >
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground mb-4 leading-tight overflow-x-hidden">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground mb-4 leading-tight">
                 {t("landing_page.title_part1")} <span className="text-primary"><RotatingText type="title" /></span>
               </h1>
               <p className="text-xl sm:text-3xl font-semibold text-muted-foreground mb-8">
