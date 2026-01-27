@@ -94,7 +94,10 @@
     "footer_data_secured": "Data Secured",
     "footer_cloudflare_title": "Site protected by Cloudflare",
     "footer_educloud_title": "Part of the EduCloud ecosystem",
-    "footer_ssl_title": "Data is encrypted and secure"
+    "footer_ssl_title": "Data is encrypted and secure",
+    "slogan_short": "Your platform for conversational practice and real results.",
+    "call_us": "Call Us",
+    "message_us": "Message Us"
   },
   "home_page": {
     "speaking_platform": "Speaking Platform",
@@ -201,7 +204,8 @@
     "error_recording_not_supported_mobile": "Screen recording is not supported on mobile devices. Please use a desktop browser.",
     "added": "Added",
     "last_used_full": "Last Used",
-    "guest_mode_add_question_warning": "Adding and editing questions is disabled in guest mode. Please log in to use this feature."
+    "guest_mode_add_question_warning": "Adding and editing questions is disabled in guest mode. Please log in to use this feature.",
+    "web_speech_api_not_supported": "Web Speech API is not supported in this browser."
   },
   "mock_test_page": {
     "mock_speaking_test": "Mock Speaking Test",
@@ -345,5 +349,16 @@
     "open_assistant": "Open EduAi Assistant",
     "typing": "Typing...",
     "chat_button_label": "Chat"
+  },
+  "welcome_dialog": {
+    "get_started": "Get Started",
+    "slide1_title": "Welcome to Edumock.uz!",
+    "slide1_description": "Your ultimate platform for CEFR Speaking exam preparation. Get ready to boost your confidence and achieve real results.",
+    "slide2_title": "Practice with Unlimited Questions",
+    "slide2_description": "Access a vast library of speaking questions across all CEFR parts. Add your own custom questions to tailor your practice.",
+    "slide3_title": "Record & Review Your Progress",
+    "slide3_description": "Record your mock tests, save them locally or upload to EduCloud. Review your performance to identify areas for improvement.",
+    "slide4_title": "Smart AI Assistant & Support",
+    "slide4_description": "Get instant answers to your questions with EduAi, our intelligent assistant. Plus, enjoy dedicated support for a seamless experience."
   }
 }

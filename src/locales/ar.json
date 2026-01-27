@@ -94,7 +94,10 @@
     "footer_data_secured": "البيانات مؤمنة",
     "footer_cloudflare_title": "الموقع محمي بواسطة Cloudflare",
     "footer_educloud_title": "جزء من نظام EduCloud البيئي",
-    "footer_ssl_title": "البيانات مشفرة وآمنة"
+    "footer_ssl_title": "البيانات مشفرة وآمنة",
+    "slogan_short": "منصتك للممارسة المحادثة والنتائج الحقيقية.",
+    "call_us": "اتصل بنا",
+    "message_us": "راسلنا"
   },
   "home_page": {
     "speaking_platform": "منصة التحدث",
@@ -201,7 +204,8 @@
     "error_recording_not_supported_mobile": "تسجيل الشاشة غير مدعوم على الأجهزة المحمولة. يرجى استخدام متصفح سطح المكتب.",
     "added": "أضيف",
     "last_used_full": "آخر استخدام",
-    "guest_mode_add_question_warning": "إضافة وتعديل الأسئلة معطل في وضع الضيف. يرجى تسجيل الدخول لاستخدام هذه الميزة."
+    "guest_mode_add_question_warning": "إضافة وتعديل الأسئلة معطل في وضع الضيف. يرجى تسجيل الدخول لاستخدام هذه الميزة.",
+    "web_speech_api_not_supported": "واجهة برمجة تطبيقات الويب للكلام غير مدعومة في هذا المتصفح."
   },
   "mock_test_page": {
     "mock_speaking_test": "اختبار التحدث التجريبي",
@@ -345,5 +349,16 @@
     "open_assistant": "فتح مساعد EduAi",
     "typing": "جار الكتابة...",
     "chat_button_label": "دردشة"
+  },
+  "welcome_dialog": {
+    "get_started": "ابدأ",
+    "slide1_title": "مرحباً بك في Edumock.uz!",
+    "slide1_description": "منصتك النهائية للتحضير لاختبار CEFR للتحدث. استعد لتعزيز ثقتك وتحقيق نتائج حقيقية.",
+    "slide2_title": "تدرب بأسئلة غير محدودة",
+    "slide2_description": "احصل على مكتبة واسعة من أسئلة التحدث عبر جميع أجزاء CEFR. أضف أسئلتك المخصصة لتخصيص تدريبك.",
+    "slide3_title": "سجل وراجع تقدمك",
+    "slide3_description": "سجل اختباراتك التجريبية، واحفظها محليًا أو ارفعها إلى EduCloud. راجع أداءك لتحديد مجالات التحسين.",
+    "slide4_title": "مساعد ذكي بالذكاء الاصطناعي ودعم",
+    "slide4_description": "احصل على إجابات فورية لأسئلتك باستخدام EduAi، مساعدنا الذكي. بالإضافة إلى ذلك، استمتع بالدعم المخصص لتجربة سلسة."
   }
 }

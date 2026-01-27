@@ -15,10 +15,12 @@ import CustomAuthForm from "@/components/CustomAuthForm";
 import { motion } from "framer-motion"; // Import motion from framer-motion
 import LoadingSpinner from "@/components/LoadingSpinner"; // Import the new component
 import RotatingText from "@/components/RotatingText"; // Yangi komponentni import qilish
+import WelcomeDialog from "@/components/WelcomeDialog"; // WelcomeDialog komponentini import qilish
 
 const Login: React.FC = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [showGlobalSpinner, setShowGlobalSpinner] = useState(false); // Combined loading state for both "Try Me" and actual login
+  const [isWelcomeDialogOpen, setIsWelcomeDialogOpen] = useState(false); // Welcome dialog holati
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -41,6 +43,12 @@ const Login: React.FC = () => {
   };
 
   useEffect(() => {
+    // Welcome dialogni ko'rsatish logikasi
+    const welcomeDialogShown = localStorage.getItem('welcomeDialogShown');
+    if (!welcomeDialogShown) {
+      setIsWelcomeDialogOpen(true);
+    }
+
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
         setShowGlobalSpinner(true); // Start spinner for login
@@ -129,6 +137,7 @@ const Login: React.FC = () => {
       </Dialog>
       {showGlobalSpinner && <LoadingSpinner />} {/* Conditionally render spinner */}
       <AppFooter />
+      <WelcomeDialog isOpen={isWelcomeDialogOpen} onClose={() => setIsWelcomeDialogOpen(false)} />
     </div>
   );
 };

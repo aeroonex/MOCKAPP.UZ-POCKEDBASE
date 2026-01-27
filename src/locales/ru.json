@@ -94,7 +94,10 @@
     "footer_data_secured": "Данные защищены",
     "footer_cloudflare_title": "Сайт защищен Cloudflare",
     "footer_educloud_title": "Часть экосистемы EduCloud",
-    "footer_ssl_title": "Данные зашифрованы и безопасны"
+    "footer_ssl_title": "Данные зашифрованы и безопасны",
+    "slogan_short": "Ваша платформа для разговорной практики и реальных результатов.",
+    "call_us": "Позвоните нам",
+    "message_us": "Напишите нам"
   },
   "home_page": {
     "speaking_platform": "Платформа для разговорной практики",
@@ -201,7 +204,8 @@
     "error_recording_not_supported_mobile": "Screen recording is not supported on mobile devices. Please use a desktop browser.",
     "added": "Added",
     "last_used_full": "Last Used",
-    "guest_mode_add_question_warning": "Adding and editing questions is disabled in guest mode. Please log in to use this feature."
+    "guest_mode_add_question_warning": "Adding and editing questions is disabled in guest mode. Please log in to use this feature.",
+    "web_speech_api_not_supported": "Web Speech API не поддерживается в этом браузере."
   },
   "mock_test_page": {
     "mock_speaking_test": "Mock Speaking Test",
@@ -345,5 +349,16 @@
     "open_assistant": "Open EduAi Assistant",
     "typing": "Typing...",
     "chat_button_label": "Chat"
+  },
+  "welcome_dialog": {
+    "get_started": "Начать",
+    "slide1_title": "Добро пожаловать в Edumock.uz!",
+    "slide1_description": "Ваша идеальная платформа для подготовки к разговорной части экзамена CEFR. Приготовьтесь повысить свою уверенность и достичь реальных результатов.",
+    "slide2_title": "Практикуйтесь с неограниченным количеством вопросов",
+    "slide2_description": "Получите доступ к обширной библиотеке разговорных вопросов по всем частям CEFR. Добавляйте свои собственные вопросы, чтобы настроить практику.",
+    "slide3_title": "Записывайте и просматривайте свой прогресс",
+    "slide3_description": "Записывайте свои пробные тесты, сохраняйте их локально или загружайте в EduCloud. Просматривайте свою производительность, чтобы определить области для улучшения.",
+    "slide4_title": "Умный ИИ-помощник и поддержка",
+    "slide4_description": "Получайте мгновенные ответы на свои вопросы с помощью EduAi, нашего интеллектуального помощника. Кроме того, наслаждайтесь выделенной поддержкой для бесперебойной работы."
   }
 }

@@ -94,7 +94,10 @@
     "footer_data_secured": "Veri Güvenli",
     "footer_cloudflare_title": "Site Cloudflare tarafından korunmaktadır",
     "footer_educloud_title": "EduCloud ekosisteminin bir parçası",
-    "footer_ssl_title": "Veriler şifreli ve güvenlidir"
+    "footer_ssl_title": "Veriler şifreli ve güvenlidir",
+    "slogan_short": "Konuşma pratiği ve gerçek sonuçlar için platformunuz.",
+    "call_us": "Bizi Ara",
+    "message_us": "Bize Mesaj Gönder"
   },
   "home_page": {
     "speaking_platform": "Konuşma Platformu",
@@ -201,7 +204,8 @@
     "error_recording_not_supported_mobile": "Ekran kaydı mobil cihazlarda desteklenmiyor. Lütfen masaüstü tarayıcı kullanın.",
     "added": "Eklendi",
     "last_used_full": "Son Kullanım",
-    "guest_mode_add_question_warning": "Misafir modunda soru ekleme ve düzenleme devre dışıdır. Bu özelliği kullanmak için lütfen giriş yapın."
+    "guest_mode_add_question_warning": "Misafir modunda soru ekleme ve düzenleme devre dışıdır. Bu özelliği kullanmak için lütfen giriş yapın.",
+    "web_speech_api_not_supported": "Web Konuşma API'si bu tarayıcıda desteklenmiyor."
   },
   "mock_test_page": {
     "mock_speaking_test": "Deneme Konuşma Sınavı",
@@ -345,5 +349,16 @@
     "open_assistant": "EduAi Asistanını Aç",
     "typing": "Yazıyor...",
     "chat_button_label": "Sohbet"
+  },
+  "welcome_dialog": {
+    "get_started": "Başla",
+    "slide1_title": "Edumock.uz'a Hoş Geldiniz!",
+    "slide1_description": "CEFR Konuşma sınavı hazırlığı için nihai platformunuz. Güveninizi artırmaya ve gerçek sonuçlar elde etmeye hazır olun.",
+    "slide2_title": "Sınırsız Soru ile Pratik Yapın",
+    "slide2_description": "Tüm CEFR bölümlerinde geniş bir konuşma soruları kütüphanesine erişin. Pratiğinizi kişiselleştirmek için kendi özel sorularınızı ekleyin.",
+    "slide3_title": "İlerlemenizi Kaydedin ve İnceleyin",
+    "slide3_description": "Deneme sınavlarınızı kaydedin, yerel olarak kaydedin veya EduCloud'a yükleyin. Geliştirilmesi gereken alanları belirlemek için performansınızı inceleyin.",
+    "slide4_title": "Akıllı Yapay Zeka Asistanı ve Destek",
+    "slide4_description": "Akıllı asistanımız EduAi ile sorularınıza anında yanıt alın. Ayrıca, sorunsuz bir deneyim için özel desteğin keyfini çıkarın."
   }
 }
