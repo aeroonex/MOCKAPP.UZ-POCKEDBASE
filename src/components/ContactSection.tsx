@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { Phone, MessageSquareText } from "lucide-react"; // Upload ikonasi MessageSquareText ga o'zgartirildi
+import { Phone, MessageSquareText } from "lucide-react";
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // shadcn/ui Card komponentlari import qilindi
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const ContactSection: React.FC = () => {
   const { t } = useTranslation();
@@ -15,7 +15,7 @@ const ContactSection: React.FC = () => {
       </div>
 
       {/* Yangilangan Aloqa Bo'limi Dizayni */}
-      <Card className="animated-card card-glow" style={{ animationDelay: '1.3s' }}>
+      <Card style={{ animationDelay: '1.3s' }}> {/* animated-card va card-glow klasslari vaqtincha olib tashlandi */}
         <CardHeader>
           <CardTitle className="flex items-center text-2xl font-bold text-foreground">
             <div className="bg-primary rounded-full p-2 mr-3">
