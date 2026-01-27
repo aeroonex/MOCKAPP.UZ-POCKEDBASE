@@ -44,9 +44,11 @@ const RotatingText: React.FC<RotatingTextProps> = ({ type }) => {
   const containerDimensions = {
     // `h` qiymatlari `h1` va `p` teglarining `line-height` qiymatlariga mos keladi.
     // `min-w` qiymatlari eng uzun tarjimani sig'dira olishi uchun oshirildi.
-    title: "h-[2.8125rem] sm:h-[3rem] lg:h-[3.75rem] min-w-[300px] sm:min-w-[450px] lg:min-w-[750px]",
+    title: "h-[2.5rem] sm:h-[3rem] lg:h-[3.75rem] min-w-[250px] sm:min-w-[350px] lg:min-w-[600px]",
     subtitle: "h-[1.75rem] sm:h-[2.25rem] min-w-[150px] sm:min-w-[300px]",
   };
+
+  const currentLang = currentTextArray[currentIndex].lang;
 
   return (
     <div className={cn("relative inline-block", containerDimensions[type])}>
@@ -57,7 +59,13 @@ const RotatingText: React.FC<RotatingTextProps> = ({ type }) => {
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
           exit={{ opacity: 0, y: -20, filter: 'blur(5px)' }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
-          className="absolute left-0 top-0 w-full h-full flex items-center justify-start whitespace-nowrap" // `whitespace-nowrap` qo'shildi
+          className={cn(
+            "absolute left-0 top-0 w-full h-full flex items-center justify-start whitespace-nowrap",
+            {
+              // Rus tilidagi sarlavha uchun kichikroq shrift o'lchamlarini qo'llash
+              'text-3xl sm:text-4xl lg:text-4xl': currentLang === 'ru' && type === 'title',
+            }
+          )}
         >
           {currentTextArray[currentIndex].text}
         </motion.span>
