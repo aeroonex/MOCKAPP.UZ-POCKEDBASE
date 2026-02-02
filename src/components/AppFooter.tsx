@@ -2,9 +2,17 @@
 import React from "react";
 import { Server, Lock } from "lucide-react";
 import { useTranslation } from 'react-i18next';
+import { useLocation } from "react-router-dom"; // useLocation import qilindi
 
 const AppFooter: React.FC = () => {
   const { t } = useTranslation();
+  const location = useLocation(); // useLocation hooki ishlatildi
+  const isMockTestPage = location.pathname === '/mock-test'; // MockTest sahifasini aniqlash
+
+  // Agar MockTest sahifasida bo'lsa, footerni ko'rsatmaymiz
+  if (isMockTestPage) {
+    return null;
+  }
 
   return (
     <footer className="mt-auto bg-card border-t border-border py-12 text-foreground footer-glow">

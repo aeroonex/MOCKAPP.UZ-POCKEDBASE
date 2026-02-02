@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom"; // useLocation import qilindi
 import NotFound from "./pages/NotFound";
 import MoodJournal from "./pages/MoodJournal";
 import Login from "./pages/Login";
@@ -30,6 +30,8 @@ const queryClient = new QueryClient();
 const App = () => {
   const [isEduAiAssistantOpen, setIsEduAiAssistantOpen] = useState(false);
   const { t } = useTranslation();
+  const location = useLocation(); // useLocation hooki ishlatildi
+  const isMockTestPage = location.pathname === '/mock-test'; // MockTest sahifasini aniqlash
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -100,22 +102,24 @@ const App = () => {
               </Routes>
             </div>
 
-            {/* Floating EduAi Assistant Button */}
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 1 }}
-              className="fixed bottom-4 right-4 z-[9999]"
-            >
-              <Button
-                variant="default"
-                className="h-14 px-6 rounded-full shadow-lg bg-gradient-purple text-white transition-all duration-300 animate-button-pulse btn-hover-glow flex items-center justify-center"
-                onClick={() => setIsEduAiAssistantOpen(true)}
-                aria-label={t("eduai_assistant.open_assistant")}
+            {/* Floating EduAi Assistant Button - Faqat MockTest sahifasida ko'rinmaydi */}
+            {!isMockTestPage && (
+              <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 1 }}
+                className="fixed bottom-4 right-4 z-[9999]"
               >
-                <span className="text-lg font-semibold">{t("eduai_assistant.chat_button_label")}</span>
-              </Button>
-            </motion.div>
+                <Button
+                  variant="default"
+                  className="h-14 px-6 rounded-full shadow-lg bg-gradient-purple text-white transition-all duration-300 animate-button-pulse btn-hover-glow flex items-center justify-center"
+                  onClick={() => setIsEduAiAssistantOpen(true)}
+                  aria-label={t("eduai_assistant.open_assistant")}
+                >
+                  <span className="text-lg font-semibold">{t("eduai_assistant.chat_button_label")}</span>
+                </Button>
+              </motion.div>
+            )}
 
             <EduAiAssistant isOpen={isEduAiAssistantOpen} onClose={() => setIsEduAiAssistantOpen(false)} />
           </AuthProvider>
