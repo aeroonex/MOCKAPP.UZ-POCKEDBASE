@@ -27,7 +27,7 @@ import SuperAdminDashboard from "@/pages/SuperAdminDashboard";
 import EduAiAssistant from "@/components/EduAiAssistant";
 import LanguageBackground from "@/components/LanguageBackground";
 import MobileBottomNavbar from "@/components/MobileBottomNavbar";
-import MapViewButton from "./MapViewButton"; // MapViewButton import qilindi
+import MapViewButton from "./MapViewButton";
 import { cn } from "@/lib/utils";
 
 const AppContent: React.FC = () => {
@@ -81,7 +81,7 @@ const AppContent: React.FC = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {!isMockTestPage && !isMobile && (
+      {!isMockTestPage && !isMobile && ( // EduAiAssistant tugmasi faqat ish stoli versiyasida ko'rinadi
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -99,13 +99,13 @@ const AppContent: React.FC = () => {
         </motion.div>
       )}
 
-      {/* MapViewButton sahifaning pastki o'ng qismiga joylashtirildi */}
-      {!isMockTestPage && (
+      {/* MapViewButton sahifaning pastki o'ng qismiga joylashtirildi va joylashuvi optimallashtirildi */}
+      {!isMockTestPage && !isMobile && ( // MapViewButton ham faqat ish stoli versiyasida ko'rinadi
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 1.2 }} // Kichik kechikish qo'shildi
-          className="fixed bottom-4 right-24 z-[9999]" // EduAiAssistant tugmasi bilan to'qnashmasligi uchun right-24 berildi
+          transition={{ duration: 0.5, delay: 1.2 }}
+          className="fixed bottom-4 right-56 z-[9999]" // EduAiAssistant tugmasi bilan to'qnashmasligi uchun right-56 berildi
         >
           <MapViewButton />
         </motion.div>
