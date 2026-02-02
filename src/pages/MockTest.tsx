@@ -2,7 +2,7 @@
 
 import React, { useRef } from "react";
 import Navbar from "@/components/Navbar";
-import AppFooter from "@/components/AppFooter"; // Yangi import
+import AppFooter from "@/components/AppFooter";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { useRecorder } from "@/hooks/use-recorder";
 import { Video, ArrowLeft } from "lucide-react";
@@ -15,7 +15,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const MockTest: React.FC = () => {
-  const { isRecording, startRecording, stopAllStreams, webcamStream, isRecordingSupported } = useRecorder(); // Get isRecordingSupported
+  const { isRecording, startRecording, stopAllStreams, webcamStream, isRecordingSupported } = useRecorder();
   const webcamVideoRef = useRef<HTMLVideoElement>(null);
   const { t } = useTranslation();
 
@@ -54,7 +54,7 @@ const MockTest: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {!isTestStarted && <Navbar />}
-      <main className="flex-grow container mx-auto p-4 flex items-center justify-center relative">
+      <main className="flex-grow container mx-auto p-4 sm:p-6 md:p-8 flex items-center justify-center relative bg-gradient-to-br from-background to-secondary/50 min-h-[calc(100vh-120px)]">
         {(webcamStream || (isTestStarted && studentInfo)) && (
           <div className="fixed top-20 left-4 z-20 flex flex-col items-start space-y-2">
             {webcamStream && (
@@ -81,7 +81,7 @@ const MockTest: React.FC = () => {
           </div>
         )}
         
-        <Card className="w-full max-w-2xl text-center relative mt-10">
+        <Card className="w-full max-w-2xl relative card-glow">
           <CardHeader className="py-6">
             <div className="flex justify-between items-center w-full">
               {!isTestStarted && (
@@ -99,7 +99,7 @@ const MockTest: React.FC = () => {
               {!isTestStarted && <div className="w-[80px] h-4"></div>}
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 p-6">
             {isTestStarted && currentPhase !== "finished" && (
               <TestQuestionDisplay
                 currentQ={currentQ}
@@ -118,7 +118,7 @@ const MockTest: React.FC = () => {
               handleStartTestClick={handleStartTestClick}
               handleEndTest={handleEndTest}
               handleResetTest={handleResetTest}
-              isRecordingSupported={isRecordingSupported} // Pass the new prop
+              isRecordingSupported={isRecordingSupported}
             />
           </CardContent>
         </Card>
