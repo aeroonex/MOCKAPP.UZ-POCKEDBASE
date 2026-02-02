@@ -69,7 +69,7 @@ const AppContent: React.FC = () => {
         </Route>
 
         <Route element={<ProtectedRoute />}>
-          <Route path="/home" element={<Home setIsGuideDialogOpen={setIsGuideDialogOpen} handleLogout={handleLogout} />} /> {/* Prop uzatildi */}
+          <Route path="/home" element={<Home setIsGuideDialogOpen={setIsGuideDialogOpen} handleLogout={handleLogout} isGuideDialogOpen={isGuideDialogOpen} />} /> {/* Prop uzatildi */}
           <Route path="/add-question" element={<AddQuestion />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/user-profile" element={<UserProfile />} />

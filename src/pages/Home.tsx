@@ -17,15 +17,14 @@ import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 interface HomeProps {
   setIsGuideDialogOpen: (isOpen: boolean) => void;
   handleLogout: () => void;
+  isGuideDialogOpen: boolean; // Yangi: isGuideDialogOpen prop'ini qo'shish
 }
 
-export default function Home({ setIsGuideDialogOpen, handleLogout }: HomeProps) { // Prop'lar qabul qilindi
+export default function Home({ setIsGuideDialogOpen, handleLogout, isGuideDialogOpen }: HomeProps) { // Prop'lar qabul qilindi
   const navigate = useNavigate();
   const { session } = useAuth();
   const isGuestMode = localStorage.getItem("isGuestMode") === "true";
   const { t } = useTranslation();
-  // isGuideDialogOpen holati AppContent ga ko'chirildi
-  // handleLogout funksiyasi AppContent ga ko'chirildi
   const isMobile = useIsMobile(); // Use the hook
 
   useEffect(() => {
@@ -41,7 +40,7 @@ export default function Home({ setIsGuideDialogOpen, handleLogout }: HomeProps) 
       setIsGuideDialogOpen(true);
       sessionStorage.removeItem("showGuestGuide");
     }
-  }, [isGuestMode, session, t, setIsGuideDialogOpen]); // setIsGuideDialogOpen dependency ga qo'shildi
+  }, [isGuestMode, session, t, setIsGuideDialogOpen]);
 
   const items = [
     {
