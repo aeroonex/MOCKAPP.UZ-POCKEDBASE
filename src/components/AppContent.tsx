@@ -1,12 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom"; // useNavigate import qilindi
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Bot } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
+import { useAuth } from "@/context/AuthProvider"; // useAuth import qilindi
+import { supabase } from "@/integrations/supabase/client"; // supabase import qilindi
+import { showSuccess } from "@/utils/toast"; // showSuccess import qilindi
 
 import NotFound from "@/pages/NotFound";
 import MoodJournal from "@/pages/MoodJournal";
@@ -23,15 +26,32 @@ import SuperAdminRoute from "@/components/SuperAdminRoute";
 import SuperAdminDashboard from "@/pages/SuperAdminDashboard";
 import EduAiAssistant from "@/components/EduAiAssistant";
 import LanguageBackground from "@/components/LanguageBackground";
-import MobileBottomNavbar from "@/components/MobileBottomNavbar"; // Import the new component
+import MobileBottomNavbar from "@/components/MobileBottomNavbar";
 import { cn } from "@/lib/utils";
 
 const AppContent: React.FC = () => {
   const [isEduAiAssistantOpen, setIsEduAiAssistantOpen] = useState(false);
+  const [isGuideDialogOpen, setIsGuideDialogOpen] = useState(false); // Holat AppContent ga ko'chirildi
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate(); // useNavigate import qilindi
   const isMockTestPage = location.pathname === '/mock-test';
   const isMobile = useIsMobile(); // Use the hook
+  const { session } = useAuth(); // session useAuth dan olindi
+  const isGuestMode = localStorage.getItem("isGuestMode") === "true"; // isGuestMode bu yerda aniqlandi
+
+  // handleLogout funksiyasi Home dan AppContent ga ko'chirildi
+  const handleLogout = async () => {
+    if (session) {
+      await supabase.auth.signOut();
+      showSuccess(t("common.success_logged_in"));
+    } else if (isGuestMode) {
+      localStorage.removeItem("isGuestMode");
+      sessionStorage.removeItem("guestWelcomeToastShown");
+      showSuccess(t("common.success_guest_mode_exited"));
+    }
+    navigate("/login");
+  };
 
   return (
     <div className={cn(
@@ -49,7 +69,7 @@ const AppContent: React.FC = () => {
         </Route>
 
         <Route element={<ProtectedRoute />}>
-          <Route path="/home" element={<Home />} />
+          <Route path="/home" element={<Home setIsGuideDialogOpen={setIsGuideDialogOpen} handleLogout={handleLogout} />} /> {/* Prop uzatildi */}
           <Route path="/add-question" element={<AddQuestion />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/user-profile" element={<UserProfile />} />
@@ -80,7 +100,12 @@ const AppContent: React.FC = () => {
       )}
 
       <EduAiAssistant isOpen={isEduAiAssistantOpen} onClose={() => setIsEduAiAssistantOpen(false)} />
-      <MobileBottomNavbar /> {/* Render the mobile navbar */}
+      <MobileBottomNavbar 
+        handleLogout={handleLogout} 
+        setIsGuideDialogOpen={setIsGuideDialogOpen} 
+        isGuestMode={isGuestMode} 
+        session={session} 
+      /> {/* Prop'lar uzatildi */}
     </div>
   );
 };

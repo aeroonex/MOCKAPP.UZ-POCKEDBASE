@@ -14,12 +14,18 @@ import GuideDialog from "@/components/GuideDialog";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
-export default function Home() {
+interface HomeProps {
+  setIsGuideDialogOpen: (isOpen: boolean) => void;
+  handleLogout: () => void;
+}
+
+export default function Home({ setIsGuideDialogOpen, handleLogout }: HomeProps) { // Prop'lar qabul qilindi
   const navigate = useNavigate();
   const { session } = useAuth();
   const isGuestMode = localStorage.getItem("isGuestMode") === "true";
   const { t } = useTranslation();
-  const [isGuideDialogOpen, setIsGuideDialogOpen] = useState(false);
+  // isGuideDialogOpen holati AppContent ga ko'chirildi
+  // handleLogout funksiyasi AppContent ga ko'chirildi
   const isMobile = useIsMobile(); // Use the hook
 
   useEffect(() => {
@@ -35,19 +41,7 @@ export default function Home() {
       setIsGuideDialogOpen(true);
       sessionStorage.removeItem("showGuestGuide");
     }
-  }, [isGuestMode, session, t]);
-
-  const handleLogout = async () => {
-    if (session) {
-      await supabase.auth.signOut();
-      showSuccess(t("common.success_logged_in"));
-    } else if (isGuestMode) {
-      localStorage.removeItem("isGuestMode");
-      sessionStorage.removeItem("guestWelcomeToastShown"); // Belgini o'chirish
-      showSuccess(t("common.success_guest_mode_exited"));
-    }
-    navigate("/login");
-  };
+  }, [isGuestMode, session, t, setIsGuideDialogOpen]); // setIsGuideDialogOpen dependency ga qo'shildi
 
   const items = [
     {
