@@ -10,10 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useTheme } from "next-themes";
 import { useTranslation } from 'react-i18next';
+import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 const Settings: React.FC = () => {
   const { theme, setTheme } = useTheme();
   const { t } = useTranslation();
+  const isMobile = useIsMobile(); // Use the hook
 
   const handleThemeChange = (checked: boolean) => {
     const newTheme = checked ? "dark" : "light";
@@ -51,7 +53,7 @@ const Settings: React.FC = () => {
           </CardContent>
         </Card>
       </main>
-      <AppFooter />
+      {!isMobile && <AppFooter />} {/* Conditionally render AppFooter */}
     </div>
   );
 };

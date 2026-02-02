@@ -15,12 +15,14 @@ import CustomAuthForm from "@/components/CustomAuthForm";
 import { motion } from "framer-motion"; // Import motion from framer-motion
 import LoadingSpinner from "@/components/LoadingSpinner"; // Import the new component
 import RotatingText from "@/components/RotatingText"; // Yangi komponentni import qilish
+import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 const Login: React.FC = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [showGlobalSpinner, setShowGlobalSpinner] = useState(false); // Combined loading state for both "Try Me" and actual login
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const isMobile = useIsMobile(); // Use the hook
 
   const openLoginModal = () => {
     setIsLoginDialogOpen(true);
@@ -128,7 +130,7 @@ const Login: React.FC = () => {
         </DialogContent>
       </Dialog>
       {showGlobalSpinner && <LoadingSpinner />} {/* Conditionally render spinner */}
-      <AppFooter />
+      {!isMobile && <AppFooter />} {/* Conditionally render AppFooter */}
     </div>
   );
 };

@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useTranslation } from 'react-i18next';
+import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 const Questions: React.FC = () => {
   const { session } = useAuth();
@@ -22,6 +23,7 @@ const Questions: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const { t } = useTranslation();
+  const isMobile = useIsMobile(); // Use the hook
 
   const loadQuestions = useCallback(async () => {
     setIsLoading(true);
@@ -146,7 +148,7 @@ const Questions: React.FC = () => {
           </CardContent>
         </Card>
       </main>
-      <AppFooter />
+      {!isMobile && <AppFooter />} {/* Conditionally render AppFooter */}
     </div>
   );
 };

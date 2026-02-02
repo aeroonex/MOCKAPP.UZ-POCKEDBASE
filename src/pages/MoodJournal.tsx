@@ -15,6 +15,7 @@ import { showError, showSuccess } from "@/utils/toast";
 import { getLocalMoodEntries, addLocalMoodEntry, deleteLocalMoodEntry } from "@/lib/local-db";
 import Navbar from "@/components/Navbar";
 import { useTranslation } from 'react-i18next';
+import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 interface MoodEntry {
   id: string;
@@ -28,6 +29,7 @@ const MoodJournal: React.FC = () => {
   const [filterMood, setFilterMood] = useState<string>("All");
   const [isLoading, setIsLoading] = useState(true);
   const { t } = useTranslation();
+  const isMobile = useIsMobile(); // Use the hook
 
   const moods = [
     { label: t("mood_journal_page.all_moods"), value: "All" },
@@ -111,7 +113,7 @@ const MoodJournal: React.FC = () => {
           </div>
         )}
       </main>
-      <AppFooter />
+      {!isMobile && <AppFooter />} {/* Conditionally render AppFooter */}
     </div>
   );
 };

@@ -6,9 +6,11 @@ import AppFooter from "@/components/AppFooter"; // Yangi import
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useTranslation } from 'react-i18next';
 import { ShieldCheck } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 const SuperAdminDashboard: React.FC = () => {
   const { t } = useTranslation();
+  const isMobile = useIsMobile(); // Use the hook
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -47,7 +49,7 @@ const SuperAdminDashboard: React.FC = () => {
           </CardContent>
         </Card>
       </main>
-      <AppFooter />
+      {!isMobile && <AppFooter />} {/* Conditionally render AppFooter */}
     </div>
   );
 };

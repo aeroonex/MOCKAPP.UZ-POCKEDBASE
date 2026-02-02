@@ -3,17 +3,10 @@ import React from "react";
 import { Server, Lock } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { useLocation } from "react-router-dom";
-import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 const AppFooter: React.FC = () => {
   const { t } = useTranslation();
   const location = useLocation();
-  const isMobile = useIsMobile(); // Use the hook
-  const isMockTestPage = location.pathname === '/mock-test';
-
-  if (isMockTestPage || isMobile) { // Hide on mock test page OR on mobile
-    return null;
-  }
 
   return (
     <footer className="mt-auto bg-card border-t border-border py-6 text-foreground footer-glow">

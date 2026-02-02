@@ -130,7 +130,7 @@ const MockTest: React.FC = () => {
           </CardContent>
         </Card>
       </main>
-      <AppFooter />
+      {/* AppFooter removed from MockTest */}
       <StudentInfoForm
         isOpen={isStudentInfoFormOpen}
         onClose={() => setIsStudentInfoFormOpen(false)}

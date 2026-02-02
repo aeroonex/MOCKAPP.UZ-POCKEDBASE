@@ -43,6 +43,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 const SpeakingQuestionManager: React.FC = () => {
   const { session, user } = useAuth();
@@ -58,6 +59,7 @@ const SpeakingQuestionManager: React.FC = () => {
     "Part 1.1": [], "Part 1.2": [], "Part 2": [], "Part 3": [],
   });
   const { t } = useTranslation();
+  const isMobile = useIsMobile(); // Use the hook
 
   const loadQuestions = useCallback(async () => {
     setIsLoading(true);
@@ -517,7 +519,7 @@ const SpeakingQuestionManager: React.FC = () => {
           </CardContent>
         </Card>
       </main>
-      <AppFooter />
+      {!isMobile && <AppFooter />} {/* Conditionally render AppFooter */}
     </div>
   );
 };

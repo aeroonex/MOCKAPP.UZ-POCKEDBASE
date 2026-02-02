@@ -16,11 +16,13 @@ import { showSuccess, showError } from "@/utils/toast";
 import { useProfile, formatBytes } from "@/hooks/use-profile"; // Yangi hook va yordamchi funksiyalar
 import { Progress } from "@/components/ui/progress"; // Progress komponenti
 import { Badge } from "@/components/ui/badge"; // Badge import qilindi
+import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 const UserProfile: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { profile, loading, fetchProfile } = useProfile();
+  const isMobile = useIsMobile(); // Use the hook
 
   // Profil ma'lumotlarini saqlash uchun state
   const [firstName, setFirstName] = useState(profile?.first_name || "");
@@ -205,7 +207,7 @@ const UserProfile: React.FC = () => {
           </CardContent>
         </Card>
       </main>
-      <AppFooter />
+      {!isMobile && <AppFooter />} {/* Conditionally render AppFooter */}
     </div>
   );
 };

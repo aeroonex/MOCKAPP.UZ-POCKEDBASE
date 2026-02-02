@@ -25,6 +25,7 @@ import { Progress } from "@/components/ui/progress";
 import { useProgress, setProgress, removeProgress } from "@/utils/uploadProgress"; // useProgress ni import qilish
 import { Badge } from "@/components/ui/badge"; // Badge import qilindi
 import { useAuth } from "@/context/AuthProvider"; // useAuth import qilindi
+import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 // Xotira ishlatilishini ko'rsatuvchi kichik komponent
 const StorageUsageCard: React.FC<{ isGuest: boolean, onOpenPricing: () => void }> = ({ isGuest, onOpenPricing }) => {
@@ -151,6 +152,7 @@ const Records: React.FC = () => {
   const [uploadingRecordId, setUploadingRecordId] = useState<string | null>(null);
   const [uploadErrorRecordId, setUploadErrorRecordId] = useState<string | null>(null);
   const [isPricingDialogOpen, setIsPricingDialogOpen] = useState(false);
+  const isMobile = useIsMobile(); // Use the hook
   
   // useProgress hookidan foydalanish
   const progressMap = useProgress();
@@ -569,7 +571,7 @@ const Records: React.FC = () => {
           </CardContent>
         </Card>
       </main>
-      <AppFooter />
+      {!isMobile && <AppFooter />} {/* Conditionally render AppFooter */}
       
       <Dialog open={isPricingDialogOpen} onOpenChange={setIsPricingDialogOpen}>
         <DialogContent className="sm:max-w-md p-0 overflow-hidden">
