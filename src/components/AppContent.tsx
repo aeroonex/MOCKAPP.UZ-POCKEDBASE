@@ -27,9 +27,9 @@ import SuperAdminDashboard from "@/pages/SuperAdminDashboard";
 import EduAiAssistant from "@/components/EduAiAssistant";
 import LanguageBackground from "@/components/LanguageBackground";
 import MobileBottomNavbar from "@/components/MobileBottomNavbar";
-import MapViewButton from "./MapViewButton";
+// import MapViewButton from "./MapViewButton"; // MapViewButton import olib tashlandi
 import { cn } from "@/lib/utils";
-import AppFooter from "./AppFooter"; // AppFooter import qilindi
+import AppFooter from "./AppFooter";
 
 const AppContent: React.FC = () => {
   const [isEduAiAssistantOpen, setIsEduAiAssistantOpen] = useState(false);
@@ -82,15 +82,14 @@ const AppContent: React.FC = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {/* EduAiAssistant va MapViewButton tugmalari bitta konteynerga joylashtirildi */}
+      {/* EduAiAssistant tugmasi o'z joyida qoldi */}
       {!isMockTestPage && !isMobile && (
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 1 }}
-          className="fixed bottom-[56px] right-4 z-[9999] flex items-end space-x-4" // AppFooter balandligini hisobga olgan holda bottom-[56px]
+          className="fixed bottom-[56px] right-4 z-[9999]" // AppFooter balandligini hisobga olgan holda bottom-[56px]
         >
-          <MapViewButton />
           <Button
             variant="default"
             className="h-14 px-6 rounded-full shadow-lg bg-gradient-purple text-white transition-all duration-300 animate-button-pulse btn-hover-glow flex items-center justify-center"
@@ -109,7 +108,7 @@ const AppContent: React.FC = () => {
         isGuestMode={isGuestMode} 
         session={session} 
       />
-      {!isMobile && <AppFooter />} {/* AppFooter endi AppContent ichida render qilinadi */}
+      {!isMobile && <AppFooter />}
     </div>
   );
 };

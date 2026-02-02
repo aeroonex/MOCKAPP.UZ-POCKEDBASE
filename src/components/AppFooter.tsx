@@ -4,6 +4,7 @@ import { Server, Lock, Wifi, WifiOff, Clock, Signal, ArrowDownCircle } from "luc
 import { useTranslation } from 'react-i18next';
 import { useLocation } from "react-router-dom";
 import { cn } from '@/lib/utils';
+import MapViewButton from './MapViewButton'; // MapViewButton import qilindi
 
 const AppFooter: React.FC = () => {
   const { t } = useTranslation();
@@ -65,12 +66,13 @@ const AppFooter: React.FC = () => {
   return (
     <footer className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border py-2 text-foreground shadow-lg">
       <div className="container mx-auto px-4 flex flex-col sm:flex-row items-center justify-between text-xs">
-        {/* Left Section: Brand and Slogan */}
+        {/* Left Section: Brand, Slogan, and MapViewButton */}
         <div className="flex flex-col items-center sm:items-start mb-2 sm:mb-0">
           <h3 className="text-base font-bold">Edumock.uz</h3>
-          <p className="text-xs text-muted-foreground max-w-xs text-center sm:text-left">
+          <p className="text-xs text-muted-foreground max-w-xs text-center sm:text-left mb-1">
             {t("landing_page.slogan_short", "Your platform for conversational practice and real results.")}
           </p>
+          <MapViewButton /> {/* MapViewButton bu yerga joylashtirildi */}
         </div>
 
         {/* Middle Section: Network Status and Time */}
