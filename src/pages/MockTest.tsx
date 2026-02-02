@@ -28,7 +28,7 @@ const MockTest: React.FC = () => {
     countdown,
     initialCountdown,
     studentInfo,
-    isStudentInfoFormOpen,
+    isStudentInfoFormOpen, // <-- Bu yerda to'g'ri o'zgaruvchi nomi
     setIsStudentInfoFormOpen,
     handleStartTestClick,
     handleStudentInfoSave,
@@ -130,7 +130,7 @@ const MockTest: React.FC = () => {
       </main>
       <AppFooter />
       <StudentInfoForm
-        isOpen={isStudentInfoFormFormOpen}
+        isOpen={isStudentInfoFormOpen} {/* <-- Xato shu yerda to'g'rilandi */}
         onClose={() => setIsStudentInfoFormOpen(false)}
         onSave={handleStudentInfoSave}
       />
