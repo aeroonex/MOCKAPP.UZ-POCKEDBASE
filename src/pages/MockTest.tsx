@@ -2,8 +2,8 @@
 
 import React, { useRef } from "react";
 import Navbar from "@/components/Navbar";
-import AppFooter from "@/components/AppFooter";
-import { Card, CardTitle } from "@/components/ui/card"; // CardHeader va CardContent olib tashlandi
+import AppFooter from "@/components/AppFooter"; // Yangi import
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { useRecorder } from "@/hooks/use-recorder";
 import { Video, ArrowLeft } from "lucide-react";
 import StudentInfoForm from "@/components/StudentInfoForm";
@@ -15,7 +15,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const MockTest: React.FC = () => {
-  const { isRecording, startRecording, stopAllStreams, webcamStream, isRecordingSupported } = useRecorder();
+  const { isRecording, startRecording, stopAllStreams, webcamStream, isRecordingSupported } = useRecorder(); // Get isRecordingSupported
   const webcamVideoRef = useRef<HTMLVideoElement>(null);
   const { t } = useTranslation();
 
@@ -81,42 +81,46 @@ const MockTest: React.FC = () => {
           </div>
         )}
         
-        <Card className="w-full max-w-2xl text-center relative mt-10 p-6 space-y-6"> {/* CardHeader va CardContent classlari Cardga ko'chirildi */}
-          <div className="flex justify-between items-center w-full">
-            {!isTestStarted && (
-              <Link to="/home">
-                <Button variant="default" className="bg-primary hover:bg-primary/90">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  {t("common.back")}
-                </Button>
-              </Link>
+        <Card className="w-full max-w-2xl text-center relative mt-10">
+          <CardHeader className="py-6">
+            <div className="flex justify-between items-center w-full">
+              {!isTestStarted && (
+                <Link to="/home">
+                  <Button variant="default" className="bg-primary hover:bg-primary/90">
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    {t("common.back")}
+                  </Button>
+                </Link>
+              )}
+              <CardTitle className={`text-xl sm:text-3xl font-bold text-center flex-grow ${isTestStarted ? 'ml-0' : 'ml-4'}`}>
+                {t("mock_test_page.mock_speaking_test")}
+              </CardTitle>
+              {/* Joyni to'ldirish uchun bo'sh div */}
+              {!isTestStarted && <div className="w-[80px] h-4"></div>}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {isTestStarted && currentPhase !== "finished" && (
+              <TestQuestionDisplay
+                currentQ={currentQ}
+                currentPartName={currentPartName}
+                currentQuestionIndex={currentQuestionIndex}
+                currentSubQuestionIndex={currentSubQuestionIndex}
+                currentPhase={currentPhase}
+                countdown={countdown}
+                initialCountdown={initialCountdown}
+              />
             )}
-            <CardTitle className={`text-xl sm:text-3xl font-bold text-center flex-grow ${isTestStarted ? 'ml-0' : 'ml-4'}`}>
-              {t("mock_test_page.mock_speaking_test")}
-            </CardTitle>
-            {!isTestStarted && <div className="w-[80px] h-4"></div>}
-          </div>
-          
-          {isTestStarted && currentPhase !== "finished" && (
-            <TestQuestionDisplay
-              currentQ={currentQ}
-              currentPartName={currentPartName}
-              currentQuestionIndex={currentQuestionIndex}
-              currentSubQuestionIndex={currentSubQuestionIndex}
-              currentPhase={currentPhase}
-              countdown={countdown}
-              initialCountdown={initialCountdown}
-            />
-          )}
 
-          <TestControls
-            isTestStarted={isTestStarted}
-            currentPhase={currentPhase}
-            handleStartTestClick={handleStartTestClick}
-            handleEndTest={handleEndTest}
-            handleResetTest={handleResetTest}
-            isRecordingSupported={isRecordingSupported}
-          />
+            <TestControls
+              isTestStarted={isTestStarted}
+              currentPhase={currentPhase}
+              handleStartTestClick={handleStartTestClick}
+              handleEndTest={handleEndTest}
+              handleResetTest={handleResetTest}
+              isRecordingSupported={isRecordingSupported} // Pass the new prop
+            />
+          </CardContent>
         </Card>
       </main>
       <AppFooter />
