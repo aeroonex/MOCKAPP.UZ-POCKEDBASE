@@ -81,13 +81,15 @@ const AppContent: React.FC = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {!isMockTestPage && !isMobile && ( // EduAiAssistant tugmasi faqat ish stoli versiyasida ko'rinadi
+      {/* EduAiAssistant va MapViewButton tugmalari bitta konteynerga joylashtirildi */}
+      {!isMockTestPage && !isMobile && (
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 1 }}
-          className="fixed bottom-4 right-4 z-[9999]"
+          className="fixed bottom-4 right-4 z-[9999] flex items-end space-x-4" // Minimalistik joylashuv uchun flex va space-x-4 ishlatildi
         >
+          <MapViewButton /> {/* MapViewButton */}
           <Button
             variant="default"
             className="h-14 px-6 rounded-full shadow-lg bg-gradient-purple text-white transition-all duration-300 animate-button-pulse btn-hover-glow flex items-center justify-center"
@@ -96,18 +98,6 @@ const AppContent: React.FC = () => {
           >
             <span className="text-lg font-semibold">{t("eduai_assistant.chat_button_label")}</span>
           </Button>
-        </motion.div>
-      )}
-
-      {/* MapViewButton sahifaning pastki o'ng qismiga joylashtirildi va joylashuvi optimallashtirildi */}
-      {!isMockTestPage && !isMobile && ( // MapViewButton ham faqat ish stoli versiyasida ko'rinadi
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 1.2 }}
-          className="fixed bottom-4 right-56 z-[9999]" // EduAiAssistant tugmasi bilan to'qnashmasligi uchun right-56 berildi
-        >
-          <MapViewButton />
         </motion.div>
       )}
 
