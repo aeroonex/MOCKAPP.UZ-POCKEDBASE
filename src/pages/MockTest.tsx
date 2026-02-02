@@ -56,7 +56,7 @@ const MockTest: React.FC = () => {
       {!isTestStarted && <Navbar />}
       <main className="flex-grow container mx-auto p-4 sm:p-6 md:p-8 flex items-center justify-center relative bg-gradient-to-br from-background to-secondary/50 min-h-[calc(100vh-120px)]">
         {(webcamStream || (isTestStarted && studentInfo)) && (
-          <Card className="fixed top-20 left-4 z-20 p-2 bg-card shadow-lg border border-border">
+          <Card className="fixed top-20 left-4 z-20 p-2 bg-card shadow-lg border border-border card-glow"> {/* card-glow klassi qo'shildi */}
             <CardContent className="p-0 space-y-2">
               {webcamStream && (
                 <div className="flex flex-col items-center">
