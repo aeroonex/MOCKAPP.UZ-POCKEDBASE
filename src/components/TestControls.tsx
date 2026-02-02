@@ -11,7 +11,7 @@ interface TestControlsProps {
   handleStartTestClick: () => void;
   handleEndTest: () => void;
   handleResetTest: () => void;
-  isRecordingSupported: boolean; // New prop
+  isRecordingSupported: boolean;
 }
 
 const TestControls: React.FC<TestControlsProps> = ({
@@ -20,7 +20,7 @@ const TestControls: React.FC<TestControlsProps> = ({
   handleStartTestClick,
   handleEndTest,
   handleResetTest,
-  isRecordingSupported, // Use new prop
+  isRecordingSupported,
 }) => {
   const { t } = useTranslation();
 
@@ -30,17 +30,41 @@ const TestControls: React.FC<TestControlsProps> = ({
         <>
           {!isRecordingSupported && (
             <p className="text-red-500 text-sm mb-4">
-              {t("mock_test_page.recording_not_supported_mobile_info")} {/* New translation key */}
+              {t("mock_test_page.recording_not_supported_mobile_info")}
             </p>
           )}
-          <Button 
-            onClick={handleStartTestClick} 
-            size="lg" 
-            className="text-lg px-8 py-4"
-            disabled={!isRecordingSupported} // Disable if recording is not supported
-          >
-            {t("mock_test_page.start_test_with_recording")}
-          </Button>
+          {/* Custom button design from Uiverse.io */}
+          <div className="relative inline-flex items-center justify-center group">
+            <div
+              className="absolute inset-0 duration-1000 opacity-60 transition-all bg-gradient-to-r from-indigo-500 via-pink-500 to-yellow-400 rounded-xl blur-lg filter group-hover:opacity-100 group-hover:duration-200"
+            ></div>
+            <button
+              role="button"
+              onClick={handleStartTestClick}
+              disabled={!isRecordingSupported}
+              className="group relative inline-flex items-center justify-center text-base rounded-xl bg-gray-900 px-8 py-4 font-semibold text-white transition-all duration-200 hover:bg-gray-800 hover:shadow-lg hover:-translate-y-0.5 hover:shadow-gray-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+              title={t("mock_test_page.start_test_with_recording")}
+            >
+              {t("mock_test_page.start_test_with_recording")}
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 10 10"
+                height="10"
+                width="10"
+                fill="none"
+                className="mt-0.5 ml-2 -mr-1 stroke-white stroke-2"
+              >
+                <path
+                  d="M0 5h7"
+                  className="transition opacity-0 group-hover:opacity-100"
+                ></path>
+                <path
+                  d="M1 1l4 4-4 4"
+                  className="transition group-hover:translate-x-[3px]"
+                ></path>
+              </svg>
+            </button>
+          </div>
         </>
       )}
 
