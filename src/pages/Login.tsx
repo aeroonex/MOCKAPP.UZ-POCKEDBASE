@@ -7,22 +7,22 @@ import LandingPageHeader from "@/components/LandingPageHeader";
 import ProcessSteps from "@/components/ProcessSteps";
 import ContactSection from "@/components/ContactSection";
 import PricingCard from "@/components/PricingCard";
+// import AppFooter from "@/components/AppFooter"; // AppFooter olib tashlandi
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import CustomAuthForm from "@/components/CustomAuthForm";
-import { motion } from "framer-motion";
-import LoadingSpinner from "@/components/LoadingSpinner";
-import RotatingText from "@/components/RotatingText";
-import { useIsMobile } from "@/hooks/use-mobile";
-import '../styles/GetStartedButton.css'; // Yangi tugma stillarini import qilish
+import { motion } from "framer-motion"; // Import motion from framer-motion
+import LoadingSpinner from "@/components/LoadingSpinner"; // Import the new component
+import RotatingText from "@/components/RotatingText"; // Yangi komponentni import qilish
+import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 const Login: React.FC = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
-  const [showGlobalSpinner, setShowGlobalSpinner] = useState(false);
+  const [showGlobalSpinner, setShowGlobalSpinner] = useState(false); // Combined loading state for both "Try Me" and actual login
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobile(); // Use the hook
 
   const openLoginModal = () => {
     setIsLoginDialogOpen(true);
@@ -33,25 +33,26 @@ const Login: React.FC = () => {
   };
 
   const handleTryMe = () => {
-    setShowGlobalSpinner(true);
+    setShowGlobalSpinner(true); // Start loading
     setTimeout(() => {
       localStorage.setItem("isGuestMode", "true");
       sessionStorage.setItem("showGuestGuide", "true");
       navigate("/home");
-      setShowGlobalSpinner(false);
-    }, 2000);
+      setShowGlobalSpinner(false); // End loading after navigation
+    }, 2000); // 2 seconds delay
   };
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' && session) {
-        setShowGlobalSpinner(true);
+        setShowGlobalSpinner(true); // Start spinner for login
         setTimeout(() => {
           closeLoginModal();
           navigate("/home");
-          setShowGlobalSpinner(false);
-        }, 2500);
+          setShowGlobalSpinner(false); // End spinner
+        }, 2500); // 2.5 seconds delay
       } else if (event === 'SIGNED_OUT') {
+        // If user signs out, ensure spinner is off and clear guest mode
         setShowGlobalSpinner(false);
         localStorage.removeItem("isGuestMode");
         sessionStorage.removeItem("guestWelcomeToastShown");
@@ -62,7 +63,7 @@ const Login: React.FC = () => {
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate]); // Removed showGlobalSpinner from dependencies to prevent re-running useEffect on state change
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -88,39 +89,17 @@ const Login: React.FC = () => {
               <Button
                 onClick={handleTryMe}
                 className="bg-gradient-purple text-white text-base px-6 py-4 rounded-full shadow-lg transition-all duration-300 animate-button-pulse btn-hover-glow"
-                disabled={showGlobalSpinner}
+                disabled={showGlobalSpinner} // Disable button while loading
               >
                 {t("landing_page.try_me_button")}
               </Button>
-              {/* Yangi "Get Started" tugmasi */}
-              <button className="button" onClick={openLoginModal} disabled={showGlobalSpinner}>
-                <span className="labels">
-                  <span style={{ '--i': 1 } as React.CSSProperties} data-label="G">G</span>
-                  <span style={{ '--i': 2 } as React.CSSProperties} data-label="e">e</span>
-                  <span style={{ '--i': 3 } as React.CSSProperties} data-label="t">t</span>
-                  <span style={{ '--i': 4 } as React.CSSProperties} data-label="s">s</span>
-                  <span style={{ '--i': 5 } as React.CSSProperties} data-label="t">t</span>
-                  <span style={{ '--i': 6 } as React.CSSProperties} data-label="a">a</span>
-                  <span style={{ '--i': 7 } as React.CSSProperties} data-label="r">r</span>
-                  <span style={{ '--i': 8 } as React.CSSProperties} data-label="t">t</span>
-                  <span style={{ '--i': 9 } as React.CSSProperties} data-label="e">e</span>
-                  <span style={{ '--i': 10 } as React.CSSProperties} data-label="d">d</span>
-                </span>
-                <div className="icon-container">
-                  <svg
-                    className="icon"
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="32"
-                    height="32"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      fill="white"
-                      d="M16.15 13H5q-.425 0-.712-.288T4 12t.288-.712T5 11h11.15L13.3 8.15q-.3-.3-.288-.7t.288-.7q.3-.3.713-.312t.712.287L19.3 11.3q.15.15.213.325t.062.375t-.062.375t-.213.325l-4.575 4.575q-.3.3-.712.288t-.713-.313q-.275-.3-.288-.7t.288-.7z"
-                    ></path>
-                  </svg>
-                </div>
-              </button>
+              <Button
+                onClick={openLoginModal}
+                className="fixed-login-button text-white focus:outline-none focus:ring-4 focus:ring-primary focus:ring-opacity-50 rounded-xl flex items-center gap-2"
+                disabled={showGlobalSpinner} // Disable button while loading
+              >
+                {t("common.login")}
+              </Button>
             </div>
 
             <ProcessSteps />
@@ -150,7 +129,8 @@ const Login: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
-      {showGlobalSpinner && <LoadingSpinner />}
+      {showGlobalSpinner && <LoadingSpinner />} {/* Conditionally render spinner */}
+      {/* AppFooter endi AppContent ichida render qilinadi */}
     </div>
   );
 };
