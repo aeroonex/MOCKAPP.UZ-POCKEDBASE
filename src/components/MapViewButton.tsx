@@ -18,7 +18,7 @@ const MapViewButton: React.FC = () => {
         <div className="pinpoint-original"></div>
         <div className="map-container-original"></div>
       </div>
-      <span className="map-btn-text-original">{t("common.view_on_map", "View on Map")}</span>
+      {/* "View on Map" matni olib tashlandi */}
     </div>
   );
 };
