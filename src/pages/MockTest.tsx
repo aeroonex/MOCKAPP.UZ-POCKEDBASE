@@ -2,8 +2,8 @@
 
 import React, { useRef } from "react";
 import Navbar from "@/components/Navbar";
-import AppFooter from "@/components/AppFooter";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"; // CardDescription olib tashlandi, chunki ishlatilmayapti
+import AppFooter from "@/components/AppFooter"; // Yangi import
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { useRecorder } from "@/hooks/use-recorder";
 import { Video, ArrowLeft } from "lucide-react";
 import StudentInfoForm from "@/components/StudentInfoForm";
@@ -15,7 +15,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 const MockTest: React.FC = () => {
-  const { isRecording, startRecording, stopAllStreams, webcamStream, isRecordingSupported } = useRecorder();
+  const { isRecording, startRecording, stopAllStreams, webcamStream, isRecordingSupported } = useRecorder(); // Get isRecordingSupported
   const webcamVideoRef = useRef<HTMLVideoElement>(null);
   const { t } = useTranslation();
 
@@ -82,7 +82,7 @@ const MockTest: React.FC = () => {
         )}
         
         <Card className="w-full max-w-2xl text-center relative mt-10">
-          <CardHeader className="py-6 border-b border-gray-200 dark:border-gray-700"> {/* Chekka qo'shildi */}
+          <CardHeader className="py-6">
             <div className="flex justify-between items-center w-full">
               {!isTestStarted && (
                 <Link to="/home">
@@ -99,7 +99,7 @@ const MockTest: React.FC = () => {
               {!isTestStarted && <div className="w-[80px] h-4"></div>}
             </div>
           </CardHeader>
-          <CardContent className="space-y-6 border-t border-gray-200 dark:border-gray-700"> {/* Chekka qo'shildi */}
+          <CardContent className="space-y-6">
             {isTestStarted && currentPhase !== "finished" && (
               <TestQuestionDisplay
                 currentQ={currentQ}
@@ -118,7 +118,7 @@ const MockTest: React.FC = () => {
               handleStartTestClick={handleStartTestClick}
               handleEndTest={handleEndTest}
               handleResetTest={handleResetTest}
-              isRecordingSupported={isRecordingSupported}
+              isRecordingSupported={isRecordingSupported} // Pass the new prop
             />
           </CardContent>
         </Card>
