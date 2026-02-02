@@ -25,7 +25,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import SuperAdminRoute from "@/components/SuperAdminRoute";
 import SuperAdminDashboard from "@/pages/SuperAdminDashboard";
 import EduAiAssistant from "@/components/EduAiAssistant";
-import StarBackground from "@/components/StarBackground"; // LanguageBackground o'rniga StarBackground import qilindi
+import LanguageBackground from "@/components/LanguageBackground";
 import MobileBottomNavbar from "@/components/MobileBottomNavbar";
 // import MapViewButton from "./MapViewButton"; // MapViewButton import olib tashlandi
 import { cn } from "@/lib/utils";
@@ -59,7 +59,7 @@ const AppContent: React.FC = () => {
       "pb-10 bg-background text-foreground min-h-screen relative",
       isMobile && "pb-20"
     )}>
-      {!isMockTestPage && <StarBackground />} {/* LanguageBackground o'rniga StarBackground render qilindi */}
+      {!isMockTestPage && <LanguageBackground />}
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
