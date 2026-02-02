@@ -702,3 +702,64 @@
   width: 24px;
   height: 24px;
 }
+
+/* MapViewButton original styles (adapted for minimalism) */
+.map-view-button-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem; /* Minimal gap */
+  padding: 0.25rem 0.5rem; /* Minimal padding */
+  border-radius: 0.5rem;
+  background-color: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  font-size: 0.75rem; /* text-xs */
+  font-weight: 500;
+  position: relative; /* For positioning inner elements */
+  overflow: hidden; /* Hide overflow from inner elements */
+}
+
+.map-view-button-wrapper:hover {
+  color: hsl(var(--primary));
+  background-color: hsl(var(--accent));
+}
+
+.map-btn-original {
+  position: relative;
+  width: 16px; /* h-4 */
+  height: 16px; /* w-4 */
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  transform: rotate(45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+.pinpoint-original {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background-color: currentColor;
+  border-radius: 50%;
+  transform: rotate(-45deg); /* Counter-rotate to keep dot upright */
+}
+
+.map-container-original {
+  /* This was likely for a larger map background effect,
+     for minimalism, we'll keep it simple or omit complex parts.
+     For now, it's just a placeholder. */
+}
+
+.map-btn-text-original {
+  display: none; /* Hidden by default on small screens */
+  white-space: nowrap; /* Prevent text wrapping */
+}
+
+@media (min-width: 640px) { /* sm breakpoint */
+  .map-btn-text-original {
+    display: inline; /* Show text on larger screens */
+  }
+}
