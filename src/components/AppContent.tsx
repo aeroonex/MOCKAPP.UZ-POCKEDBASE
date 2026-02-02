@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Bot } from "lucide-react";
 import { useTranslation } from 'react-i18next';
+import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 import NotFound from "@/pages/NotFound";
 import MoodJournal from "@/pages/MoodJournal";
@@ -22,16 +23,22 @@ import SuperAdminRoute from "@/components/SuperAdminRoute";
 import SuperAdminDashboard from "@/pages/SuperAdminDashboard";
 import EduAiAssistant from "@/components/EduAiAssistant";
 import LanguageBackground from "@/components/LanguageBackground";
+import MobileBottomNavbar from "@/components/MobileBottomNavbar"; // Import the new component
+import { cn } from "@/lib/utils";
 
 const AppContent: React.FC = () => {
   const [isEduAiAssistantOpen, setIsEduAiAssistantOpen] = useState(false);
   const { t } = useTranslation();
   const location = useLocation();
   const isMockTestPage = location.pathname === '/mock-test';
+  const isMobile = useIsMobile(); // Use the hook
 
   return (
-    <div className="pb-10 bg-background text-foreground min-h-screen relative">
-      {!isMockTestPage && <LanguageBackground />} {/* Faqat MockTest sahifasida ko'rinmasin */}
+    <div className={cn(
+      "pb-10 bg-background text-foreground min-h-screen relative",
+      isMobile && "pb-20" // Add extra padding at the bottom for mobile navbar
+    )}>
+      {!isMockTestPage && <LanguageBackground />}
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
@@ -54,7 +61,7 @@ const AppContent: React.FC = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {!isMockTestPage && (
+      {!isMockTestPage && !isMobile && ( // Only show EduAi Assistant button on desktop
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -73,6 +80,7 @@ const AppContent: React.FC = () => {
       )}
 
       <EduAiAssistant isOpen={isEduAiAssistantOpen} onClose={() => setIsEduAiAssistantOpen(false)} />
+      <MobileBottomNavbar /> {/* Render the mobile navbar */}
     </div>
   );
 };

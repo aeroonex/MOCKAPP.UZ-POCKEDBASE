@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Wifi, WifiOff, Clock, Signal, ArrowDownCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
+import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 const NetworkStatusFooter: React.FC = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -11,6 +12,11 @@ const NetworkStatusFooter: React.FC = () => {
   const [speed, setSpeed] = useState<number | null>(null);
   const [time, setTime] = useState<string>('');
   const { t } = useTranslation();
+  const isMobile = useIsMobile(); // Use the hook
+
+  if (isMobile) { // Hide on mobile
+    return null;
+  }
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
