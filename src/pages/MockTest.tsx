@@ -58,12 +58,17 @@ const MockTest: React.FC = () => {
         {(webcamStream || (isTestStarted && studentInfo)) && (
           <div className="fixed top-20 left-4 z-20 flex flex-col items-start space-y-2">
             {webcamStream && (
-              <video
-                ref={webcamVideoRef}
-                autoPlay
-                muted
-                className="w-32 h-24 rounded-lg shadow-lg border-2 border-primary-foreground bg-black"
-              />
+              <>
+                <video
+                  ref={webcamVideoRef}
+                  autoPlay
+                  muted
+                  className="w-32 h-24 rounded-lg shadow-lg border-2 border-primary-foreground bg-black"
+                />
+                <p className="text-xs text-white bg-black bg-opacity-70 p-1 rounded-md text-center w-32">
+                  edumock.uz
+                </p>
+              </>
             )}
             {isTestStarted && studentInfo && (
               <div className="bg-black bg-opacity-70 text-white p-2 rounded-md text-sm">
@@ -125,7 +130,7 @@ const MockTest: React.FC = () => {
       </main>
       <AppFooter />
       <StudentInfoForm
-        isOpen={isStudentInfoFormOpen}
+        isOpen={isStudentInfoFormFormOpen}
         onClose={() => setIsStudentInfoFormOpen(false)}
         onSave={handleStudentInfoSave}
       />
