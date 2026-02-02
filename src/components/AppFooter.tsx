@@ -3,6 +3,7 @@ import React from "react";
 import { Server, Lock } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { useLocation } from "react-router-dom";
+import MapViewButton from "./MapViewButton"; // Import the new component
 
 const AppFooter: React.FC = () => {
   const { t } = useTranslation();
@@ -18,6 +19,9 @@ const AppFooter: React.FC = () => {
             {t("landing_page.slogan_short", "Your platform for conversational practice and real results.")}
           </p>
         </div>
+
+        {/* New MapViewButton added here */}
+        <MapViewButton />
 
         <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-2 opacity-90">
           <div className="flex items-center gap-2 group cursor-default" title={t("landing_page.footer_educloud_title")}>
