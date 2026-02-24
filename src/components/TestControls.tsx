@@ -56,11 +56,11 @@ const TestControls: React.FC<TestControlsProps> = ({
               >
                 <path
                   d="M0 5h7"
-                  class="transition opacity-0 group-hover:opacity-100"
+                  className="transition opacity-0 group-hover:opacity-100"
                 ></path>
                 <path
                   d="M1 1l4 4-4 4"
-                  class="transition group-hover:translate-x-[3px]"
+                  className="transition group-hover:translate-x-[3px]"
                 ></path>
               </svg>
             </button>

@@ -268,8 +268,12 @@ const Records: React.FC = () => {
         console.error("Tus upload error:", error);
         let errorMessage = `${t("records_page.error_uploading_to_cloud")} ${error.message}`;
         
-        if (error.originalRequest && (error.originalRequest as any).response && 
-            (error.originalRequest as any).response.getStatus() === 413) {
+        if (
+          "originalRequest" in error &&
+          error.originalRequest &&
+          (error.originalRequest as any).response &&
+          (error.originalRequest as any).response.getStatus?.() === 413
+        ) {
           errorMessage = t("records_page.error_max_size_exceeded");
         }
         

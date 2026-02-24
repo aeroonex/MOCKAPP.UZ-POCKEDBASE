@@ -23,33 +23,14 @@ const App = () => {
           richColors
           theme="system"
           toastOptions={{
-            success: {
-              style: {
-                backgroundColor: 'hsl(var(--success-color) / 0.1)',
-                borderColor: 'hsl(var(--success-color))',
-                color: 'hsl(var(--foreground))',
-              },
-              iconTheme: {
-                primary: 'hsl(var(--success-color))',
-                secondary: 'hsl(var(--primary-foreground))',
-              },
-            },
-            error: {
-              style: {
-                backgroundColor: 'hsl(var(--error-color) / 0.1)',
-                borderColor: 'hsl(var(--error-color))',
-                color: 'hsl(var(--foreground))',
-              },
-              iconTheme: {
-                primary: 'hsl(var(--error-color))',
-                secondary: 'hsl(var(--primary-foreground))',
-              },
-            },
-            info: {
-              iconTheme: {
-                primary: 'hsl(var(--info-color))',
-                secondary: 'hsl(var(--primary-foreground))',
-              },
+            classNames: {
+              toast:
+                "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg data-[type=success]:border-[hsl(var(--success-color))] data-[type=success]:bg-[hsl(var(--success-color)/0.1)] data-[type=error]:border-[hsl(var(--error-color))] data-[type=error]:bg-[hsl(var(--error-color)/0.1)] data-[type=info]:border-[hsl(var(--info-color))] data-[type=info]:bg-[hsl(var(--info-color)/0.1)]",
+              description: "group-[.toast]:text-muted-foreground",
+              actionButton:
+                "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
+              cancelButton:
+                "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
             },
           }}
         />
