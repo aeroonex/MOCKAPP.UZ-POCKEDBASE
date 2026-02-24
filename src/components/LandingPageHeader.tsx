@@ -16,8 +16,9 @@ const LandingPageHeader: React.FC<LandingPageHeaderProps> = ({ onOpenLogin }) =>
   const { t } = useTranslation();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border shadow-sm">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border shadow-sm">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex justify-between items-center h-14">
+
         <div className="flex items-center space-x-3 sm:space-x-4 min-w-0">
           <a href="#" className="text-lg sm:text-xl font-bold text-foreground truncate">Mockapp<span className="text-primary">.uz</span></a>
 
