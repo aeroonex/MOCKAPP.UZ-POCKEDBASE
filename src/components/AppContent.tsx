@@ -55,10 +55,12 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className={cn(
-      "pb-10 bg-background text-foreground min-h-screen relative",
-      isMobile && "pb-20"
-    )}>
+    <div
+      className={cn(
+        "pb-10 bg-background text-foreground min-h-screen relative",
+        isMobile && "pb-[calc(5rem+env(safe-area-inset-bottom))]"
+      )}
+    >
       {!isMockTestPage && <LanguageBackground />}
       <Routes>
         <Route path="/" element={<Login />} />

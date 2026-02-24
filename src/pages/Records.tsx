@@ -26,6 +26,7 @@ import { useProgress, setProgress, removeProgress } from "@/utils/uploadProgress
 import { Badge } from "@/components/ui/badge"; // Badge import qilindi
 import { useAuth } from "@/context/AuthProvider"; // useAuth import qilindi
 import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
+import { cn } from "@/lib/utils";
 
 // Xotira ishlatilishini ko'rsatuvchi kichik komponent
 const StorageUsageCard: React.FC<{ isGuest: boolean, onOpenPricing: () => void }> = ({ isGuest, onOpenPricing }) => {
@@ -374,9 +375,9 @@ const Records: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-grow container mx-auto p-4 flex items-center justify-center">
+      <main className="flex-grow mx-auto w-full max-w-5xl px-3 py-4 sm:px-6 sm:py-6 flex items-center justify-center">
         <Card className="w-full max-w-3xl">
-          <CardHeader className="pt-8">
+          <CardHeader className="pt-6 sm:pt-8">
             <div className="flex justify-between items-center">
               <Link to="/home">
                 <Button variant="default" className="bg-primary hover:bg-primary/90">
@@ -384,11 +385,10 @@ const Records: React.FC = () => {
                   {t("common.back")}
                 </Button>
               </Link>
-              <CardTitle className="text-xl sm:text-3xl font-bold text-center flex-grow">
+              <CardTitle className="text-lg sm:text-3xl font-bold text-center flex-grow">
                 {t("records_page.your_recordings")}
               </CardTitle>
-              {/* Joyni to'ldirish uchun bo'sh div */}
-              <div className="w-[80px] h-4"></div>
+              <div className={cn("h-4", isMobile ? "w-10" : "w-[80px]")} />
             </div>
             <CardDescription className="text-center mt-2">{t("records_page.review_past_sessions")}</CardDescription>
           </CardHeader>

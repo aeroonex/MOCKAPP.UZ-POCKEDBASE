@@ -13,11 +13,14 @@ import TestControls from "@/components/TestControls";
 import { useTranslation } from 'react-i18next';
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const MockTest: React.FC = () => {
   const { isRecording, startRecording, stopAllStreams, webcamStream, isRecordingSupported } = useRecorder();
   const webcamVideoRef = useRef<HTMLVideoElement>(null);
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
 
   const {
     isTestStarted,
@@ -54,9 +57,12 @@ const MockTest: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {!isTestStarted && <Navbar />}
-      <main className="flex-grow container mx-auto p-4 sm:p-6 md:p-8 flex items-center justify-center relative bg-gradient-to-br from-background to-secondary/50 min-h-[calc(100vh-120px)]">
+      <main className="flex-grow mx-auto w-full max-w-5xl px-3 py-4 sm:px-6 sm:py-8 flex items-center justify-center relative bg-gradient-to-br from-background to-secondary/50 min-h-[calc(100vh-120px)]">
         {(webcamStream || (isTestStarted && studentInfo)) && (
-          <Card className="fixed top-20 left-4 z-20 p-2 bg-card shadow-lg border border-border">
+          <Card className={cn(
+            "fixed z-20 p-2 bg-card shadow-lg border border-border",
+            isMobile ? "top-16 left-2" : "top-20 left-4"
+          )}>
             <CardContent className="p-0 space-y-2">
               {webcamStream && (
                 <div className="flex flex-col items-center">
@@ -64,14 +70,15 @@ const MockTest: React.FC = () => {
                     ref={webcamVideoRef}
                     autoPlay
                     muted
-                    className="w-32 h-24 rounded-lg shadow-lg border-2 border-primary-foreground bg-black"
+                    className={cn(
+                      "rounded-lg shadow-lg border-2 border-primary-foreground bg-black",
+                      isMobile ? "w-24 h-20" : "w-32 h-24"
+                    )}
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    edumock.uz
-                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-1">edumock.uz</p>
                 </div>
               )}
-              {isTestStarted && studentInfo && (
+              {isTestStarted && studentInfo && !isMobile && (
                 <div className="p-2 border-t border-border mt-2 pt-2">
                   <p className="text-sm text-foreground"><strong>{t("mock_test_page.student_id")}:</strong> {studentInfo.id}</p>
                   <p className="text-sm text-foreground"><strong>{t("mock_test_page.student_name")}:</strong> {studentInfo.name}</p>
@@ -83,13 +90,13 @@ const MockTest: React.FC = () => {
         )}
 
         {isRecording && (
-          <div className="fixed top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 text-red-500 font-semibold z-20 bg-black bg-opacity-70 p-2 rounded-md">
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 text-red-500 font-semibold z-20 bg-black bg-opacity-70 px-3 py-2 rounded-md">
             <Video className="h-5 w-5 animate-pulse" /> REC
           </div>
         )}
-        
-        <Card className="w-full max-w-2xl relative card-glow">
-          <CardHeader className="py-6">
+
+        <Card className={cn("w-full relative card-glow", isMobile ? "max-w-none" : "max-w-2xl")}>
+          <CardHeader className="py-4 sm:py-6">
             <div className="flex justify-between items-center w-full">
               {!isTestStarted && (
                 <Link to="/home">
@@ -99,14 +106,17 @@ const MockTest: React.FC = () => {
                   </Button>
                 </Link>
               )}
-              <CardTitle className={`text-xl sm:text-3xl font-bold text-center flex-grow ${isTestStarted ? 'ml-0' : 'ml-4'}`}>
+              <CardTitle className={cn(
+                "font-bold text-center flex-grow",
+                isMobile ? "text-lg" : "text-xl sm:text-3xl",
+                isTestStarted ? "ml-0" : "ml-4"
+              )}>
                 {t("mock_test_page.mock_speaking_test")}
               </CardTitle>
-              {/* Joyni to'ldirish uchun bo'sh div */}
-              {!isTestStarted && <div className="w-[80px] h-4"></div>}
+              {!isTestStarted && <div className={cn(isMobile ? "w-10" : "w-[80px]", "h-4")} />}
             </div>
           </CardHeader>
-          <CardContent className="space-y-6 p-6">
+          <CardContent className="space-y-6 p-4 sm:p-6">
             {isTestStarted && currentPhase !== "finished" && (
               <TestQuestionDisplay
                 currentQ={currentQ}
@@ -130,7 +140,6 @@ const MockTest: React.FC = () => {
           </CardContent>
         </Card>
       </main>
-      {/* AppFooter removed from MockTest */}
       <StudentInfoForm
         isOpen={isStudentInfoFormOpen}
         onClose={() => setIsStudentInfoFormOpen(false)}

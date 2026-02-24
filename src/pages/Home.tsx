@@ -44,25 +44,25 @@ export default function Home({ setIsGuideDialogOpen, handleLogout, isGuideDialog
 
   const items = [
     {
-      icon: <Book className="w-10 h-10" />,
+      icon: <Book className="w-8 h-8 sm:w-10 sm:h-10" />,
       title: t("home_page.questions"),
       subtitle: t("home_page.view_all_questions"),
       path: "/questions",
     },
     {
-      icon: <PlusCircle className="w-10 h-10" />,
+      icon: <PlusCircle className="w-8 h-8 sm:w-10 sm:h-10" />,
       title: t("home_page.add_question"),
       subtitle: t("home_page.add_new_question"),
       path: "/add-question",
     },
     {
-      icon: <ListChecks className="w-10 h-10" />,
+      icon: <ListChecks className="w-8 h-8 sm:w-10 sm:h-10" />,
       title: t("home_page.mock_test"),
       subtitle: t("home_page.start_the_test"),
       path: "/mock-test",
     },
     {
-      icon: <Video className="w-10 h-10" />,
+      icon: <Video className="w-8 h-8 sm:w-10 sm:h-10" />,
       title: t("home_page.records"),
       subtitle: t("home_page.view_recorded_videos"),
       path: "/records",
@@ -70,7 +70,7 @@ export default function Home({ setIsGuideDialogOpen, handleLogout, isGuideDialog
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-sky-500 to-slate-900 text-white p-4">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-sky-500 to-slate-900 text-white p-4 pb-24 sm:pb-4">
       <header className="flex flex-col sm:flex-row sm:justify-between items-center mb-8">
         <h1 className="text-xl sm:text-3xl font-bold">Edumock.uz</h1>
         {!isMobile && ( // Only show header nav on non-mobile
