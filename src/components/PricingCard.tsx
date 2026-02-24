@@ -113,10 +113,13 @@ const PricingCard: React.FC<PricingCardProps> = ({ isDialog = false }) => {
   };
 
   return (
-    <div className={cn(
-      "bg-card border border-border rounded-xl shadow-2xl animated-card",
-      isDialog ? "p-2" : "p-6 sticky top-20",
-    )} style={{ animationDelay: '1.5s' }}>
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-background via-background to-primary/5 shadow-2xl",
+        isDialog ? "p-3" : "p-6 lg:sticky lg:top-20"
+      )}
+      style={{ animationDelay: '1.5s' }}
+    >
       <h2 className={cn(
         "font-bold text-foreground",
         isDialog ? "text-base mb-2" : "text-xl mb-6"
