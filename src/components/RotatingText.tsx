@@ -33,45 +33,50 @@ const RotatingText: React.FC<RotatingTextProps> = ({ type }) => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % currentTextArray.length);
-    }, 2000); // Har 2 soniyada o'zgaradi
+    }, 2200);
 
     return () => clearInterval(interval);
   }, [currentTextArray.length]);
 
-  // Konteyner uchun responsiv o'lchamlarni aniqlash
-  // Bu balandliklar ota-elementlardagi h1/p elementlarining line-height qiymatlariga asoslangan.
-  // Tailwind CSS ning default `leading-tight` qiymatlari asosida hisoblangan.
-  const containerDimensions = {
-    // `h` qiymatlari `h1` va `p` teglarining `line-height` qiymatlariga mos keladi.
-    // `min-w` qiymatlari eng uzun tarjimani sig'dira olishi uchun oshirildi.
-    // Rus tilidagi matn ikki qatorga sig'ishi uchun balandlik oshirildi.
-    title: "h-[4.75rem] sm:h-[5.75rem] lg:h-[6rem] min-w-[250px] sm:min-w-[350px] lg:min-w-[500px]",
-    subtitle: "h-[1.75rem] sm:h-[2.25rem] min-w-[150px] sm:min-w-[300px]",
-  };
-
   const currentLang = currentTextArray[currentIndex].lang;
 
   return (
-    <div className={cn("relative block", containerDimensions[type])}> {/* inline-block o'rniga block qilindi */}
+    <span
+      className={cn(
+        "relative inline-flex align-baseline",
+        type === 'title'
+          ? "min-h-[2.6em] sm:min-h-[1.6em]"
+          : "min-h-[1.6em]"
+      )}
+    >
       <AnimatePresence mode="wait">
         <motion.span
           key={currentIndex}
-          initial={{ opacity: 0, y: 20, filter: 'blur(5px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          exit={{ opacity: 0, y: -20, filter: 'blur(5px)' }}
-          transition={{ duration: 0.5, ease: "easeInOut" }}
+          initial={{ opacity: 0, y: 10, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -10, scale: 0.98 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
           className={cn(
-            "absolute left-0 top-0 w-full h-full flex items-center justify-start",
-            {
-              // Rus tilidagi sarlavha uchun kichikroq shrift o'lchamlarini qo'llash
-              'text-3xl sm:text-4xl lg:text-4xl': currentLang === 'ru' && type === 'title',
-            }
+            "relative inline-flex items-center",
+            type === 'title'
+              ? "text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400"
+              : "text-foreground",
+            currentLang === 'ru' && type === 'title' && 'text-2xl sm:text-3xl lg:text-4xl'
           )}
         >
-          {currentTextArray[currentIndex].text}
+          {type === 'title' ? (
+            <>
+              <span className="absolute -inset-x-2 -bottom-1 h-2 rounded-full bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400 opacity-25 blur-sm" />
+              <span className="relative leading-tight">{currentTextArray[currentIndex].text}</span>
+            </>
+          ) : (
+            <span className="rounded-full border bg-background/40 px-3 py-1 text-sm sm:text-base font-semibold backdrop-blur-sm shadow-sm">
+              {currentTextArray[currentIndex].text}
+            </span>
+          )}
         </motion.span>
       </AnimatePresence>
-    </div>
+    </span>
   );
 };
 
