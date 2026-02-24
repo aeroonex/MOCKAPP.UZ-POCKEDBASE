@@ -67,17 +67,17 @@ const Login: React.FC = () => {
   }, [navigate]); // Removed showGlobalSpinner from dependencies to prevent re-running useEffect on state change
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-zinc-950 via-zinc-900 to-emerald-950/30 text-foreground flex flex-col">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 text-foreground flex flex-col dark:from-zinc-950 dark:via-zinc-900 dark:to-emerald-950/30">
       {/* Landing BG (based on TrustSection style) */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.12]"
+        className="pointer-events-none absolute inset-0 opacity-[0.08] dark:opacity-[0.12]"
         style={{
           backgroundImage:
-            "linear-gradient(rgba(16,185,129,0.22) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.22) 1px, transparent 1px)",
+            "linear-gradient(hsl(var(--primary) / 0.18) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary) / 0.18) 1px, transparent 1px)",
           backgroundSize: "56px 56px",
         }}
       />
-      <div className="pointer-events-none absolute -top-32 left-1/2 h-72 w-[40rem] -translate-x-1/2 rounded-full bg-emerald-500/20 blur-[140px]" />
+      <div className="pointer-events-none absolute -top-32 left-1/2 h-72 w-[40rem] -translate-x-1/2 rounded-full bg-primary/15 blur-[140px] dark:bg-emerald-500/20" />
 
       <div className="relative z-10 flex flex-col min-h-screen">
         <LandingPageHeader onOpenLogin={openLoginModal} />
