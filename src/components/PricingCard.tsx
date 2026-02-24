@@ -118,6 +118,7 @@ const PricingCard: React.FC<PricingCardProps> = ({ isDialog = false }) => {
         "relative overflow-hidden rounded-2xl border border-border/60 bg-background/70 shadow-2xl backdrop-blur-md ring-1 ring-primary/10",
         "before:absolute before:inset-0 before:bg-[radial-gradient(ellipse_at_top,theme(colors.primary.DEFAULT/0.18),transparent_60%)] before:opacity-70 before:pointer-events-none",
         "after:absolute after:inset-0 after:bg-gradient-to-br after:from-indigo-500/10 after:via-transparent after:to-emerald-400/10 after:pointer-events-none",
+        !isDialog && "mt-10",
         isDialog ? "p-3" : "p-6 lg:sticky lg:top-20"
       )}
       style={{ animationDelay: '1.5s' }}

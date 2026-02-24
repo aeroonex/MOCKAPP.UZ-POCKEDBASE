@@ -42,7 +42,7 @@ const TrustSection: React.FC = () => {
         {/* subtle glow */}
         <div className="pointer-events-none absolute -top-24 left-1/2 h-64 w-[32rem] -translate-x-1/2 rounded-full bg-emerald-500/20 blur-[120px]" />
 
-        <div className="relative px-5 py-8 sm:px-8 sm:py-10">
+        <div className="relative px-5 py-10 sm:px-8 sm:py-12">
           <div className="grid items-center gap-8 lg:grid-cols-1">
             <motion.div
               initial={{ opacity: 0, y: 16 }}
@@ -50,7 +50,7 @@ const TrustSection: React.FC = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="text-2xl font-bold leading-tight sm:text-3xl">
+              <h2 className="text-3xl font-bold leading-tight sm:text-4xl">
                 {t("landing_page.trust_section.title_line1")} <br />
                 <span className="text-emerald-300">{t("landing_page.trust_section.title_line2")}</span>
               </h2>
