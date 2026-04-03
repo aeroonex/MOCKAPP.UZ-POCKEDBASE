@@ -5,8 +5,8 @@ import { User } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
 import { ThemeToggle } from './ThemeToggle';
-import { Button } from '@/components/ui/button'; // Button komponentini import qilish
-import '../styles/PremiumButton.css'; // Yangi tugma stillarini import qilish
+import { Button } from '@/components/ui/button';
+import '../styles/PremiumButton.css';
 
 interface LandingPageHeaderProps {
   onOpenLogin: () => void;
@@ -16,11 +16,10 @@ const LandingPageHeader: React.FC<LandingPageHeaderProps> = ({ onOpenLogin }) =>
   const { t } = useTranslation();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border shadow-sm">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex justify-between items-center h-14">
-
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border shadow-sm dark:bg-white/95 dark:border-white">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex justify-between items-center h-14 dark:text-black">
         <div className="flex items-center space-x-3 sm:space-x-4 min-w-0">
-          <a href="#" className="text-lg sm:text-xl font-bold text-foreground truncate">Mockapp<span className="text-primary">.uz</span></a>
+          <a href="#" className="text-lg sm:text-xl font-bold text-foreground truncate dark:text-black">Mockapp<span className="text-primary">.uz</span></a>
 
           <Button
             asChild
@@ -35,7 +34,7 @@ const LandingPageHeader: React.FC<LandingPageHeaderProps> = ({ onOpenLogin }) =>
         </div>
         <div className="flex items-center space-x-2 sm:space-x-3">
           <div className="hidden sm:block">
-            <button className="Btn"> 
+            <button className="Btn">
               <svg viewBox="0 0 576 512" height="1em" className="logoIcon"><path d="M309 106c11.4-7 19-19.7 19-34c0-22.1-17.9-40-40-40s-40 17.9-40 40c0 14.4 7.6 27 19 34L209.7 220.6c-9.1 18.2-32.7 23.4-48.6 10.7L72 160c5-6.7 8-15 8-24c0-22.1-17.9-40-40-40S0 113.9 0 136s17.9 40 40 40c.2 0 .5 0 .7 0L86.4 427.4c5.5 30.4 32 52.6 63 52.6H426.6c30.9 0 57.4-22.1 63-52.6L535.3 176c.2 0 .5 0 .7 0c22.1 0 40-17.9 40-40s-17.9-40-40-40s-40 17.9-40 40c0 9 3 17.3 8 24l-89.1 71.3c-15.9 12.7-39.5 7.5-48.6-10.7L309 106z"></path></svg>
               GO PREMIUM
             </button>
