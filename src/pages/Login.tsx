@@ -18,7 +18,7 @@ import TrustSection from "@/components/TrustSection";
 import { useAuth } from "@/context/AuthProvider";
 import YouTubeBackgroundVideo from "@/components/YouTubeBackgroundVideo";
 
-const LANDING_BACKGROUND_VIDEO_URL = "https://www.youtube.com/watch?v=jfKfPfyJRdk";
+const LANDING_BACKGROUND_VIDEO_URL = "https://youtu.be/COv-TEtLrAg?si=nIAasFNLFQxHJJFG";
 
 const Login: React.FC = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
