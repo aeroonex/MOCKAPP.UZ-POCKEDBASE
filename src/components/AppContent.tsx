@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Bot } from "lucide-react";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/context/AuthProvider";
 import { showSuccess } from "@/utils/toast";
@@ -28,17 +27,15 @@ import SuperAdminDashboard from "@/pages/SuperAdminDashboard";
 import EduAiAssistant from "@/components/EduAiAssistant";
 import LanguageBackground from "@/components/LanguageBackground";
 import MobileBottomNavbar from "@/components/MobileBottomNavbar";
-// import MapViewButton from "./MapViewButton"; // MapViewButton import olib tashlandi
 import { cn } from "@/lib/utils";
 
 const AppContent: React.FC = () => {
-
   const [isEduAiAssistantOpen, setIsEduAiAssistantOpen] = useState(false);
   const [isGuideDialogOpen, setIsGuideDialogOpen] = useState(false);
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
-  const isMockTestPage = location.pathname === '/mock-test';
+  const isMockTestPage = location.pathname === "/mock-test";
   const isMobile = useIsMobile();
   const { session } = useAuth();
   const isGuestMode = localStorage.getItem("isGuestMode") === "true";
@@ -59,10 +56,11 @@ const AppContent: React.FC = () => {
     <div
       className={cn(
         "pb-10 bg-background text-foreground min-h-screen relative",
-        isMobile && "pb-[calc(5rem+env(safe-area-inset-bottom))]"
+        isMobile && "pb-[calc(5rem+env(safe-area-inset-bottom))]",
       )}
     >
       {!isMockTestPage && <LanguageBackground />}
+
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
@@ -74,7 +72,16 @@ const AppContent: React.FC = () => {
         </Route>
 
         <Route element={<ProtectedRoute />}>
-          <Route path="/home" element={<Home setIsGuideDialogOpen={setIsGuideDialogOpen} handleLogout={handleLogout} isGuideDialogOpen={isGuideDialogOpen} />} />
+          <Route
+            path="/home"
+            element={
+              <Home
+                setIsGuideDialogOpen={setIsGuideDialogOpen}
+                handleLogout={handleLogout}
+                isGuideDialogOpen={isGuideDialogOpen}
+              />
+            }
+          />
           <Route path="/add-question" element={<AddQuestion />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/user-profile" element={<UserProfile />} />
@@ -86,13 +93,12 @@ const AppContent: React.FC = () => {
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {/* EduAiAssistant tugmasi o'z joyida qoldi */}
       {!isMockTestPage && !isMobile && (
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 1 }}
-          className="fixed bottom-[56px] right-4 z-[9999]" // AppFooter balandligini hisobga olgan holda bottom-[56px]
+          className="fixed bottom-4 right-4 z-[9999]"
         >
           <Button
             variant="default"
@@ -106,6 +112,7 @@ const AppContent: React.FC = () => {
       )}
 
       <EduAiAssistant isOpen={isEduAiAssistantOpen} onClose={() => setIsEduAiAssistantOpen(false)} />
+
       <MobileBottomNavbar
         handleLogout={handleLogout}
         setIsGuideDialogOpen={setIsGuideDialogOpen}
