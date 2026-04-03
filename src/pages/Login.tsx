@@ -64,20 +64,21 @@ const Login: React.FC = () => {
   }, [navigate, session]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background text-white flex flex-col">
+    <div className="relative min-h-screen overflow-hidden bg-transparent text-white flex flex-col isolate">
       <YouTubeBackgroundVideo url={LANDING_BACKGROUND_VIDEO_URL} />
 
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.08]"
+        className="pointer-events-none absolute inset-0 z-[1] opacity-[0.05]"
         style={{
           backgroundImage:
             "linear-gradient(hsl(var(--primary) / 0.18) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary) / 0.18) 1px, transparent 1px)",
           backgroundSize: "56px 56px",
         }}
       />
-      <div className="pointer-events-none absolute -top-32 left-1/2 h-72 w-[40rem] -translate-x-1/2 rounded-full bg-primary/15 blur-[140px]" />
+      <div className="pointer-events-none absolute -top-32 left-1/2 z-[1] h-72 w-[40rem] -translate-x-1/2 rounded-full bg-primary/10 blur-[140px]" />
 
       <div className="relative z-10 flex flex-col min-h-screen">
+
         <LandingPageHeader onOpenLogin={openLoginModal} />
 
         <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 hero-section">
