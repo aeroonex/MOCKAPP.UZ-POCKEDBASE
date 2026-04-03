@@ -7,23 +7,25 @@ import LandingPageHeader from "@/components/LandingPageHeader";
 import ProcessSteps from "@/components/ProcessSteps";
 import ContactSection from "@/components/ContactSection";
 import PricingCard from "@/components/PricingCard";
-// import AppFooter from "@/components/AppFooter"; // AppFooter olib tashlandi
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import CustomAuthForm from "@/components/CustomAuthForm";
-import { motion } from "framer-motion"; // Import motion from framer-motion
-import LoadingSpinner from "@/components/LoadingSpinner"; // Import the new component
-import RotatingText from "@/components/RotatingText"; // Yangi komponentni import qilish
-import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
+import { motion } from "framer-motion";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import RotatingText from "@/components/RotatingText";
+import { useIsMobile } from "@/hooks/use-mobile";
 import TrustSection from "@/components/TrustSection";
 import { useAuth } from "@/context/AuthProvider";
+import YouTubeBackgroundVideo from "@/components/YouTubeBackgroundVideo";
+
+const LANDING_BACKGROUND_VIDEO_URL = "https://www.youtube.com/watch?v=jfKfPfyJRdk";
 
 const Login: React.FC = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
-  const [showGlobalSpinner, setShowGlobalSpinner] = useState(false); // Combined loading state for both "Try Me" and actual login
+  const [showGlobalSpinner, setShowGlobalSpinner] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const isMobile = useIsMobile(); // Use the hook
+  const isMobile = useIsMobile();
   const { session } = useAuth();
 
   const openLoginModal = () => {
@@ -35,13 +37,13 @@ const Login: React.FC = () => {
   };
 
   const handleTryMe = () => {
-    setShowGlobalSpinner(true); // Start loading
+    setShowGlobalSpinner(true);
     setTimeout(() => {
       localStorage.setItem("isGuestMode", "true");
       sessionStorage.setItem("showGuestGuide", "true");
       navigate("/home");
-      setShowGlobalSpinner(false); // End loading after navigation
-    }, 2000); // 2 seconds delay
+      setShowGlobalSpinner(false);
+    }, 2000);
   };
 
   useEffect(() => {
@@ -62,17 +64,18 @@ const Login: React.FC = () => {
   }, [navigate, session]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-background via-background to-primary/5 text-foreground flex flex-col dark:from-zinc-950 dark:via-zinc-900 dark:to-emerald-950/30">
-      {/* Landing BG (based on TrustSection style) */}
+    <div className="relative min-h-screen overflow-hidden bg-background text-white flex flex-col">
+      <YouTubeBackgroundVideo url={LANDING_BACKGROUND_VIDEO_URL} />
+
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.08] dark:opacity-[0.12]"
+        className="pointer-events-none absolute inset-0 opacity-[0.08]"
         style={{
           backgroundImage:
             "linear-gradient(hsl(var(--primary) / 0.18) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary) / 0.18) 1px, transparent 1px)",
           backgroundSize: "56px 56px",
         }}
       />
-      <div className="pointer-events-none absolute -top-32 left-1/2 h-72 w-[40rem] -translate-x-1/2 rounded-full bg-primary/15 blur-[140px] dark:bg-emerald-500/20" />
+      <div className="pointer-events-none absolute -top-32 left-1/2 h-72 w-[40rem] -translate-x-1/2 rounded-full bg-primary/15 blur-[140px]" />
 
       <div className="relative z-10 flex flex-col min-h-screen">
         <LandingPageHeader onOpenLogin={openLoginModal} />
@@ -85,10 +88,10 @@ const Login: React.FC = () => {
                 animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
                 transition={{ duration: 1, delay: 0.2 }}
               >
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-foreground mb-4 leading-tight">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-4 leading-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
                   {t("landing_page.title_part1")} <span className="text-primary"><RotatingText type="title" /></span>
                 </h1>
-                <p className="text-xl sm:text-3xl font-semibold text-muted-foreground mb-8">
+                <p className="text-xl sm:text-3xl font-semibold text-white/85 mb-8 drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
                   <RotatingText type="subtitle" />
                 </p>
               </motion.div>
@@ -97,14 +100,14 @@ const Login: React.FC = () => {
                 <Button
                   onClick={handleTryMe}
                   className="bg-gradient-purple text-white text-base px-6 py-4 rounded-full shadow-lg transition-all duration-300 animate-button-pulse btn-hover-glow"
-                  disabled={showGlobalSpinner} // Disable button while loading
+                  disabled={showGlobalSpinner}
                 >
                   {t("landing_page.try_me_button")}
                 </Button>
                 <Button
                   onClick={openLoginModal}
                   className="fixed-login-button text-white focus:outline-none focus:ring-4 focus:ring-primary focus:ring-opacity-50 rounded-xl flex items-center gap-2"
-                  disabled={showGlobalSpinner} // Disable button while loading
+                  disabled={showGlobalSpinner}
                 >
                   {t("common.login")}
                 </Button>
@@ -143,8 +146,7 @@ const Login: React.FC = () => {
             </div>
           </DialogContent>
         </Dialog>
-        {showGlobalSpinner && <LoadingSpinner />} {/* Conditionally render spinner */}
-        {/* AppFooter endi AppContent ichida render qilinadi */}
+        {showGlobalSpinner && <LoadingSpinner />}
       </div>
     </div>
   );
