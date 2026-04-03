@@ -28,7 +28,7 @@ const TrustSection: React.FC = () => {
 
   return (
     <section>
-      <div className="relative overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-background via-background to-primary/5 text-foreground shadow-2xl dark:from-white dark:via-white dark:to-white dark:text-black dark:border-white">
+      <div className="relative overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-br from-white/95 via-white/90 to-slate-50 text-slate-900 shadow-2xl dark:border-white/10 dark:from-slate-900/95 dark:via-slate-900/90 dark:to-slate-800/85 dark:text-white">
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.08] dark:opacity-[0.05]"
           style={{
@@ -48,7 +48,7 @@ const TrustSection: React.FC = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="text-3xl font-bold leading-tight sm:text-4xl dark:text-black">
+              <h2 className="text-3xl font-bold leading-tight sm:text-4xl text-slate-900 dark:text-white">
                 {t("landing_page.trust_section.title_line1")} <br />
                 <span className="text-primary">{t("landing_page.trust_section.title_line2")}</span>
               </h2>
@@ -67,8 +67,8 @@ const TrustSection: React.FC = () => {
                       <Icon className="h-5 w-5" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold sm:text-base dark:text-black">{title}</h4>
-                      <p className="mt-1 text-sm leading-relaxed text-muted-foreground dark:text-gray-700">{desc}</p>
+                      <h4 className="text-sm font-bold sm:text-base text-slate-900 dark:text-white">{title}</h4>
+                      <p className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-300">{desc}</p>
                     </div>
                   </motion.div>
                 ))}
@@ -84,11 +84,11 @@ const TrustSection: React.FC = () => {
             >
               <div className="absolute -inset-10 rounded-full bg-primary/10 blur-[100px] dark:bg-primary/10" />
 
-              <div className="relative overflow-hidden rounded-[2.25rem] border border-border/60 bg-background/60 p-2 backdrop-blur-sm dark:border-white dark:bg-white">
+              <div className="relative overflow-hidden rounded-[2.25rem] border border-slate-200/80 bg-white/80 p-2 backdrop-blur-sm dark:border-white/10 dark:bg-slate-800/70">
                 <img
                   src="https://av.sc.com/corp-en/nr/content/images/Uzbekistan-skyline-insights-article-in-text.jpg"
                   alt={t("landing_page.trust_section.image_alt")}
-                  className="aspect-[16/10] w-full rounded-[1.9rem] bg-black/5 object-cover shadow-2xl dark:bg-white"
+                  className="aspect-[16/10] w-full rounded-[1.9rem] bg-black/5 object-cover shadow-2xl"
                   loading="lazy"
                   decoding="async"
                   referrerPolicy="no-referrer"

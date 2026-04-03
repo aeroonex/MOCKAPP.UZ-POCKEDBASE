@@ -104,17 +104,17 @@ const PricingCard: React.FC<PricingCardProps> = ({ isDialog = false }) => {
   const totalPrice = prices[selectedPriceKey];
 
   const cardBackgrounds: { [key: string]: string } = {
-    "1": "bg-gradient-to-br from-gray-50 to-white dark:from-white dark:to-white",
-    "3": "bg-gradient-to-br from-red-50 to-white dark:from-white dark:to-white",
-    "6": "bg-gradient-to-br from-blue-50 to-white dark:from-white dark:to-white",
-    "12": "bg-gradient-to-br from-purple-50 to-white dark:from-white dark:to-white",
-    "lifetime": "bg-gradient-to-br from-green-50 to-white dark:from-white dark:to-white",
+    "1": "bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-800/90",
+    "3": "bg-gradient-to-br from-red-50 to-white dark:from-slate-800 dark:to-slate-800/90",
+    "6": "bg-gradient-to-br from-blue-50 to-white dark:from-slate-800 dark:to-slate-800/90",
+    "12": "bg-gradient-to-br from-purple-50 to-white dark:from-slate-800 dark:to-slate-800/90",
+    "lifetime": "bg-gradient-to-br from-green-50 to-white dark:from-slate-800 dark:to-slate-800/90",
   };
 
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-2xl border border-border/60 bg-background/70 shadow-2xl backdrop-blur-md ring-1 ring-primary/10",
+        "relative overflow-hidden rounded-2xl border border-white/60 bg-white/95 text-slate-900 shadow-2xl backdrop-blur-md ring-1 ring-primary/10 dark:border-white/10 dark:bg-slate-900/90 dark:text-white",
         "before:absolute before:inset-0 before:bg-[radial-gradient(ellipse_at_top,theme(colors.primary.DEFAULT/0.18),transparent_60%)] before:opacity-70 before:pointer-events-none dark:before:opacity-20",
         "after:absolute after:inset-0 after:bg-gradient-to-br after:from-indigo-500/10 after:via-transparent after:to-emerald-400/10 after:pointer-events-none dark:after:opacity-10",
         !isDialog && "mt-10",
@@ -123,7 +123,7 @@ const PricingCard: React.FC<PricingCardProps> = ({ isDialog = false }) => {
       style={{ animationDelay: '1.5s' }}
     >
       <h2 className={cn(
-        "font-bold text-foreground dark:text-black",
+        "font-bold text-slate-900 dark:text-white",
         isDialog ? "text-base mb-2" : "text-xl mb-6"
       )}>{t("landing_page.select_tariff")}</h2>
       <Accordion type="single" collapsible value={openAccordionValue} onValueChange={setOpenAccordionValue}>
@@ -138,7 +138,7 @@ const PricingCard: React.FC<PricingCardProps> = ({ isDialog = false }) => {
               key={option}
               value={option}
               className={cn(
-                "price-option flex flex-col border border-border rounded-xl relative mb-1 last:mb-0 dark:border-gray-200",
+                "price-option flex flex-col border border-slate-200 rounded-xl relative mb-1 last:mb-0 dark:border-white/10",
                 cardBackgrounds[option],
                 selectedPriceKey === option ? 'price-option-active' : '',
                 isDialog ? "p-2" : "p-3"
@@ -156,7 +156,7 @@ const PricingCard: React.FC<PricingCardProps> = ({ isDialog = false }) => {
               )}
               <AccordionTrigger className="flex justify-between items-center p-0 hover:no-underline">
                 <div className="flex-grow text-left">
-                  <p className={cn("font-semibold text-foreground dark:text-black", isDialog ? "text-sm" : "text-base")}>
+                  <p className={cn("font-semibold text-slate-900 dark:text-white", isDialog ? "text-sm" : "text-base")}>
                     {option === "lifetime" ? t("landing_page.lifetime") : `${option} ${t("landing_page.monthly")}`}
                   </p>
                   {priceData.originalPrice && (
@@ -165,8 +165,8 @@ const PricingCard: React.FC<PricingCardProps> = ({ isDialog = false }) => {
                 </div>
                 <div className="text-right flex flex-col items-end">
                   <p className={cn(
-                    "font-bold dark:text-black",
-                    selectedPriceKey === option ? 'text-primary' : 'text-foreground',
+                    "font-bold dark:text-white",
+                    selectedPriceKey === option ? 'text-primary' : 'text-slate-900',
                     isDialog ? "text-base" : "text-xl"
                   )}>
                     {priceData.display}
@@ -178,7 +178,7 @@ const PricingCard: React.FC<PricingCardProps> = ({ isDialog = false }) => {
               </AccordionTrigger>
               <AccordionContent>
                 <ul className={cn(
-                  "space-y-1 text-muted-foreground dark:text-gray-700",
+                  "space-y-1 text-slate-600 dark:text-slate-300",
                   isDialog ? "text-xs" : "mt-2 text-sm"
                 )}>
                   {priceData.features.map((featureKey) => (
