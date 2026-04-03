@@ -30,9 +30,9 @@ import LanguageBackground from "@/components/LanguageBackground";
 import MobileBottomNavbar from "@/components/MobileBottomNavbar";
 // import MapViewButton from "./MapViewButton"; // MapViewButton import olib tashlandi
 import { cn } from "@/lib/utils";
-import AppFooter from "./AppFooter";
 
 const AppContent: React.FC = () => {
+
   const [isEduAiAssistantOpen, setIsEduAiAssistantOpen] = useState(false);
   const [isGuideDialogOpen, setIsGuideDialogOpen] = useState(false);
   const { t } = useTranslation();
@@ -106,13 +106,12 @@ const AppContent: React.FC = () => {
       )}
 
       <EduAiAssistant isOpen={isEduAiAssistantOpen} onClose={() => setIsEduAiAssistantOpen(false)} />
-      <MobileBottomNavbar 
-        handleLogout={handleLogout} 
-        setIsGuideDialogOpen={setIsGuideDialogOpen} 
-        isGuestMode={isGuestMode} 
-        session={session} 
+      <MobileBottomNavbar
+        handleLogout={handleLogout}
+        setIsGuideDialogOpen={setIsGuideDialogOpen}
+        isGuestMode={isGuestMode}
+        session={session}
       />
-      {!isMobile && <AppFooter />}
     </div>
   );
 };
