@@ -40,7 +40,7 @@ const TrustSection: React.FC = () => {
 
         <div className="pointer-events-none absolute -top-24 left-1/2 h-64 w-[32rem] -translate-x-1/2 rounded-full bg-primary/15 blur-[120px] dark:bg-primary/10" />
 
-        <div className="relative px-5 py-10 sm:px-8 sm:py-12 dark:bg-white">
+        <div className="relative px-5 py-10 sm:px-8 sm:py-12">
           <div className="grid items-center gap-8 lg:grid-cols-1">
             <motion.div
               initial={{ opacity: 0, y: 16 }}

@@ -71,7 +71,7 @@ const RotatingText: React.FC<RotatingTextProps> = ({ type }) => {
               </span>
             </>
           ) : (
-            <span className="rounded-full border bg-background/40 px-3 py-1 text-sm sm:text-base font-semibold text-foreground backdrop-blur-sm shadow-sm dark:bg-white dark:text-black dark:border-white">
+            <span className="rounded-full border bg-background/40 px-3 py-1 text-sm sm:text-base font-semibold text-foreground backdrop-blur-sm shadow-sm">
               {currentTextArray[currentIndex].text}
             </span>
           )}
