@@ -1,39 +1,36 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import LandingPageHeader from "@/components/LandingPageHeader";
-import ProcessSteps from "@/components/ProcessSteps";
-import ContactSection from "@/components/ContactSection";
-import PricingCard from "@/components/PricingCard";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
+import { useTheme } from "next-themes";
+import { ShieldCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import CustomAuthForm from "@/components/CustomAuthForm";
-import { motion } from "framer-motion";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import RotatingText from "@/components/RotatingText";
-import { useIsMobile } from "@/hooks/use-mobile";
-import TrustSection from "@/components/TrustSection";
+import PricingCard from "@/components/PricingCard";
 import { useAuth } from "@/context/AuthProvider";
-import AuroraBackground from "@/components/AuroraBackground";
+import LandingHeader from "@/components/landing/LandingHeader";
+import Hero from "@/components/landing/Hero";
+import Benefits from "@/components/landing/Benefits";
+import ExamSteps from "@/components/landing/ExamSteps";
+import DarkBand from "@/components/landing/DarkBand";
+import Reveal from "@/components/landing/Reveal";
+import { Rise3D } from "@/components/landing/motion";
+import { Faq, FinalCta, Footer } from "@/components/landing/FaqCta";
 
 const Login: React.FC = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [showGlobalSpinner, setShowGlobalSpinner] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
   const { session } = useAuth();
 
-  const openLoginModal = () => {
-    setIsLoginDialogOpen(true);
-  };
+  const openLoginModal = () => setIsLoginDialogOpen(true);
+  const closeLoginModal = () => setIsLoginDialogOpen(false);
+  const goPricing = () => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
-  const closeLoginModal = () => {
-    setIsLoginDialogOpen(false);
-  };
-
+  // Mehmon rejimi — asosiy mantiq o'zgarmagan
   const handleTryMe = () => {
     setShowGlobalSpinner(true);
     setTimeout(() => {
@@ -41,18 +38,44 @@ const Login: React.FC = () => {
       sessionStorage.setItem("showGuestGuide", "true");
       navigate("/home");
       setShowGlobalSpinner(false);
-    }, 2000);
+    }, 900);
   };
+
+  // Landing har doim yorug' ko'rinishda: ilova temasi (html.dark) vaqtincha o'chiriladi,
+  // sahifadan chiqilganda tiklanadi. Saqlangan tema sozlamasi o'zgarmaydi.
+  const { resolvedTheme } = useTheme();
+  const resolvedRef = useRef(resolvedTheme);
+  resolvedRef.current = resolvedTheme;
+
+  useEffect(() => {
+    const rootEl = document.documentElement;
+    const forceLight = () => {
+      if (rootEl.classList.contains("dark")) rootEl.classList.remove("dark");
+      if (!rootEl.classList.contains("light")) rootEl.classList.add("light");
+      if (rootEl.style.colorScheme !== "light") rootEl.style.colorScheme = "light";
+    };
+    forceLight();
+    const observer = new MutationObserver(forceLight);
+    observer.observe(rootEl, { attributes: true, attributeFilter: ["class", "style"] });
+    return () => {
+      observer.disconnect();
+      rootEl.classList.remove("light");
+      if (resolvedRef.current !== "light") {
+        rootEl.classList.add("dark");
+        rootEl.style.colorScheme = "dark";
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (session) {
       setShowGlobalSpinner(true);
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         closeLoginModal();
         navigate("/home");
         setShowGlobalSpinner(false);
-      }, 2500);
-      return;
+      }, 900);
+      return () => clearTimeout(timer);
     }
 
     setShowGlobalSpinner(false);
@@ -62,90 +85,77 @@ const Login: React.FC = () => {
   }, [navigate, session]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-transparent text-white flex flex-col isolate">
-      <AuroraBackground />
+    <div className="landing min-h-screen text-[var(--l-ink)]">
+      <LandingHeader onOpenLogin={openLoginModal} onTryGuest={handleTryMe} />
 
-      <div
-        className="pointer-events-none absolute inset-0 z-[1] opacity-[0.05]"
-        style={{
-          backgroundImage:
-            "linear-gradient(hsl(var(--primary) / 0.18) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary) / 0.18) 1px, transparent 1px)",
-          backgroundSize: "56px 56px",
-        }}
-      />
+      <main>
+        <Hero onTryGuest={handleTryMe} onOpenPricing={goPricing} busy={showGlobalSpinner} />
+        <Benefits />
+        <ExamSteps />
+        <DarkBand />
 
-      <div className="relative z-10 flex flex-col min-h-screen">
-
-        <LandingPageHeader onOpenLogin={openLoginModal} />
-
-        <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 hero-section">
-          <div className="lg:flex lg:space-x-12">
-            <div className="lg:w-3/5 pb-10">
-              <motion.div
-                initial={{ opacity: 0, filter: 'blur(10px)', y: 20 }}
-                animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
-                transition={{ duration: 1, delay: 0.2 }}
-              >
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white mb-4 leading-tight drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
-                  {t("landing_page.title_part1")} <span className="text-primary"><RotatingText type="title" /></span>
-                </h1>
-                <p className="text-xl sm:text-3xl font-semibold text-white/85 mb-8 drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)]">
-                  <RotatingText type="subtitle" />
-                </p>
-              </motion.div>
-
-              <div className="flex flex-col sm:flex-row gap-4 mb-10">
-                <Button
-                  onClick={handleTryMe}
-                  className="bg-gradient-purple text-white text-base px-6 py-4 rounded-full shadow-lg transition-all duration-300 animate-button-pulse btn-hover-glow"
-                  disabled={showGlobalSpinner}
-                >
-                  {t("landing_page.try_me_button")}
-                </Button>
-                <Button
-                  onClick={openLoginModal}
-                  className="fixed-login-button text-white focus:outline-none focus:ring-4 focus:ring-primary focus:ring-opacity-50 rounded-xl flex items-center gap-2"
-                  disabled={showGlobalSpinner}
-                >
-                  {t("common.login")}
-                </Button>
+        {/* Tariflar — mavjud PricingCard (mantiq o'zgarmagan) */}
+        <section id="pricing" className="scroll-mt-24 py-20 sm:py-28">
+          <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+            <div className="grid gap-10 lg:grid-cols-12">
+              <Reveal className="lg:col-span-5">
+                <p className="kicker">{t("landing_page.pricing_kicker")}</p>
+                <h2 className="mt-3 text-3xl font-black tracking-[-0.03em] text-[var(--l-ink)] sm:text-5xl">{t("landing_page.select_tariff")}</h2>
+                <p className="mt-4 text-lg text-[var(--l-muted)]">{t("landing_page.pricing_desc")}</p>
+                <div className="mt-8 flex items-start gap-3 rounded-2xl border border-[var(--l-line)] bg-white p-4">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#bef264] text-[var(--l-ink)]">
+                    <ShieldCheck className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-bold text-[var(--l-ink)]">{t("landing_page.guarantee_title")}</p>
+                    <p className="mt-1 text-sm text-[var(--l-muted)]">{t("landing_page.guarantee_desc")}</p>
+                  </div>
+                </div>
+                <ul className="mt-6 space-y-2.5 text-[15px] text-[var(--l-ink)]">
+                  {["unlimited_attempts", "unlimited_downloads", "add_custom_questions", "support_service_24_7"].map((k) => (
+                    <li key={k} className="flex items-center gap-3">
+                      <span className="h-2 w-2 rounded-full bg-[var(--l-blue)]" />
+                      {t(`landing_page.features.${k}`)}
+                    </li>
+                  ))}
+                </ul>
+              </Reveal>
+              <div className="lg:col-span-7">
+                <Rise3D delay={0.1}>
+                  <div className="pricing-wrap">
+                    <PricingCard />
+                  </div>
+                </Rise3D>
               </div>
-
-              <ProcessSteps />
-              <ContactSection />
-            </div>
-
-            <div className="lg:w-2/5 mt-10 lg:mt-0 space-y-6">
-              <TrustSection />
-              <PricingCard />
             </div>
           </div>
-        </main>
+        </section>
 
-        <Dialog open={isLoginDialogOpen} onOpenChange={closeLoginModal}>
-          <DialogContent className="w-[calc(100vw-1.5rem)] sm:max-w-[425px] p-0 overflow-hidden rounded-2xl border bg-background/80 backdrop-blur-md shadow-2xl">
-            <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-sky-500 to-emerald-400" />
-            <div className="p-6">
-              <DialogHeader className="text-center">
-                <DialogTitle className="text-2xl font-bold tracking-tight">
-                  {t("common.welcome")}
-                </DialogTitle>
-                <DialogDescription className="text-sm leading-relaxed">
-                  {t("common.auth_description")}
-                </DialogDescription>
-              </DialogHeader>
-              <CustomAuthForm />
-              <div className="mt-6 border-t pt-4 text-center text-xs text-muted-foreground">
-                <p className="leading-relaxed">{t("common.forgot_password_contact_admin_message")}</p>
-                <a href="tel:+998772077117" className="mt-2 inline-block text-primary font-semibold underline-offset-4 hover:underline">
-                  {t("common.admin_contact_phone")}
-                </a>
-              </div>
+        <Faq />
+        <FinalCta onTryGuest={handleTryMe} busy={showGlobalSpinner} />
+      </main>
+
+      <Footer />
+
+      <Dialog open={isLoginDialogOpen} onOpenChange={closeLoginModal}>
+        <DialogContent className="w-[calc(100vw-1.5rem)] sm:max-w-[425px] p-0 overflow-hidden rounded-2xl border border-[var(--l-line)] bg-white text-[var(--l-ink)] shadow-2xl">
+          <div className="h-1.5 w-full bg-[var(--l-blue)]" />
+          <div className="p-6">
+            <DialogHeader className="text-left">
+              <DialogTitle className="text-2xl font-black tracking-tight">{t("common.welcome")}</DialogTitle>
+              <DialogDescription className="text-sm leading-relaxed">{t("common.auth_description")}</DialogDescription>
+            </DialogHeader>
+            <CustomAuthForm />
+            <div className="mt-6 border-t border-[var(--l-line)] pt-4 text-xs text-slate-500">
+              <p className="leading-relaxed">{t("common.forgot_password_contact_admin_message")}</p>
+              <a href="tel:+998772077117" className="mt-1 inline-block font-bold text-[var(--l-blue)] underline-offset-4 hover:underline">
+                {t("common.admin_contact_phone")}
+              </a>
             </div>
-          </DialogContent>
-        </Dialog>
-        {showGlobalSpinner && <LoadingSpinner />}
-      </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {showGlobalSpinner && <LoadingSpinner />}
     </div>
   );
 };

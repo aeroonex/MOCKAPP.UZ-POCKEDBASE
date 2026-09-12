@@ -748,12 +748,140 @@
   }
 }
 
-/* ===== Statik landing foni (animatsiyasiz, blur'siz — maksimal tezlik) ===== */
-.aurora-bg {
+
+/* ===== Landing — brend palitra: iliq oq + elektr ko'k + lime ===== */
+.landing {
+  --l-bg: #f6f7fb;
+  --l-ink: #0f172a;
+  --l-muted: #475569;
+  --l-line: #e2e8f0;
+  --l-blue: #2563eb;
+  --l-blue-deep: #1d4ed8;
+  --l-lime: #bef264;
+  color-scheme: light;
+  background: var(--l-bg);
+}
+.hero-blobs {
   background:
-    radial-gradient(60vw 60vw at 8% -10%, rgba(79, 70, 229, 0.55), transparent 60%),
-    radial-gradient(55vw 55vw at 100% 10%, rgba(14, 165, 233, 0.45), transparent 60%),
-    radial-gradient(50vw 50vw at 35% 110%, rgba(162, 28, 175, 0.40), transparent 60%),
-    radial-gradient(40vw 40vw at 90% 100%, rgba(16, 185, 129, 0.25), transparent 60%),
-    linear-gradient(180deg, #0b1226 0%, #05070f 60%, #020308 100%);
+    radial-gradient(900px 480px at 78% 12%, rgba(37, 99, 235, 0.16), transparent 68%),
+    radial-gradient(640px 420px at 12% 30%, rgba(190, 242, 100, 0.35), transparent 70%),
+    radial-gradient(560px 380px at 60% 100%, rgba(37, 99, 235, 0.10), transparent 70%);
+}
+.kicker {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-size: 0.72rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--l-blue);
+}
+.kicker::before { content: ""; width: 1.25rem; height: 3px; border-radius: 3px; background: var(--l-blue); }
+.kicker-light { color: #bef264; } .kicker-light::before { background: #bef264; }
+
+/* Marker bilan ajratilgan so'z */
+.marker-hl {
+  display: inline;
+  background-image: linear-gradient(transparent 58%, var(--l-lime) 58%, var(--l-lime) 92%, transparent 92%);
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+  padding: 0 0.08em;
+}
+
+/* Tugmalar */
+.btn-cta {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  height: 3.25rem; padding: 0 1.6rem; border-radius: 999px;
+  background: var(--l-blue); color: #fff; font-weight: 800; font-size: 1rem;
+  box-shadow: 0 14px 30px -12px rgba(37, 99, 235, 0.7);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+.btn-cta:hover:not(:disabled) { background: var(--l-blue-deep); transform: translateY(-2px); box-shadow: 0 20px 36px -12px rgba(37, 99, 235, 0.75); }
+.btn-cta:active:not(:disabled) { transform: translateY(0) scale(0.98); }
+.btn-cta:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-cta-invert { background: #fff; color: var(--l-blue-deep); box-shadow: 0 14px 30px -12px rgba(0,0,0,0.35); }
+.btn-cta-invert:hover:not(:disabled) { background: #eef2ff; }
+
+.btn-ghost {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 3.25rem; padding: 0 1.4rem; border-radius: 999px;
+  background: #fff; color: var(--l-ink); font-weight: 700; font-size: 1rem;
+  border: 1px solid var(--l-line);
+  transition: border-color 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+}
+.btn-ghost:hover:not(:disabled) { border-color: #cbd5e1; transform: translateY(-1px); background: #fff; }
+.btn-ghost:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* 3D sahna oynasi va suzuvchi kartalar */
+.scene-window { box-shadow: 0 40px 80px -30px rgba(15, 23, 42, 0.55), 0 0 0 1px rgba(255,255,255,0.04) inset; }
+.float-card {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.7rem 0.9rem; border-radius: 1rem;
+  background: #fff; border: 1px solid var(--l-line);
+  box-shadow: 0 24px 50px -24px rgba(15, 23, 42, 0.45);
+}
+
+/* 3D kartalar */
+.card-3d {
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 12px 30px -20px rgba(15,23,42,0.25);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  transform-style: preserve-3d;
+}
+.card-3d:hover { box-shadow: 0 30px 60px -28px rgba(37,99,235,0.45); border-color: rgba(37,99,235,0.35); }
+
+/* To'q bo'lim */
+.dark-band { background: #0f172a; }
+.band-glow {
+  background:
+    radial-gradient(700px 400px at 85% 0%, rgba(37, 99, 235, 0.35), transparent 65%),
+    radial-gradient(600px 400px at 10% 100%, rgba(190, 242, 100, 0.14), transparent 65%);
+}
+
+/* Yakuniy CTA band */
+.cta-band { background: var(--l-blue); }
+.cta-band::before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(600px 300px at 90% 10%, rgba(255,255,255,0.18), transparent 60%),
+    radial-gradient(500px 300px at 10% 100%, rgba(190,242,100,0.25), transparent 60%);
+}
+.cta-contact {
+  display: flex; align-items: center; gap: 0.9rem;
+  padding: 0.9rem 1.1rem; border-radius: 1rem;
+  background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); color: #fff;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+.cta-contact:hover { background: rgba(255,255,255,0.18); transform: translateY(-2px); }
+
+/* Mavjud PricingCard'ni brend palitraga moslash (mantiq o'zgarmaydi) */
+.pricing-wrap > div {
+  margin-top: 0 !important;
+  background: #fff !important;
+  border-color: var(--l-line) !important;
+  box-shadow: 0 30px 60px -30px rgba(15,23,42,0.35) !important;
+  backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  border-radius: 1.5rem !important;
+}
+.pricing-wrap > div::before, .pricing-wrap > div::after { display: none !important; }
+.pricing-wrap > div > h2 { display: none; }
+.pricing-wrap .price-option { background: var(--l-bg) !important; border-color: var(--l-line) !important; border-radius: 1rem !important; }
+.pricing-wrap .price-option-active { border-color: var(--l-blue) !important; background: #eff6ff !important; box-shadow: 0 0 0 3px rgba(37,99,235,0.12) !important; }
+.pricing-wrap a[href^="https://t.me"] { background: var(--l-blue) !important; border-radius: 999px !important; height: 3.25rem; font-weight: 800; }
+.pricing-wrap a[href^="https://t.me"]:hover { background: var(--l-blue-deep) !important; }
+
+/* ===== Landing motion (faqat transform/opacity/stroke) ===== */
+.rec-dot { animation: rec-blink 1.2s ease-in-out infinite; }
+@keyframes rec-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+
+.ring-anim { animation: ring-progress 18s linear infinite; }
+@keyframes ring-progress { from { stroke-dashoffset: 220; } to { stroke-dashoffset: 0; } }
+
+.wave-bar { animation: wave-bob 1.1s ease-in-out infinite; }
+@keyframes wave-bob { 0%, 100% { transform: scaleY(0.45); } 50% { transform: scaleY(1); } }
+
+.spotlight::before {
+  content: "";
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(240px circle at var(--mx, -200px) var(--my, -200px), rgba(37, 99, 235, 0.12), transparent 60%);
+  opacity: 0; transition: opacity 0.25s ease;
+}
+.spotlight:hover::before { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rec-dot, .ring-anim, .wave-bar { animation: none; }
 }

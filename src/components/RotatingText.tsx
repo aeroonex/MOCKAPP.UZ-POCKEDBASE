@@ -7,9 +7,11 @@ import { cn } from '@/lib/utils';
 
 interface RotatingTextProps {
   type: 'title' | 'subtitle';
+  /** Gradient/bezaksiz — ota elementning rangini oladi */
+  plain?: boolean;
 }
 
-const RotatingText: React.FC<RotatingTextProps> = ({ type }) => {
+const RotatingText: React.FC<RotatingTextProps> = ({ type, plain = false }) => {
   const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -60,7 +62,9 @@ const RotatingText: React.FC<RotatingTextProps> = ({ type }) => {
           transition={{ duration: 0.35, ease: "easeOut" }}
           className="relative inline-flex items-center"
         >
-          {type === 'title' ? (
+          {plain ? (
+            <span className="relative leading-tight">{currentTextArray[currentIndex].text}</span>
+          ) : type === 'title' ? (
             <>
               <span className="absolute -inset-x-2 -bottom-1 h-2 rounded-full bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400 opacity-25 blur-sm" />
               <span
