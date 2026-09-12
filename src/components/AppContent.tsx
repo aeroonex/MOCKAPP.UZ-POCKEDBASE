@@ -13,7 +13,6 @@ import { auth } from "@/lib/api";
 import Login from "@/pages/Login";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SuperAdminRoute from "@/components/SuperAdminRoute";
-import LanguageBackground from "@/components/LanguageBackground";
 import MobileBottomNavbar from "@/components/MobileBottomNavbar";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { isEduAiConfigured } from "@/lib/eduai";
@@ -62,8 +61,6 @@ const AppContent: React.FC = () => {
         isMobile && "pb-[calc(5rem+env(safe-area-inset-bottom))]",
       )}
     >
-      {!isMockTestPage && <LanguageBackground />}
-
       <Suspense fallback={<LoadingSpinner />}>
       <Routes>
         <Route path="/" element={<Login />} />

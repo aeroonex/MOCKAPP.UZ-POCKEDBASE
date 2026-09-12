@@ -38,7 +38,6 @@ const TrustSection: React.FC = () => {
           }}
         />
 
-        <div className="pointer-events-none absolute -top-24 left-1/2 h-64 w-[32rem] -translate-x-1/2 rounded-full bg-primary/15 blur-[120px] dark:bg-primary/10" />
 
         <div className="relative px-5 py-10 sm:px-8 sm:py-12">
           <div className="grid items-center gap-8 lg:grid-cols-1">
@@ -82,7 +81,6 @@ const TrustSection: React.FC = () => {
               transition={{ duration: 0.6, delay: 0.05 }}
               className="relative"
             >
-              <div className="absolute -inset-10 rounded-full bg-primary/10 blur-[100px] dark:bg-primary/10" />
 
               <div className="relative overflow-hidden rounded-[2.25rem] border border-slate-200/80 bg-white/80 p-2 backdrop-blur-sm dark:border-white/10 dark:bg-slate-800/70">
                 <img

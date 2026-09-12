@@ -126,7 +126,7 @@ export default function Home({ setIsGuideDialogOpen, handleLogout, isGuideDialog
             transition={{ delay: index * 0.1 }}
           >
             <Link to={item.path}>
-              <Card className="group bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-2xl border border-white/30 rounded-2xl shadow-xl hover:scale-105 hover:border-indigo-400/50 hover:shadow-indigo-500/40 hover:shadow-2xl transition-all duration-500 cursor-pointer">
+              <Card className="group bg-slate-900/70 border border-white/20 rounded-2xl shadow-xl hover:scale-105 hover:border-indigo-400/50 hover:shadow-indigo-500/40 hover:shadow-2xl transition-all duration-500 cursor-pointer">
                 <CardContent className="flex flex-col items-center text-center p-4 sm:p-8">
                   <div className="mb-4 text-indigo-300 transition-all duration-300 group-hover:scale-110 group-hover:drop-shadow-[0_0_10px_rgba(99,102,241,0.8)]">{item.icon}</div>
                   <h3 className="text-lg sm:text-2xl font-bold mb-2">{item.title}</h3>

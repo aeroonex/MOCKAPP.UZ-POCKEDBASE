@@ -73,7 +73,6 @@ const Login: React.FC = () => {
           backgroundSize: "56px 56px",
         }}
       />
-      <div className="pointer-events-none absolute -top-32 left-1/2 z-[1] h-72 w-[40rem] -translate-x-1/2 rounded-full bg-primary/10 blur-[140px]" />
 
       <div className="relative z-10 flex flex-col min-h-screen">
 
