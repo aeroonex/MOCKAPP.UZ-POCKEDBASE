@@ -1,13 +1,11 @@
 "use client";
 import React, { useState } from 'react';
-import { pb } from "@/integrations/pocketbase/client";
+import { login, register } from "@/lib/api";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { showError, showSuccess } from '@/utils/toast';
 import { useTranslation } from 'react-i18next';
-import { Chrome } from "lucide-react";
-// import { useNavigate } from 'react-router-dom'; // useNavigate endi bu yerda kerak emas
 
 const CustomAuthForm: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -16,17 +14,14 @@ const CustomAuthForm: React.FC = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [oauthLoading, setOauthLoading] = useState<"google" | null>(null);
-  const [isSignUp, setIsSignUp] = useState(false); // New state to toggle between sign-in and sign-up
+  const [isSignUp, setIsSignUp] = useState(false);
   const { t } = useTranslation();
-  // const navigate = useNavigate(); // Bu qator olib tashlandi
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
     try {
-      await pb.collection("users").authWithPassword(email, password);
+      await login(email.trim(), password);
       showSuccess(t("common.success_logged_in"));
     } catch (err: any) {
       showError(err?.message || t("common.error"));
@@ -45,21 +40,16 @@ const CustomAuthForm: React.FC = () => {
       return;
     }
     setLoading(true);
-    
     try {
-      await pb.collection("users").create({
-        email,
+      await register({
+        email: email.trim(),
         password,
         passwordConfirm: confirmPassword,
         first_name: firstName.trim(),
         last_name: lastName.trim(),
       });
-
-      // PocketBase: email tasdiqlash sozlamaga bog'liq. Agar yoqilgan bo'lsa, email yuboriladi.
-      // UI jihatdan eski matnni saqlab qolamiz.
-      showSuccess(t("common.confirmation_email_sent"));
-      setIsSignUp(false); // Switch back to sign-in form
-      setEmail('');
+      showSuccess(t("common.success_registered"));
+      setIsSignUp(false);
       setPassword('');
       setConfirmPassword('');
       setFirstName('');
@@ -68,52 +58,6 @@ const CustomAuthForm: React.FC = () => {
       showError(err?.message || t("common.error"));
     }
     setLoading(false);
-  };
-
-  // Note: For Safari popup blocking, avoid async/await directly in the click handler.
-  const handleGoogleSignIn = () => {
-    setOauthLoading("google");
-
-    const redirectUrl = `${window.location.origin}/oauth2-callback`;
-
-    // Use direct fetch to avoid SDK response-shape differences across versions.
-    fetch(`${pb.baseUrl}/api/collections/users/auth-methods`, { credentials: "omit" })
-      .then(async (res) => {
-        const data = await res.json().catch(() => null);
-        if (!res.ok || !data) {
-          throw new Error((data as any)?.message || `Failed to load auth methods (HTTP ${res.status})`);
-        }
-        return data as any;
-      })
-      .then((methods: any) => {
-        const providers: any[] = methods?.authProviders || methods?.oauth2?.providers || [];
-        const google = providers.find((p) => p?.name === "google");
-        if (!google?.authUrl || !google?.state || !google?.codeVerifier) {
-          throw new Error("Google OAuth2 provider is not available on this PocketBase instance.");
-        }
-
-        sessionStorage.setItem(
-          `oauth_pending:${google.state}`,
-          JSON.stringify({
-            provider: "google",
-            codeVerifier: google.codeVerifier,
-            redirectUrl,
-            createdAt: Date.now(),
-          })
-        );
-
-        // authUrl in PB v0.22 may have empty redirect_uri - set it to our app callback.
-        const authUrl = `${google.authUrl}${
-          google.authUrl.includes("redirect_uri=")
-            ? encodeURIComponent(redirectUrl)
-            : `&redirect_uri=${encodeURIComponent(redirectUrl)}`
-        }`;
-        window.location.assign(authUrl);
-      })
-      .catch((err: any) => {
-        showError(err?.message || t("common.error"));
-        setOauthLoading(null);
-      });
   };
 
   return (
@@ -158,6 +102,7 @@ const CustomAuthForm: React.FC = () => {
           <Input
             id="email-auth"
             type="email"
+            autoComplete="email"
             placeholder={t("common.enter_your_email")}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -172,6 +117,7 @@ const CustomAuthForm: React.FC = () => {
           <Input
             id="password-auth"
             type="password"
+            autoComplete={isSignUp ? "new-password" : "current-password"}
             placeholder={t("common.enter_your_password")}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -187,6 +133,7 @@ const CustomAuthForm: React.FC = () => {
             <Input
               id="confirm-password-auth"
               type="password"
+              autoComplete="new-password"
               placeholder={t("user_profile_page.confirm_password")}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -204,30 +151,13 @@ const CustomAuthForm: React.FC = () => {
         </Button>
       </form>
 
-      <div className="my-4 flex items-center gap-3">
-        <div className="h-px flex-1 bg-border" />
-        <span className="text-xs text-muted-foreground">{t("common.or")}</span>
-        <div className="h-px flex-1 bg-border" />
-      </div>
-
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full h-11 rounded-xl"
-        onClick={handleGoogleSignIn}
-        disabled={loading || oauthLoading === "google"}
-      >
-        <Chrome className="h-4 w-4 mr-2" />
-        {oauthLoading === "google" ? t("common.loading") : "Continue with Google"}
-      </Button>
-
       <div className="mt-5 text-center">
         <Button
           type="button"
           variant="link"
           className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
           onClick={() => setIsSignUp((prev) => !prev)}
-          disabled={loading || oauthLoading !== null}
+          disabled={loading}
         >
           {isSignUp ? t("common.sign_in") : t("common.sign_up")}
         </Button>

@@ -1,5 +1,6 @@
 "use client";
 
+import { geminiApiKey } from "@/lib/eduai";
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +21,7 @@ interface EduAiAssistantProps {
 }
 
 const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+const apiKey = geminiApiKey;
 
 const systemInstruction = `
     You are "EduAi," the helpful and professional assistant for Mockapp.uz. Your primary goal is to provide accurate, concise, and friendly information based on the platform's services, tariffs, and contact details provided below. Use a friendly, encouraging, and highly professional tone.

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, lazy, Suspense } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -8,26 +8,29 @@ import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/context/AuthProvider";
 import { showSuccess } from "@/utils/toast";
-import { pb } from "@/integrations/pocketbase/client";
+import { auth } from "@/lib/api";
 
-import NotFound from "@/pages/NotFound";
-import MoodJournal from "@/pages/MoodJournal";
 import Login from "@/pages/Login";
-import Home from "@/pages/Home";
-import AddQuestion from "@/pages/AddQuestion";
-import MockTest from "@/pages/MockTest";
-import Settings from "@/pages/Settings";
-import UserProfile from "@/pages/UserProfile";
-import Questions from "@/pages/Questions";
-import Records from "@/pages/Records";
-import OAuth2Callback from "@/pages/OAuth2Callback";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import SuperAdminRoute from "@/components/SuperAdminRoute";
-import SuperAdminDashboard from "@/pages/SuperAdminDashboard";
-import EduAiAssistant from "@/components/EduAiAssistant";
 import LanguageBackground from "@/components/LanguageBackground";
 import MobileBottomNavbar from "@/components/MobileBottomNavbar";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import { isEduAiConfigured } from "@/lib/eduai";
 import { cn } from "@/lib/utils";
+
+// Sahifalar kerak bo'lganda yuklanadi — boshlang'ich bundle kichik va tez ochiladi.
+const Home = lazy(() => import("@/pages/Home"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
+const MoodJournal = lazy(() => import("@/pages/MoodJournal"));
+const AddQuestion = lazy(() => import("@/pages/AddQuestion"));
+const MockTest = lazy(() => import("@/pages/MockTest"));
+const Settings = lazy(() => import("@/pages/Settings"));
+const UserProfile = lazy(() => import("@/pages/UserProfile"));
+const Questions = lazy(() => import("@/pages/Questions"));
+const Records = lazy(() => import("@/pages/Records"));
+const SuperAdminDashboard = lazy(() => import("@/pages/SuperAdminDashboard"));
+const EduAiAssistant = lazy(() => import("@/components/EduAiAssistant"));
 
 const AppContent: React.FC = () => {
   const [isEduAiAssistantOpen, setIsEduAiAssistantOpen] = useState(false);
@@ -42,7 +45,7 @@ const AppContent: React.FC = () => {
 
   const handleLogout = async () => {
     if (session) {
-      pb.authStore.clear();
+      auth.clear();
       showSuccess(t("common.logout"));
     } else if (isGuestMode) {
       localStorage.removeItem("isGuestMode");
@@ -61,10 +64,10 @@ const AppContent: React.FC = () => {
     >
       {!isMockTestPage && <LanguageBackground />}
 
+      <Suspense fallback={<LoadingSpinner />}>
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/oauth2-callback" element={<OAuth2Callback />} />
         <Route path="/mock-test" element={<MockTest />} />
 
         <Route element={<SuperAdminRoute />}>
@@ -92,8 +95,9 @@ const AppContent: React.FC = () => {
 
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </Suspense>
 
-      {!isMockTestPage && !isMobile && (
+      {isEduAiConfigured && !isMockTestPage && !isMobile && (
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -111,7 +115,11 @@ const AppContent: React.FC = () => {
         </motion.div>
       )}
 
-      <EduAiAssistant isOpen={isEduAiAssistantOpen} onClose={() => setIsEduAiAssistantOpen(false)} />
+      {isEduAiConfigured && isEduAiAssistantOpen && (
+        <Suspense fallback={null}>
+          <EduAiAssistant isOpen={isEduAiAssistantOpen} onClose={() => setIsEduAiAssistantOpen(false)} />
+        </Suspense>
+      )}
 
       <MobileBottomNavbar
         handleLogout={handleLogout}

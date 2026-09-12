@@ -16,7 +16,7 @@ import { useProfile, formatBytes } from "@/hooks/use-profile"; // Yangi hook va 
 import { Progress } from "@/components/ui/progress"; // Progress komponenti
 import { Badge } from "@/components/ui/badge"; // Badge import qilindi
 import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
-import { pb } from "@/integrations/pocketbase/client";
+import { updateMe } from "@/lib/api";
 
 const UserProfile: React.FC = () => {
   const { t } = useTranslation();
@@ -50,15 +50,11 @@ const UserProfile: React.FC = () => {
     setIsSaving(true);
 
     try {
-      await pb.collection("users").update(
-        user.id,
-        {
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-          bio: bio.trim(),
-        } as any,
-        { requestKey: null }
-      );
+      await updateMe({
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        bio: bio.trim(),
+      });
       
       // Profilni yangilash tugagandan so'ng, yangi ma'lumotlarni yuklash
       await fetchProfile();
@@ -106,7 +102,7 @@ const UserProfile: React.FC = () => {
           <CardContent className="space-y-6">
             <div className="flex flex-col items-center space-y-4">
               <Avatar className="h-24 w-24">
-                <AvatarImage src={(user as any)?.avatar_url || "https://github.com/shadcn.png"} alt="@shadcn" />
+                <AvatarImage src={(user as any)?.avatar_url || undefined} alt="" />
                 <AvatarFallback>
                   <User className="h-12 w-12 text-muted-foreground" />
                 </AvatarFallback>

@@ -86,12 +86,11 @@ const TrustSection: React.FC = () => {
 
               <div className="relative overflow-hidden rounded-[2.25rem] border border-slate-200/80 bg-white/80 p-2 backdrop-blur-sm dark:border-white/10 dark:bg-slate-800/70">
                 <img
-                  src="https://av.sc.com/corp-en/nr/content/images/Uzbekistan-skyline-insights-article-in-text.jpg"
+                  src="/images/platform-preview.svg"
                   alt={t("landing_page.trust_section.image_alt")}
                   className="aspect-[16/10] w-full rounded-[1.9rem] bg-black/5 object-cover shadow-2xl"
                   loading="lazy"
                   decoding="async"
-                  referrerPolicy="no-referrer"
                 />
               </div>
             </motion.div>

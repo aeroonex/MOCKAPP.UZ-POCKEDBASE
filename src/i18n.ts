@@ -2,30 +2,29 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 
+import uzTranslation from './locales/uz.json';
 import enTranslation from './locales/en.json';
 import ruTranslation from './locales/ru.json';
-import trTranslation from './locales/tr.json'; // Turkcha tarjimani import qilish
-import arTranslation from './locales/ar.json'; // Arabcha tarjimani import qilish
+import trTranslation from './locales/tr.json';
+import arTranslation from './locales/ar.json';
+
+export const SUPPORTED_LANGUAGES = ['uz', 'en', 'ru', 'tr', 'ar'] as const;
+export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
     resources: {
-      en: {
-        translation: enTranslation,
-      },
-      ru: {
-        translation: ruTranslation,
-      },
-      tr: { // Turkcha resursni qo'shish
-        translation: trTranslation,
-      },
-      ar: { // Arabcha resursni qo'shish
-        translation: arTranslation,
-      },
+      uz: { translation: uzTranslation },
+      en: { translation: enTranslation },
+      ru: { translation: ruTranslation },
+      tr: { translation: trTranslation },
+      ar: { translation: arTranslation },
     },
-    fallbackLng: 'en', // Sukut bo'yicha ingliz tili
+    supportedLngs: [...SUPPORTED_LANGUAGES],
+    // O'zbekiston platformasi — sukut bo'yicha o'zbek tili
+    fallbackLng: 'uz',
     debug: false,
     interpolation: {
       escapeValue: false,

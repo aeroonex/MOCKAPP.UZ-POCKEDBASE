@@ -16,9 +16,7 @@ import RotatingText from "@/components/RotatingText";
 import { useIsMobile } from "@/hooks/use-mobile";
 import TrustSection from "@/components/TrustSection";
 import { useAuth } from "@/context/AuthProvider";
-import YouTubeBackgroundVideo from "@/components/YouTubeBackgroundVideo";
-
-const LANDING_BACKGROUND_VIDEO_URL = "https://youtu.be/COv-TEtLrAg?si=nIAasFNLFQxHJJFG";
+import AuroraBackground from "@/components/AuroraBackground";
 
 const Login: React.FC = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
@@ -65,7 +63,7 @@ const Login: React.FC = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-transparent text-white flex flex-col isolate">
-      <YouTubeBackgroundVideo url={LANDING_BACKGROUND_VIDEO_URL} />
+      <AuroraBackground />
 
       <div
         className="pointer-events-none absolute inset-0 z-[1] opacity-[0.05]"

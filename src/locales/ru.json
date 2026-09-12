@@ -42,7 +42,10 @@
     "turkish": "Турецкий",
     "arabic": "Арабский",
     "coming_soon": "Скоро",
-    "onex_projects": "Onex Projects"
+    "onex_projects": "Onex Projects",
+    "or": "или",
+    "error": "Произошла ошибка",
+    "success_registered": "Аккаунт успешно создан. Теперь вы можете войти."
   },
   "landing_page": {
     "title_part1": "Mockapp.uz –",
@@ -105,7 +108,9 @@
     "footer_data_secured": "Данные защищены",
     "footer_cloudflare_title": "Сайт защищен Cloudflare",
     "footer_educloud_title": "Часть экосистемы EduCloud",
-    "footer_ssl_title": "Данные зашифрованы и безопасны"
+    "footer_ssl_title": "Данные зашифрованы и безопасны",
+    "call_us": "Позвоните нам",
+    "message_us": "Напишите нам"
   },
   "home_page": {
     "speaking_platform": "Платформа для разговорной практики",
@@ -212,7 +217,8 @@
     "error_recording_not_supported_mobile": "Screen recording is not supported on mobile devices. Please use a desktop browser.",
     "added": "Added",
     "last_used_full": "Last Used",
-    "guest_mode_add_question_warning": "Adding and editing questions is disabled in guest mode. Please log in to use this feature."
+    "guest_mode_add_question_warning": "Adding and editing questions is disabled in guest mode. Please log in to use this feature.",
+    "web_speech_api_not_supported": "Синтез речи не поддерживается в этом браузере."
   },
   "mock_test_page": {
     "mock_speaking_test": "Mock Speaking Test",
@@ -286,7 +292,11 @@
     "anxious": "Anxious",
     "angry": "Angry",
     "no_entries_yet": "No entries yet.",
-    "no_mood_entries_found": "No '{{mood}}' mood entries found."
+    "no_mood_entries_found": "No '{{mood}}' mood entries found.",
+    "error_deleting_entry": "Ошибка удаления записи:",
+    "error_loading_entries": "Ошибка загрузки записей:",
+    "error_saving_entry": "Ошибка сохранения записи:",
+    "success_entry_deleted": "Запись успешно удалена!"
   },
   "user_profile_page": {
     "user_profile": "User Profile",

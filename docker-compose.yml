@@ -1,0 +1,71 @@
+name: edumock
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-mockapp}
+      POSTGRES_USER: ${POSTGRES_USER:-mockapp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD .env faylida berilishi shart}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mockapp} -d ${POSTGRES_DB:-mockapp}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - internal
+
+  api:
+    build: ./server
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      HOST: 0.0.0.0
+      DATABASE_URL: postgres://${POSTGRES_USER:-mockapp}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-mockapp}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET .env faylida berilishi shart}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-30d}
+      DATA_DIR: /data
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      MAX_VIDEO_BYTES: ${MAX_VIDEO_BYTES:-2147483648}
+      MAX_IMAGE_BYTES: ${MAX_IMAGE_BYTES:-5242880}
+      DEFAULT_STORAGE_LIMIT_BYTES: ${DEFAULT_STORAGE_LIMIT_BYTES:-2147483648}
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+    volumes:
+      - uploads:/data
+    networks:
+      - internal
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        VITE_API_URL: ${VITE_API_URL:-}
+        VITE_GEMINI_API_KEY: ${VITE_GEMINI_API_KEY:-}
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      # Tashqi reverse-proxy (Nginx Proxy Manager) shu portga yo'naltiradi.
+      - "${WEB_PORT:-8087}:80"
+    networks:
+      - internal
+      - proxy
+
+volumes:
+  db_data:
+  uploads:
+
+networks:
+  internal:
+  proxy:
+    # NPM bilan bitta tarmoqda bo'lish uchun (mavjud bo'lsa) — DEPLOY.md ga qarang
+    name: ${PROXY_NETWORK:-edumock_proxy}

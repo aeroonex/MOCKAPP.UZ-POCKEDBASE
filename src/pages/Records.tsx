@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogDescription as DialogDescriptionComponent,
 } from "@/components/ui/dialog";
 import PricingCard from "@/components/PricingCard";
 import { useTranslation } from 'react-i18next';
-import { pb } from "@/integrations/pocketbase/client";
+import { api } from "@/lib/api";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useProfile, formatBytes } from "@/hooks/use-profile";
 import { Progress } from "@/components/ui/progress";
@@ -31,13 +31,13 @@ import { cn } from "@/lib/utils";
 const StorageUsageCard: React.FC<{ isGuest: boolean, onOpenPricing: () => void }> = ({ isGuest, onOpenPricing }) => {
   const { profile, loading } = useProfile();
   const { t } = useTranslation();
-  
+
   if (isGuest) {
     // Mehmon rejimi uchun maxsus ko'rinish
     const totalLimit = 10737418240; // 10 GB default limit
     const usedSpace = 0; // Mehmon rejimida ishlatilgan joy 0 deb hisoblanadi
     const usagePercentage = 0;
-    
+
     return (
       <Card className="p-4 mb-6 bg-[#1A237E] text-white border-4 border-[#3F51B5] shadow-2xl rounded-xl relative overflow-hidden">
         <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-10">
@@ -49,7 +49,7 @@ const StorageUsageCard: React.FC<{ isGuest: boolean, onOpenPricing: () => void }
             </Button>
           </div>
         </div>
-        
+
         {/* Orqa fondagi dizayn (Locked) */}
         <div className="opacity-30">
           <div className="flex justify-between items-center mb-3">
@@ -66,9 +66,9 @@ const StorageUsageCard: React.FC<{ isGuest: boolean, onOpenPricing: () => void }
             <p className="text-lg font-medium text-gray-300"> / {formatBytes(totalLimit)}</p>
           </div>
           <div className="w-full bg-[#3F51B5] rounded-full h-2.5 overflow-hidden mb-1">
-            <div 
-              className="h-2.5 rounded-full bg-yellow-300" 
-              style={{ width: `${usagePercentage}%` }} 
+            <div
+              className="h-2.5 rounded-full bg-yellow-300"
+              style={{ width: `${usagePercentage}%` }}
             />
           </div>
           <div className="flex justify-end">
@@ -80,7 +80,7 @@ const StorageUsageCard: React.FC<{ isGuest: boolean, onOpenPricing: () => void }
       </Card>
     );
   }
-  
+
   if (loading || !profile) {
     return (
       <Card className="p-4 mb-6">
@@ -92,12 +92,12 @@ const StorageUsageCard: React.FC<{ isGuest: boolean, onOpenPricing: () => void }
       </Card>
     );
   }
-  
+
   const totalLimit = profile.storage_limit_bytes || 0;
   const usedSpace = profile.storage_used_bytes || 0;
   const usagePercentage = totalLimit > 0 ? (usedSpace / totalLimit) * 100 : 0;
   const isPremium = profile.tariff_name !== 'Basic';
-  
+
   const getProgressColor = () => {
     if (usagePercentage >= 90) {
       return "bg-red-500";
@@ -107,7 +107,7 @@ const StorageUsageCard: React.FC<{ isGuest: boolean, onOpenPricing: () => void }
     }
     return "bg-yellow-300"; // Premium rangga mos sariq
   };
-  
+
   return (
     <Card className="p-4 mb-6 bg-[#1A237E] text-white border-4 border-[#3F51B5] shadow-2xl rounded-xl">
       <div className="flex justify-between items-center mb-3">
@@ -125,12 +125,12 @@ const StorageUsageCard: React.FC<{ isGuest: boolean, onOpenPricing: () => void }
         </p>
         <p className="text-lg font-medium text-gray-300"> / {formatBytes(totalLimit)}</p>
       </div>
-      
+
       {/* Maxsus Progress Bar */}
       <div className="w-full bg-[#3F51B5] rounded-full h-2.5 overflow-hidden mb-1">
-        <div 
-          className={`h-2.5 rounded-full transition-all duration-500 ease-out ${getProgressColor()}`} 
-          style={{ width: `${usagePercentage}%` }} 
+        <div
+          className={`h-2.5 rounded-full transition-all duration-500 ease-out ${getProgressColor()}`}
+          style={{ width: `${usagePercentage}%` }}
         />
       </div>
       <div className="flex justify-end">
@@ -155,15 +155,15 @@ const Records: React.FC = () => {
   const isMobile = useIsMobile(); // Use the hook
   const [uploadBytesMap, setUploadBytesMap] = useState<Record<string, { loaded: number; total: number }>>({});
   const [downloadBytesMap, setDownloadBytesMap] = useState<Record<string, { loaded: number; total: number }>>({});
-  
+
   // useProgress hookidan foydalanish
   const progressMap = useProgress();
   const isDownloading = Array.from(progressMap.keys()).some(key => key.startsWith('download-'));
-  
+
   const fetchRecordings = useCallback(async () => {
     setIsLoading(true);
     let loadedRecordings: RecordedSession[] = [];
-    
+
     try {
       const data = await getLocalRecordings();
       loadedRecordings = data.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
@@ -173,7 +173,7 @@ const Records: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [t, user?.id, fetchProfile]);
+  }, [t, user?.id]);
 
   // Keep EduCloud usage accurate without causing refresh loops.
   useEffect(() => {
@@ -183,10 +183,10 @@ const Records: React.FC = () => {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
-  
+
   useEffect(() => {
     fetchRecordings();
-    
+
     return () => {
       recordings.forEach(rec => {
         if (rec.isLocalBlobAvailable && rec.video_url.startsWith('blob:')) {
@@ -195,29 +195,29 @@ const Records: React.FC = () => {
       });
     };
   }, [fetchRecordings]);
-  
+
   const handleUploadToCloud = useCallback(async (recording: RecordedSession) => {
     if (!user?.id) {
       showError(t("records_page.error_login_to_upload"));
       return;
     }
-    
+
     if (recording.cloud_url) {
       showError(t("records_page.error_already_uploaded"));
       return;
     }
-    
+
     const blob = await getRecordingBlob(recording.id);
     if (!blob) {
       showError(t("records_page.error_no_video_data"));
       return;
     }
-    
+
     if (profile && (profile.storage_used_bytes + blob.size > profile.storage_limit_bytes)) {
       showError(t("records_page.error_storage_limit_exceeded"));
       return;
     }
-    
+
     setUploadingRecordId(recording.id);
     setUploadErrorRecordId(null);
     setProgress(recording.id, 0);
@@ -225,49 +225,24 @@ const Records: React.FC = () => {
 
     try {
       const file = new File([blob], `${recording.id}.webm`, { type: blob.type || "video/webm" });
+      // Maydonlar fayldan OLDIN yuborilishi shart — server ularni oqim boshlanishidan oldin o'qiydi.
       const form = new FormData();
       form.append("local_id", recording.id);
-      form.append("user_id", user.id);
       form.append("timestamp", recording.timestamp);
       form.append("duration", String(recording.duration));
       if (recording.student_id) form.append("student_id", recording.student_id);
       if (recording.student_name) form.append("student_name", recording.student_name);
       if (recording.student_phone) form.append("student_phone", recording.student_phone);
-      form.append("video", file);
       form.append("size_bytes", String(blob.size));
-      
-      // Use XHR to get real-time upload progress (bytes)
-      const created: any = await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open("POST", `${pb.baseUrl}/api/collections/recordings/records`, true);
-        if (pb.authStore.token) {
-          xhr.setRequestHeader("Authorization", `Bearer ${pb.authStore.token}`);
-        }
-        xhr.responseType = "json";
-        xhr.upload.onprogress = (event) => {
-          if (event.lengthComputable) {
-            const loaded = event.loaded;
-            const total = event.total;
-            const percentage = (loaded / total) * 100;
-            setUploadBytesMap((prev) => ({ ...prev, [recording.id]: { loaded, total } }));
-            setProgress(recording.id, percentage);
-          }
-        };
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            resolve(xhr.response);
-          } else {
-            const msg =
-              (xhr.response && (xhr.response as any).message) ||
-              `HTTP ${xhr.status}`;
-            reject(new Error(msg));
-          }
-        };
-        xhr.onerror = () => reject(new Error("Network error during upload."));
-        xhr.send(form);
+      form.append("video", file);
+
+      // XHR orqali real vaqtda yuklash jarayoni (baytlarda)
+      const created = await api.upload<{ video_url?: string }>("/api/recordings", form, (loaded, total) => {
+        setUploadBytesMap((prev) => ({ ...prev, [recording.id]: { loaded, total } }));
+        setProgress(recording.id, (loaded / total) * 100);
       });
-      
-      const publicUrl = created?.video ? pb.files.getUrl(created, created.video) : undefined;
+
+      const publicUrl = created?.video_url ? api.fileUrl(created.video_url) : undefined;
       if (!publicUrl) throw new Error(t("records_page.error_getting_public_url"));
 
       await updateLocalRecordingCloudUrl(recording.id, publicUrl);
@@ -300,7 +275,7 @@ const Records: React.FC = () => {
       removeProgress(recording.id);
     }
   }, [t, fetchRecordings, fetchProfile, profile, user]);
-  
+
   const handleUploadClick = (recording: RecordedSession) => {
     if (isGuestMode) {
       setIsPricingDialogOpen(true);
@@ -308,16 +283,16 @@ const Records: React.FC = () => {
       handleUploadToCloud(recording);
     }
   };
-  
+
   const handleDownload = useCallback(async (recording: RecordedSession) => {
     const downloadId = `download-${recording.id}`;
     setProgress(downloadId, 0);
     setDownloadBytesMap((prev) => ({ ...prev, [downloadId]: { loaded: 0, total: 0 } }));
-    
+
     try {
       let urlToDownload = recording.video_url;
       let filename = `recording_${recording.id}.webm`;
-      
+
       if (recording.student_name && recording.student_phone) {
         const cleanName = recording.student_name.replace(/[^a-zA-Z0-9]/g, '_');
         const cleanPhone = recording.student_phone.replace(/[^0-9]/g, '');
@@ -329,11 +304,11 @@ const Records: React.FC = () => {
         const cleanPhone = recording.student_phone.replace(/[^0-9]/g, '');
         filename = `${cleanPhone}.webm`;
       }
-      
+
       const xhr = new XMLHttpRequest();
       xhr.open('GET', urlToDownload, true);
       xhr.responseType = 'blob';
-      
+
       xhr.onprogress = (event) => {
         if (event.lengthComputable) {
           const percentage = (event.loaded / event.total) * 100;
@@ -341,7 +316,7 @@ const Records: React.FC = () => {
           setDownloadBytesMap((prev) => ({ ...prev, [downloadId]: { loaded: event.loaded, total: event.total } }));
         }
       };
-      
+
       await new Promise<Blob>((resolve, reject) => {
         xhr.onload = () => {
           if (xhr.status === 200) {
@@ -374,13 +349,13 @@ const Records: React.FC = () => {
       });
     }
   }, [t]);
-  
+
   const handleDelete = useCallback(async (recording: RecordedSession) => {
     try {
       if (recording.isLocalBlobAvailable && recording.video_url.startsWith('blob:')) {
         URL.revokeObjectURL(recording.video_url);
       }
-      
+
       const localDeleted = await deleteLocalRecording(recording.id);
       if (localDeleted) {
         setRecordings(prev => prev.filter(rec => rec.id !== recording.id));
@@ -392,7 +367,7 @@ const Records: React.FC = () => {
       showError(`${t("records_page.error_deleting_recording")} ${error.message}`);
     }
   }, [t, fetchProfile, user?.id]);
-  
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -414,11 +389,11 @@ const Records: React.FC = () => {
             <CardDescription className="text-center mt-2">{t("records_page.review_past_sessions")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <StorageUsageCard 
-              isGuest={isGuestMode} 
-              onOpenPricing={() => setIsPricingDialogOpen(true)} 
+            <StorageUsageCard
+              isGuest={isGuestMode}
+              onOpenPricing={() => setIsPricingDialogOpen(true)}
             />
-            
+
             {isLoading ? (
               <p className="text-center">{t("common.loading")}</p>
             ) : recordings.length === 0 ? (
@@ -428,21 +403,21 @@ const Records: React.FC = () => {
                 {recordings.map((recording, index) => {
                   const isUploading = uploadingRecordId === recording.id;
                   const uploadError = uploadErrorRecordId === recording.id;
-                  
+
                   // Progressni yuklash va yuklab olish uchun alohida olish
                   const uploadProgressValue = progressMap.get(recording.id) || 0;
                   const downloadProgressValue = progressMap.get(`download-${recording.id}`) || 0;
                   const isCurrentlyDownloading = downloadProgressValue > 0 && downloadProgressValue < 100;
                   const uploadBytes = uploadBytesMap[recording.id];
                   const downloadBytes = downloadBytesMap[`download-${recording.id}`];
-                  
+
                   return (
                     <Card key={recording.id} className="p-4">
                       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
                         <div className="text-left mb-2 sm:mb-0">
                           <h3 className="text-lg font-semibold">
-                            {recording.student_name 
-                              ? `${t("records_page.student")}: ${recording.student_name}` 
+                            {recording.student_name
+                              ? `${t("records_page.student")}: ${recording.student_name}`
                               : `${t("records_page.session")} ${recordings.length - index}`}
                           </h3>
                           <p className="text-sm text-muted-foreground">
@@ -464,10 +439,10 @@ const Records: React.FC = () => {
                             </p>
                           )}
                         </div>
-                        
+
                         <div className="flex flex-wrap justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
                           {/* Play Button */}
-                          <button 
+                          <button
                             onClick={() => window.open(recording.video_url, '_blank')}
                             className="Download-button"
                             disabled={isDownloading || isUploading}
@@ -475,10 +450,10 @@ const Records: React.FC = () => {
                             <PlayCircle className="h-4 w-4" />
                             <span>{t("records_page.play")}</span>
                           </button>
-                          
+
                           {/* Download Local Button */}
                           {recording.isLocalBlobAvailable && (
-                            <button 
+                            <button
                               onClick={() => handleDownload({ ...recording, cloud_url: undefined })}
                               className="Download-button"
                               disabled={isDownloading || isUploading}
@@ -497,12 +472,12 @@ const Records: React.FC = () => {
                               <span>{t("records_page.download_local")}</span>
                             </button>
                           )}
-                          
+
                           {/* Upload Button */}
                           {isUploading ? (
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              variant="outline"
+                              size="sm"
                               className="flex items-center gap-1 w-full sm:w-auto"
                               disabled
                             >
@@ -511,8 +486,8 @@ const Records: React.FC = () => {
                               ({uploadProgressValue.toFixed(0)}%)
                             </Button>
                           ) : recording.cloud_url ? (
-                            <button 
-                              onClick={() => handleDownload(recording)} 
+                            <button
+                              onClick={() => handleDownload(recording)}
                               className="Download-button"
                               disabled={isDownloading}
                             >
@@ -541,10 +516,10 @@ const Records: React.FC = () => {
                               )}
                             </button>
                           ) : (user?.id || isGuestMode) && (
-                            <Button 
-                              onClick={() => handleUploadClick(recording)} 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              onClick={() => handleUploadClick(recording)}
+                              variant="outline"
+                              size="sm"
                               className="flex items-center gap-1 w-full sm:w-auto"
                               disabled={isDownloading}
                             >
@@ -552,11 +527,11 @@ const Records: React.FC = () => {
                               {t("records_page.upload")}
                             </Button>
                           )}
-                          
+
                           {/* Delete Button */}
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <button 
+                              <button
                                 className="Download-button destructive-download-button" // Add destructive class
                                 disabled={isDownloading || isUploading}
                               >
@@ -586,7 +561,7 @@ const Records: React.FC = () => {
                           </AlertDialog>
                         </div>
                       </div>
-                      
+
                       {/* Upload/Download progress details (bytes) */}
                       {(isUploading || isCurrentlyDownloading) && (
                         <div className="mt-3 space-y-2">
@@ -618,7 +593,7 @@ const Records: React.FC = () => {
                           )}
                         </div>
                       )}
-                      
+
                       {recording.student_name && (
                         <div className="text-left text-sm text-muted-foreground mt-2 border-t pt-2">
                           <p><strong>{t("mock_test_page.student_id")}:</strong> {recording.student_id}</p>
@@ -634,7 +609,7 @@ const Records: React.FC = () => {
         </Card>
       </main>
       {/* AppFooter endi AppContent ichida render qilinadi */}
-      
+
       <Dialog open={isPricingDialogOpen} onOpenChange={setIsPricingDialogOpen}>
         <DialogContent className="sm:max-w-md p-0 overflow-hidden">
           <ScrollArea className="max-h-[90vh]">

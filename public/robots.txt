@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://edumock.uz/sitemap.xml
+Sitemap: https://mockapp.uz/sitemap.xml

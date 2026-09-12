@@ -42,7 +42,10 @@
     "turkish": "التركية",
     "arabic": "العربية",
     "coming_soon": "قريباً",
-    "onex_projects": "مشاريع Onex"
+    "onex_projects": "مشاريع Onex",
+    "or": "أو",
+    "error": "حدث خطأ",
+    "success_registered": "تم إنشاء الحساب بنجاح. يمكنك تسجيل الدخول الآن."
   },
   "landing_page": {
     "title_part1": "Mockapp.uz –",
@@ -105,7 +108,9 @@
     "footer_data_secured": "البيانات مؤمنة",
     "footer_cloudflare_title": "الموقع محمي بواسطة Cloudflare",
     "footer_educloud_title": "جزء من نظام EduCloud البيئي",
-    "footer_ssl_title": "البيانات مشفرة وآمنة"
+    "footer_ssl_title": "البيانات مشفرة وآمنة",
+    "call_us": "اتصل بنا",
+    "message_us": "راسلنا"
   },
   "home_page": {
     "speaking_platform": "منصة التحدث",
@@ -212,7 +217,8 @@
     "error_recording_not_supported_mobile": "تسجيل الشاشة غير مدعوم على الأجهزة المحمولة. يرجى استخدام متصفح سطح المكتب.",
     "added": "أضيف",
     "last_used_full": "آخر استخدام",
-    "guest_mode_add_question_warning": "إضافة وتعديل الأسئلة معطل في وضع الضيف. يرجى تسجيل الدخول لاستخدام هذه الميزة."
+    "guest_mode_add_question_warning": "إضافة وتعديل الأسئلة معطل في وضع الضيف. يرجى تسجيل الدخول لاستخدام هذه الميزة.",
+    "web_speech_api_not_supported": "تركيب الكلام غير مدعوم في هذا المتصفح."
   },
   "mock_test_page": {
     "mock_speaking_test": "اختبار التحدث التجريبي",
@@ -286,7 +292,11 @@
     "anxious": "قلق",
     "angry": "غاضب",
     "no_entries_yet": "لا توجد إدخالات بعد.",
-    "no_mood_entries_found": "لم يتم العثور على إدخالات للحالة المزاجية '{{mood}}'."
+    "no_mood_entries_found": "لم يتم العثور على إدخالات للحالة المزاجية '{{mood}}'.",
+    "error_deleting_entry": "خطأ في حذف الإدخال:",
+    "error_loading_entries": "خطأ في تحميل الإدخالات:",
+    "error_saving_entry": "خطأ في حفظ الإدخال:",
+    "success_entry_deleted": "تم حذف الإدخال بنجاح!"
   },
   "user_profile_page": {
     "user_profile": "الملف الشخصي للمستخدم",

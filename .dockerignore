@@ -1,0 +1,10 @@
+node_modules
+dist
+server
+.git
+.dyad
+.claude
+*.log
+.env
+.env.*
+!.env.example

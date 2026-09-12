@@ -17,6 +17,7 @@ interface LanguageInfo {
 }
 
 const languageMap: Record<string, LanguageInfo> = {
+  uz: { name: "O'zbekcha", flag: '🇺🇿' },
   en: { name: 'English', flag: '🇺🇸' },
   ru: { name: 'Русский', flag: '🇷🇺' },
   tr: { name: 'Türkçe', flag: '🇹🇷' },
@@ -26,7 +27,7 @@ const languageMap: Record<string, LanguageInfo> = {
 const LanguageSwitcher: React.FC = () => {
   const { i18n } = useTranslation();
   const currentLang = i18n.language;
-  const currentLangInfo = languageMap[currentLang] || languageMap.en; // Agar topilmasa, sukut bo'yicha ingliz tilini tanlash
+  const currentLangInfo = languageMap[currentLang] || languageMap.uz; // Agar topilmasa, sukut bo'yicha o'zbek tilini tanlash
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);

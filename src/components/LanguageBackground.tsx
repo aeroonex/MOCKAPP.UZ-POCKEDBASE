@@ -1,80 +1,57 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useMemo } from "react";
 
+const CHARS = [
+  "Aa", "Bb", "Cc", "Dd", "Ee", "Ff", "Gg", "Hh", "Ii", "Jj", "Kk", "Ll", "Mm",
+  "Nn", "Oo", "Pp", "Qq", "Rr", "Ss", "Tt", "Uu", "Vv", "Ww", "Xx", "Yy", "Zz",
+  "O'", "G'", "Sh", "Ch", "Ng",
+  "ع", "ض", "ص", "ث", "ق", "ف", "غ", "ه", "خ", "ح", "ج", "ش", "س", "ي", "ب", "ل", "ا", "ت", "ن", "م", "ك",
+  "Ş", "Ğ", "Ç", "Ö", "Ü", "İ", "ş", "ğ", "ç", "ö", "ü", "ı",
+];
+
+const COUNT = 28;
+
+/**
+ * Fonda suzuvchi harflar. Avvalgi versiya har 50ms da React state yangilab
+ * 30+ elementni qayta render qilardi. Endi pozitsiya/animatsiya bir marta
+ * hisoblanadi va faqat CSS keyframes orqali harakatlanadi (JS interval yo'q).
+ */
 const LanguageBackground: React.FC = () => {
-  const [characters, setCharacters] = useState<{ id: number; char: string; x: number; y: number; size: number; opacity: number; blur: number; glow: string }[]>([]);
-
-  useEffect(() => {
-    const chars = [
-      'Aa', 'Bb', 'Cc', 'Dd', 'Ee', 'Ff', 'Gg', 'Hh', 'Ii', 'Jj', 'Kk', 'Ll', 'Mm',
-      'Nn', 'Oo', 'Pp', 'Qq', 'Rr', 'Ss', 'Tt', 'Uu', 'Vv', 'Ww', 'Xx', 'Yy', 'Zz',
-      'ع', 'ض', 'ص', 'ث', 'ق', 'ف', 'غ', 'ع', 'ه', 'خ', 'ح', 'ج', 'ش', 'س', 'ي', 'ب', 'ل', 'ا', 'ت', 'ن', 'م', 'ك', 'ط', 'ئ', 'ء', 'ؤ', 'ر', 'لا', 'ى', 'ة', 'و', 'ز', 'ظ', 'ذ', 'د', 'ج', 'ح', 'خ',
-      'Ş', 'Ğ', 'Ç', 'Ö', 'Ü', 'Iı', 'İi', 'ş', 'ğ', 'ç', 'ö', 'ü', 'ı', 'i'
-    ];
-
-    const createNewCharacter = () => ({
-      id: Date.now() + Math.random(), // Unique ID
-      char: chars[Math.floor(Math.random() * chars.length)],
-      x: Math.random() * 100, // Random X across screen
-      y: Math.random() * 100, // Random Y across screen
-      size: Math.random() * 1 + 0.5, // 0.5rem to 1.5rem (kichraytirildi)
-      opacity: Math.random() * 0.15 + 0.05, // 0.05 to 0.2 initial opacity (kamaytirildi)
-      blur: Math.random() * 1 + 0.5, // 0.5px to 1.5px initial blur
-      glow: `hsl(${Math.random() * 360}, 70%, 50%)`
-    });
-
-    // Initial character generation
-    const initialChars = [];
-    for (let i = 0; i < 30; i++) {
-      initialChars.push(createNewCharacter());
-    }
-    setCharacters(initialChars);
-
-    // Interval to add new characters periodically
-    const addCharacterInterval = setInterval(() => {
-      setCharacters(prevChars => [...prevChars, createNewCharacter()]);
-    }, 1000); // Add a new character every 1 second
-
-    // Interval to update existing characters' positions, opacity, and blur
-    const updateCharactersInterval = setInterval(() => {
-      setCharacters(prevChars =>
-        prevChars.map(char => ({
-          ...char,
-          y: char.y + 0.2, // Slower downward movement
-          x: char.x + (Math.random() - 0.5) * 0.1, // Slower horizontal drift
-          opacity: Math.max(0, char.opacity - 0.002), // Slower fade out
-          blur: char.blur + 0.05 // Slower blur increase
-        })).filter(char => char.opacity > 0.01 && char.y < 150) // Remove when almost invisible or far off-screen
-      );
-    }, 50); // Update every 50ms
-
-    return () => {
-      clearInterval(addCharacterInterval);
-      clearInterval(updateCharactersInterval);
-    };
-  }, []);
+  const items = useMemo(
+    () =>
+      Array.from({ length: COUNT }, (_, i) => ({
+        id: i,
+        char: CHARS[Math.floor(Math.random() * CHARS.length)],
+        left: Math.random() * 100,
+        top: Math.random() * 100,
+        size: Math.random() * 1 + 0.6,
+        opacity: Math.random() * 0.12 + 0.05,
+        duration: Math.random() * 20 + 25,
+        delay: -Math.random() * 40,
+        hue: Math.floor(Math.random() * 360),
+      })),
+    [],
+  );
 
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-      {characters.map(char => (
-        <motion.div
-          key={char.id}
-          initial={{ opacity: 0, scale: 0.8 }} // Initial entry animation: fade in and scale up
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, ease: "easeOut" }} // Quick entry transition
-          className="absolute text-4xl font-bold text-white" // text-4xl o'rniga style ichidagi fontSize ishlaydi
+    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0" aria-hidden="true">
+      {items.map((it) => (
+        <span
+          key={it.id}
+          className="lang-float absolute font-bold text-white select-none"
           style={{
-            fontSize: `${char.size}rem`,
-            top: `${char.y}%`, // Position directly from state
-            left: `${char.x}%`, // Position directly from state
-            opacity: char.opacity, // Opacity directly from state (will override animate after initial transition)
-            filter: `blur(${char.blur}px) drop-shadow(0 0 ${char.blur * 2}px ${char.glow})` // Filter directly from state
+            left: `${it.left}%`,
+            top: `${it.top}%`,
+            fontSize: `${it.size}rem`,
+            opacity: it.opacity,
+            animationDuration: `${it.duration}s`,
+            animationDelay: `${it.delay}s`,
+            textShadow: `0 0 6px hsl(${it.hue} 70% 55% / 0.6)`,
           }}
         >
-          {char.char}
-        </motion.div>
+          {it.char}
+        </span>
       ))}
     </div>
   );

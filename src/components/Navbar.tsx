@@ -8,7 +8,7 @@ import { Menu, LogOut, User, Settings, Home as HomeIcon } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { showSuccess } from "@/utils/toast";
 import { useAuth } from "@/context/AuthProvider";
-import { pb } from "@/integrations/pocketbase/client";
+import { auth } from "@/lib/api";
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
 
@@ -27,7 +27,7 @@ const Navbar: React.FC = () => {
 
   const handleLogout = async () => {
     if (session) {
-      pb.authStore.clear();
+      auth.clear();
       showSuccess(t("common.logout"));
     } else if (isGuestMode) {
       localStorage.removeItem("isGuestMode");

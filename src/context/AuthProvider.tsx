@@ -1,54 +1,39 @@
 "use client";
 
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import type { RecordModel } from "pocketbase";
-import { pb } from "@/integrations/pocketbase/client";
-import { useTranslation } from 'react-i18next';
+import { auth, renewToken, type AuthUser } from "@/lib/api";
 
 interface AuthContextType {
   session: { token: string } | null;
-  user: RecordModel | null;
+  user: AuthUser | null;
   loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [session, setSession] = useState<{ token: string } | null>(null);
-  const [user, setUser] = useState<RecordModel | null>(null);
-  const [loading, setLoading] = useState(true); // Dastlab true
-  const { t } = useTranslation();
+  const [session, setSession] = useState<{ token: string } | null>(auth.token ? { token: auth.token } : null);
+  const [user, setUser] = useState<AuthUser | null>(auth.model);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const syncFromStore = () => {
-      const token = pb.authStore.token;
-      const model = pb.authStore.model ?? null;
+    // Sessiya o'zgarishlarini kuzatish (login/logout/yangilash)
+    const unsubscribe = auth.onChange((token, model) => {
       setSession(token ? { token } : null);
       setUser(model);
-    };
-
-    // 1) Initial state
-    syncFromStore();
-    setLoading(false);
-
-    // 2) Listen changes
-    const unsubscribe = pb.authStore.onChange(() => {
-      syncFromStore();
     }, true);
 
-    // PocketBase flow'da Supabase recovery hash yo'q; eski toastlar endi ishlatilmaydi.
-    // Agar keyin email reset/confirm flow qo'shsak, PocketBase endpointlari bilan qayta ulaymiz.
+    // Saqlangan token bo'lsa — serverdan yangi ma'lumot va yangi token olish
+    if (auth.token) {
+      renewToken().catch(() => undefined);
+    }
 
     return () => {
       unsubscribe();
     };
-  }, [t]);
+  }, []);
 
-  const value = {
-    session,
-    user,
-    loading,
-  };
+  const value = { session, user, loading };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

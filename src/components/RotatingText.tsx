@@ -15,13 +15,15 @@ const RotatingText: React.FC<RotatingTextProps> = ({ type }) => {
 
   const texts = {
     title: [
-      { lang: 'en', text: t("landing_page.title_part2") },
+      { lang: 'uz', text: t("landing_page.title_part2", { lng: 'uz' }) },
+      { lang: 'en', text: t("landing_page.title_part2", { lng: 'en' }) },
       { lang: 'ru', text: t("landing_page.title_part2", { lng: 'ru' }) },
       { lang: 'tr', text: t("landing_page.title_part2", { lng: 'tr' }) },
       { lang: 'ar', text: t("landing_page.title_part2", { lng: 'ar' }) },
     ],
     subtitle: [
-      { lang: 'en', text: t("landing_page.subtitle") },
+      { lang: 'uz', text: t("landing_page.subtitle", { lng: 'uz' }) },
+      { lang: 'en', text: t("landing_page.subtitle", { lng: 'en' }) },
       { lang: 'ru', text: t("landing_page.subtitle", { lng: 'ru' }) },
       { lang: 'tr', text: t("landing_page.subtitle", { lng: 'tr' }) },
       { lang: 'ar', text: t("landing_page.subtitle", { lng: 'ar' }) },

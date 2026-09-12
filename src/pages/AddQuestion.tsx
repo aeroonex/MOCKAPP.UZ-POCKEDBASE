@@ -21,7 +21,7 @@ import {
   resetQuestionCooldowns,
   updateQuestion,
 } from "@/lib/local-db";
-import { pb } from "@/integrations/pocketbase/client";
+import { api } from "@/lib/api";
 import { v4 as uuidv4 } from 'uuid';
 import { useAuth } from "@/context/AuthProvider";
 import { Link } from "react-router-dom";
@@ -167,14 +167,12 @@ const SpeakingQuestionManager: React.FC = () => {
 
       try {
         const form = new FormData();
-        form.append("user_id", user.id);
         form.append("file", file);
 
-        const imgRecord: any = await pb.collection("question_images").create(form as any, { requestKey: null });
-        const fileName = imgRecord.file;
-        if (!fileName) throw new Error(t("add_question_page.error_no_public_url"));
+        const imgRecord = await api.upload<{ url: string }>("/api/images", form);
+        if (!imgRecord?.url) throw new Error(t("add_question_page.error_no_public_url"));
 
-        const publicUrl = pb.files.getUrl(imgRecord, fileName);
+        const publicUrl = api.fileUrl(imgRecord.url);
 
         const newImagePreviewUrls = [...imagePreviewUrls];
         newImagePreviewUrls[index] = publicUrl;

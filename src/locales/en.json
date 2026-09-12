@@ -42,7 +42,10 @@
     "turkish": "Turkish",
     "arabic": "Arabic",
     "coming_soon": "Coming Soon",
-    "onex_projects": "Onex Projects"
+    "onex_projects": "Onex Projects",
+    "or": "or",
+    "error": "An error occurred",
+    "success_registered": "Account created successfully. You can sign in now."
   },
   "landing_page": {
     "title_part1": "Mockapp.uz –",
@@ -105,7 +108,9 @@
     "footer_data_secured": "Data Secured",
     "footer_cloudflare_title": "Site protected by Cloudflare",
     "footer_educloud_title": "Part of the EduCloud ecosystem",
-    "footer_ssl_title": "Data is encrypted and secure"
+    "footer_ssl_title": "Data is encrypted and secure",
+    "call_us": "Call Us",
+    "message_us": "Message Us"
   },
   "home_page": {
     "speaking_platform": "Speaking Platform",
@@ -212,7 +217,8 @@
     "error_recording_not_supported_mobile": "Screen recording is not supported on mobile devices. Please use a desktop browser.",
     "added": "Added",
     "last_used_full": "Last Used",
-    "guest_mode_add_question_warning": "Adding and editing questions is disabled in guest mode. Please log in to use this feature."
+    "guest_mode_add_question_warning": "Adding and editing questions is disabled in guest mode. Please log in to use this feature.",
+    "web_speech_api_not_supported": "Speech synthesis is not supported in this browser."
   },
   "mock_test_page": {
     "mock_speaking_test": "Mock Speaking Test",
@@ -286,7 +292,11 @@
     "anxious": "Anxious",
     "angry": "Angry",
     "no_entries_yet": "No entries yet.",
-    "no_mood_entries_found": "No '{{mood}}' mood entries found."
+    "no_mood_entries_found": "No '{{mood}}' mood entries found.",
+    "error_deleting_entry": "Error deleting entry:",
+    "error_loading_entries": "Error loading entries:",
+    "error_saving_entry": "Error saving entry:",
+    "success_entry_deleted": "Entry successfully deleted!"
   },
   "user_profile_page": {
     "user_profile": "User Profile",

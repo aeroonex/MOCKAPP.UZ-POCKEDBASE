@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/AuthProvider";
 import { showError } from "@/utils/toast";
 import { useTranslation } from 'react-i18next';
-import { pb } from "@/integrations/pocketbase/client";
+import { refreshAuth } from "@/lib/api";
 
 interface Profile {
   id: string;
@@ -43,7 +43,7 @@ export const useProfile = () => {
 
     setLoading(true);
     try {
-      const u: any = await pb.collection("users").getOne(user.id, { requestKey: null });
+      const u: any = (await refreshAuth()) || user;
       setProfile({
         id: u.id,
         username: u.username || String(u.email || "").split("@")[0] || "user",

@@ -42,7 +42,11 @@
     "": "Türkçe",
     "arabic": "Arapça",
     "coming_soon": "Çok Yakında",
-    "onex_projects": "Onex Projeleri"
+    "onex_projects": "Onex Projeleri",
+    "or": "veya",
+    "error": "Bir hata oluştu",
+    "turkish": "Türkçe",
+    "success_registered": "Hesap başarıyla oluşturuldu. Şimdi giriş yapabilirsiniz."
   },
   "landing_page": {
     "title_part1": "Mockapp.uz –",
@@ -105,7 +109,9 @@
     "footer_data_secured": "Veri Güvenli",
     "footer_cloudflare_title": "Site Cloudflare tarafından korunmaktadır",
     "footer_educloud_title": "EduCloud ekosisteminin bir parçası",
-    "footer_ssl_title": "Veriler şifreli ve güvenlidir"
+    "footer_ssl_title": "Veriler şifreli ve güvenlidir",
+    "call_us": "Bizi Arayın",
+    "message_us": "Mesaj Gönderin"
   },
   "home_page": {
     "speaking_platform": "Konuşma Platformu",
@@ -212,7 +218,8 @@
     "error_recording_not_supported_mobile": "Ekran kaydı mobil cihazlarda desteklenmiyor. Lütfen masaüstü tarayıcı kullanın.",
     "added": "Eklendi",
     "last_used_full": "Son Kullanım",
-    "guest_mode_add_question_warning": "Misafir modunda soru ekleme ve düzenleme devre dışıdır. Bu özelliği kullanmak için lütfen giriş yapın."
+    "guest_mode_add_question_warning": "Misafir modunda soru ekleme ve düzenleme devre dışıdır. Bu özelliği kullanmak için lütfen giriş yapın.",
+    "web_speech_api_not_supported": "Bu tarayıcıda konuşma sentezi desteklenmiyor."
   },
   "mock_test_page": {
     "mock_speaking_test": "Deneme Konuşma Sınavı",
@@ -286,7 +293,11 @@
     "anxious": "Endişeli",
     "angry": "Kızgın",
     "no_entries_yet": "Henüz giriş yok.",
-    "no_mood_entries_found": "Hiç '{{mood}}' ruh hali girişi bulunamadı."
+    "no_mood_entries_found": "Hiç '{{mood}}' ruh hali girişi bulunamadı.",
+    "error_deleting_entry": "Kayıt silinirken hata:",
+    "error_loading_entries": "Kayıtlar yüklenirken hata:",
+    "error_saving_entry": "Kayıt kaydedilirken hata:",
+    "success_entry_deleted": "Kayıt başarıyla silindi!"
   },
   "user_profile_page": {
     "user_profile": "Kullanıcı Profili",

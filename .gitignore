@@ -1,4 +1,10 @@
-pb_data/ 
-node_modules/ 
-pb_data/  node_modules/ 
+node_modules/
+dist/
+pb_data/
+pb_migrations/*.bak
 .dyad/
+.env
+.env.local
+.env.production
+*.log
+.DS_Store
