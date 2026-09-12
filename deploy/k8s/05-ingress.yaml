@@ -1,4 +1,5 @@
 # edumock.uz → edumock-web (ingress-nginx + cert-manager, letsencrypt-prod)
+# www kerak bo'lsa: Cloudflare'da CNAME www → edumock.uz qo'shib, host va tls.hosts ga www.edumock.uz ni qaytaring.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -25,15 +26,6 @@ spec:
               service:
                 name: edumock-web
                 port: { number: 80 }
-    - host: www.edumock.uz
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: edumock-web
-                port: { number: 80 }
   tls:
-    - hosts: [edumock.uz, www.edumock.uz]
+    - hosts: [edumock.uz]
       secretName: edumock-tls
