@@ -71,7 +71,7 @@ const Navbar: React.FC = () => {
   return (
     <nav className="bg-primary text-white px-3 py-3 sm:p-4 shadow-md flex items-center justify-between">
       <Link to="/home" className="text-lg sm:text-2xl font-bold">
-        <span className="font-extrabold">Mockapp.uz</span>
+        <span className="font-extrabold">Edumock.uz</span>
       </Link>
 
       {isMobile ? (
@@ -83,7 +83,7 @@ const Navbar: React.FC = () => {
           </SheetTrigger>
           <SheetContent side="left" className="w-[260px] p-4 flex flex-col bg-primary text-white border-r-primary/80">
             <Link to="/home" className="text-xl font-bold mb-4">
-              <span className="font-extrabold">Mockapp.uz</span>
+              <span className="font-extrabold">Edumock.uz</span>
             </Link>
 
             <div className="flex flex-col gap-2">

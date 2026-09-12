@@ -71,7 +71,7 @@ export default function Home({ setIsGuideDialogOpen, handleLogout, isGuideDialog
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-sky-500 to-slate-900 text-white p-4 pb-24 sm:pb-4">
       <header className="flex flex-col sm:flex-row sm:justify-between items-center mb-8">
-        <h1 className="text-xl sm:text-3xl font-bold">Mockapp.uz</h1>
+        <h1 className="text-xl sm:text-3xl font-bold">Edumock.uz</h1>
 
         {!isMobile && ( // Only show header nav on non-mobile
           <nav className="flex flex-row flex-wrap justify-center sm:justify-end gap-x-2 gap-y-1 text-xs items-center mt-4 sm:mt-0">

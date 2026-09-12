@@ -156,3 +156,153 @@ export const SpotlightCard: React.FC<{ children: React.ReactNode; className?: st
     </div>
   );
 };
+
+/** Sarlavha so'zlari — ko'rinish maydoniga kirganda ketma-ket chiqadi. */
+export const WordsInView: React.FC<{ text: string; className?: string; stagger?: number }> = ({ text, className, stagger = 0.05 }) => {
+  const reduce = useReducedMotion();
+  const words = text.split(" ").filter(Boolean);
+  if (reduce) return <span className={className}>{text}</span>;
+  return (
+    <span className={cn("inline", className)} aria-label={text}>
+      {words.map((w, i) => (
+        <span key={i} className="inline-block overflow-hidden align-bottom pb-[0.1em] -mb-[0.1em]">
+          <motion.span
+            className="inline-block will-change-transform"
+            initial={{ y: "110%", opacity: 0 }}
+            whileInView={{ y: "0%", opacity: 1 }}
+            viewport={{ once: true, margin: "-10% 0px" }}
+            transition={{ duration: 0.65, delay: i * stagger, ease }}
+          >
+            {w}
+          </motion.span>
+          {i < words.length - 1 ? <span className="inline-block">&nbsp;</span> : null}
+        </span>
+      ))}
+    </span>
+  );
+};
+
+/** Hero sahnasi scroll bilan orqaga "yotadi" va kichrayadi (rotateX/scale/y). */
+export const ScrollScene: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => {
+  const reduce = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 20%", "end start"] });
+  const rotateX = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : 22]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1, reduce ? 1 : 0.9]);
+  const y = useTransform(scrollYProgress, [0, 1], [0, reduce ? 0 : 60]);
+  const opacity = useTransform(scrollYProgress, [0, 0.9], [1, reduce ? 1 : 0.35]);
+  return (
+    <motion.div ref={ref} style={{ rotateX, scale, y, opacity, transformPerspective: 1400, transformOrigin: "50% 100%" }} className={cn("will-change-transform", className)}>
+      {children}
+    </motion.div>
+  );
+};
+
+/** 3D flip bilan kirish (rotateY + siljish), ko'rinish maydonida. */
+export const FlipIn: React.FC<{ children: React.ReactNode; className?: string; delay?: number; from?: "left" | "right" }> = ({
+  children,
+  className,
+  delay = 0,
+  from = "left",
+}) => {
+  const reduce = useReducedMotion();
+  const sign = from === "left" ? -1 : 1;
+  return (
+    <motion.div
+      className={cn("will-change-transform", className)}
+      style={{ transformPerspective: 1200 }}
+      initial={reduce ? false : { opacity: 0, x: sign * 40, rotateY: sign * 18, scale: 0.96 }}
+      whileInView={{ opacity: 1, x: 0, rotateY: 0, scale: 1 }}
+      viewport={{ once: true, margin: "-8% 0px" }}
+      transition={{ duration: 0.8, delay, ease }}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+/** Sahifa scroll'iga bog'liq dekorativ shakl (translateY + rotate). */
+export const DriftShape: React.FC<{ className?: string; speed?: number; rotate?: number; children?: React.ReactNode }> = ({
+  className,
+  speed = 120,
+  rotate = 30,
+  children,
+}) => {
+  const reduce = useReducedMotion();
+  const { scrollY } = useScroll();
+  const y = useTransform(scrollY, [0, 1600], [0, reduce ? 0 : -speed]);
+  const r = useTransform(scrollY, [0, 1600], [0, reduce ? 0 : rotate]);
+  return (
+    <motion.div aria-hidden="true" style={{ y, rotate: r }} className={cn("pointer-events-none absolute will-change-transform", className)}>
+      {children}
+    </motion.div>
+  );
+};
+
+/** Gorizontal parallaks (translateX) — scroll bilan chapga/o'ngga siljiydi. */
+export const ParallaxX: React.FC<{ children: React.ReactNode; from?: number; to?: number; className?: string }> = ({
+  children,
+  from = -60,
+  to = 60,
+  className,
+}) => {
+  const reduce = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const x = useTransform(scrollYProgress, [0, 1], [reduce ? 0 : from, reduce ? 0 : to]);
+  return (
+    <motion.div ref={ref} style={{ x }} className={cn("will-change-transform", className)}>
+      {children}
+    </motion.div>
+  );
+};
+
+/** Kattalashib kiruvchi blok (scale + opacity), ko'rinish maydonida. */
+export const ScaleIn: React.FC<{ children: React.ReactNode; className?: string; delay?: number }> = ({ children, className, delay = 0 }) => {
+  const reduce = useReducedMotion();
+  return (
+    <motion.div
+      className={cn("will-change-transform", className)}
+      initial={reduce ? false : { opacity: 0, scale: 0.92, y: 30 }}
+      whileInView={{ opacity: 1, scale: 1, y: 0 }}
+      viewport={{ once: true, margin: "-8% 0px" }}
+      transition={{ duration: 0.9, delay, ease }}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+/** Katta kinetik matn — scroll bilan gorizontal suzadi (fon bezagi). */
+export const KineticText: React.FC<{
+  text: string;
+  className?: string;
+  from?: number;
+  to?: number;
+  outline?: boolean;
+  light?: boolean;
+}> = ({ text, className, from = 120, to = -240, outline = false, light = false }) => (
+  <ParallaxX
+    from={from}
+    to={to}
+    className={cn(
+      "pointer-events-none absolute left-0 select-none whitespace-nowrap font-black leading-none tracking-[-0.06em]",
+      outline ? (light ? "outline-text-light" : "outline-text") : light ? "text-white/[0.09]" : "text-[var(--l-ink)]/[0.05]",
+      className,
+    )}
+  >
+    {text}
+  </ParallaxX>
+);
+
+/** Ikki qatorli kinetik lenta — qatorlar qarama-qarshi yo'nalishda suzadi. */
+export const KineticStrip: React.FC<{ rowA: string; rowB: string; light?: boolean; className?: string }> = ({ rowA, rowB, light = false, className }) => (
+  <div aria-hidden="true" className={cn("relative overflow-hidden py-6 sm:py-10", className)}>
+    <ParallaxX from={0} to={-320} className={cn("whitespace-nowrap text-[3.2rem] font-black leading-none tracking-[-0.05em] sm:text-[6rem]", light ? "text-white/[0.10]" : "text-[var(--l-ink)]/[0.06]")}>
+      {rowA} {rowA}
+    </ParallaxX>
+    <ParallaxX from={-320} to={0} className={cn("-mt-2 whitespace-nowrap text-[3.2rem] font-black leading-none tracking-[-0.05em] sm:-mt-4 sm:text-[6rem]", light ? "outline-text-light" : "outline-text")}>
+      {rowB} {rowB}
+    </ParallaxX>
+  </div>
+);

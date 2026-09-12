@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Check, Cloud, Mic } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Tilt3D, Depth, SplitWords } from "./motion";
+import { Tilt3D, Depth, SplitWords, ScrollScene, DriftShape } from "./motion";
 
 interface HeroProps {
   onTryGuest: () => void;
@@ -124,14 +124,25 @@ const Hero: React.FC<HeroProps> = ({ onTryGuest, onOpenPricing, busy }) => {
   return (
     <section id="top" className="relative overflow-hidden pt-28 pb-16 sm:pt-36 sm:pb-24">
       <div aria-hidden="true" className="hero-blobs pointer-events-none absolute inset-0" />
+      {/* Scroll bilan suzuvchi dekorativ shakllar */}
+      <DriftShape className="left-[6%] top-[18%] hidden lg:block" speed={160} rotate={40}>
+        <span className="block h-5 w-5 rounded-full bg-[var(--l-lime)]" />
+      </DriftShape>
+      <DriftShape className="left-[42%] top-[12%] hidden lg:block" speed={90} rotate={-60}>
+        <span className="block h-10 w-10 rounded-xl border-[3px] border-[var(--l-blue)]/40" />
+      </DriftShape>
+      <DriftShape className="right-[8%] top-[14%] hidden lg:block" speed={200} rotate={25}>
+        <span className="block h-7 w-7 rounded-full border-[3px] border-[var(--l-lime)]" />
+      </DriftShape>
+      <DriftShape className="right-[30%] bottom-[10%] hidden lg:block" speed={120} rotate={-30}>
+        <span className="block h-4 w-4 rotate-45 bg-[var(--l-blue)]" />
+      </DriftShape>
+      <DriftShape className="left-[30%] bottom-[8%] hidden lg:block" speed={70} rotate={50}>
+        <span className="block h-3 w-3 rounded-full bg-[var(--l-blue)]/60" />
+      </DriftShape>
       <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-5 sm:px-6 lg:grid-cols-12 lg:gap-8 lg:px-8">
         <div className="lg:col-span-6">
-          <motion.p {...fade(0)} className="inline-flex items-center gap-2 rounded-full border border-[var(--l-line)] bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-[var(--l-blue)] shadow-sm">
-            <span className="h-1.5 w-1.5 rounded-full bg-[var(--l-blue)]" />
-            {t("landing_page.hero_badge")}
-          </motion.p>
-
-          <h1 className="mt-6 text-[2.5rem] font-black leading-[1.04] tracking-[-0.03em] text-[var(--l-ink)] sm:text-[3.4rem] lg:text-[4rem]">
+          <h1 className="text-[2.5rem] font-black leading-[1.04] tracking-[-0.03em] text-[var(--l-ink)] sm:text-[3.4rem] lg:text-[4rem]">
             <SplitWords text={t("landing_page.hero_title_a")} delay={0.05} />{" "}
             <span className="marker-hl">
               <SplitWords text={t("landing_page.hero_title_hl")} delay={0.25} />
@@ -169,7 +180,9 @@ const Hero: React.FC<HeroProps> = ({ onTryGuest, onOpenPricing, busy }) => {
           style={{ transformPerspective: 1400 }}
           className="relative lg:col-span-6"
         >
-          <ExamScene />
+          <ScrollScene>
+            <ExamScene />
+          </ScrollScene>
         </motion.div>
       </div>
     </section>

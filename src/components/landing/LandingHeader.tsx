@@ -35,14 +35,14 @@ const LandingHeader: React.FC<LandingHeaderProps> = ({ onOpenLogin, onTryGuest }
   ];
 
   return (
-    <header
-      className={cn(
-        "fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color,box-shadow] duration-200",
-        scrolled ? "border-[var(--l-line)] bg-white/92 shadow-[0_8px_30px_-20px_rgba(15,23,42,0.35)]" : "border-transparent bg-transparent",
-      )}
-    >
-      {scrolled && <ScrollProgress />}
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-6 lg:px-8">
+    <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-5">
+      <div
+        className={cn(
+          "glass-header relative mx-auto flex h-14 max-w-7xl items-center justify-between overflow-hidden rounded-2xl px-3 transition-[background-color,box-shadow] duration-300 sm:px-5",
+          scrolled && "glass-header--solid",
+        )}
+      >
+        {scrolled && <ScrollProgress />}
         <a
           href="#top"
           onClick={(e) => {
@@ -52,10 +52,10 @@ const LandingHeader: React.FC<LandingHeaderProps> = ({ onOpenLogin, onTryGuest }
           className="group flex items-center gap-2.5"
         >
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-[var(--l-blue)] text-sm font-black text-white shadow-[0_8px_20px_-8px_rgba(37,99,235,0.8)] transition-transform duration-300 group-hover:-rotate-6">
-            M
+            E
           </span>
           <span className="text-[17px] font-black tracking-tight text-[var(--l-ink)]">
-            Mockapp<span className="text-[var(--l-blue)]">.uz</span>
+            Edumock<span className="text-[var(--l-blue)]">.uz</span>
           </span>
         </a>
 

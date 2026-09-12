@@ -2,8 +2,8 @@
 
 import React from "react";
 import { useTranslation } from "react-i18next";
-import Reveal, { Stagger, StaggerItem } from "./Reveal";
-import { DrawLineX } from "./motion";
+import Reveal from "./Reveal";
+import { DrawLineX, FlipIn, WordsInView } from "./motion";
 import { cn } from "@/lib/utils";
 
 /**
@@ -21,12 +21,12 @@ const ExamSteps: React.FC = () => {
   ];
 
   return (
-    <section id="how" className="scroll-mt-24 bg-white py-20 sm:py-28">
+    <section id="how" className="scroll-mt-24 py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <div className="grid items-end gap-8 lg:grid-cols-12">
           <Reveal className="lg:col-span-7">
             <p className="kicker">{t("landing_page.how_kicker")}</p>
-            <h2 className="mt-3 text-3xl font-black tracking-[-0.03em] text-[var(--l-ink)] sm:text-5xl">{t("landing_page.how_title")}</h2>
+            <h2 className="mt-3 text-3xl font-black tracking-[-0.03em] text-[var(--l-ink)] sm:text-5xl"><WordsInView text={t("landing_page.how_title")} /></h2>
           </Reveal>
           <Reveal className="lg:col-span-5" delay={0.1}>
             <p className="text-lg text-[var(--l-muted)]">{t("landing_page.how_desc")}</p>
@@ -36,9 +36,9 @@ const ExamSteps: React.FC = () => {
 
         <div className="mt-12">
           <DrawLineX className="mb-6 hidden lg:block" />
-          <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {steps.map((s, i) => (
-              <StaggerItem key={s.part}>
+              <FlipIn key={s.part} delay={i * 0.14} from={i < 2 ? "left" : "right"} className="h-full">
                 <div className="group relative h-full rounded-3xl border border-[var(--l-line)] bg-[var(--l-bg)] p-6 transition-all duration-300 hover:-translate-y-1.5 hover:bg-white hover:shadow-[0_24px_50px_-24px_rgba(15,23,42,0.25)]">
                   <div className="flex items-center justify-between">
                     <span className={cn("rounded-xl px-3 py-1.5 text-sm font-black tracking-tight", s.tone)}>{s.part}</span>
@@ -57,9 +57,9 @@ const ExamSteps: React.FC = () => {
                   </dl>
                   <p className="mt-3 text-xs text-slate-500">{t("landing_page.flow_col_media")}: <span className="font-semibold text-[var(--l-ink)]">{s.media}</span></p>
                 </div>
-              </StaggerItem>
+              </FlipIn>
             ))}
-          </Stagger>
+          </div>
         </div>
       </div>
     </section>

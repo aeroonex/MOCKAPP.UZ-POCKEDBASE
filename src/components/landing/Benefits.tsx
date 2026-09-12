@@ -3,8 +3,8 @@
 import React from "react";
 import { Clock3, ListChecks, ShieldCheck, Video } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import Reveal, { Stagger, StaggerItem } from "./Reveal";
-import { Tilt3D, Depth } from "./motion";
+import Reveal from "./Reveal";
+import { Tilt3D, Depth, FlipIn, WordsInView } from "./motion";
 import { cn } from "@/lib/utils";
 
 /**
@@ -26,14 +26,14 @@ const Benefits: React.FC = () => {
         <Reveal className="max-w-2xl">
           <p className="kicker">{t("landing_page.benefits_kicker")}</p>
           <h2 className="mt-3 text-3xl font-black tracking-[-0.03em] text-[var(--l-ink)] sm:text-5xl">
-            {t("landing_page.benefits_title_a")} <span className="text-[var(--l-blue)]">{t("landing_page.benefits_title_hl")}</span>
+            <WordsInView text={t("landing_page.benefits_title_a")} /> <WordsInView text={t("landing_page.benefits_title_hl")} className="text-[var(--l-blue)]" />
           </h2>
           <p className="mt-4 text-lg text-[var(--l-muted)]">{t("landing_page.benefits_desc")}</p>
         </Reveal>
 
-        <Stagger className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {items.map(({ Icon, color, title, desc, stat, statLabel }) => (
-            <StaggerItem key={title} className="h-full">
+        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {items.map(({ Icon, color, title, desc, stat, statLabel }, i) => (
+            <FlipIn key={title} className="h-full" delay={i * 0.12} from={i % 2 === 0 ? "left" : "right"}>
               <Tilt3D max={7} scale={1.03} className="h-full">
                 <article className="card-3d flex h-full flex-col rounded-3xl border border-[var(--l-line)] bg-white p-6">
                   <Depth z={30}>
@@ -51,9 +51,9 @@ const Benefits: React.FC = () => {
                   </Depth>
                 </article>
               </Tilt3D>
-            </StaggerItem>
+            </FlipIn>
           ))}
-        </Stagger>
+        </div>
       </div>
     </section>
   );

@@ -9,19 +9,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-// Globe endi kerak emas
+import { Globe } from 'lucide-react';
 
 interface LanguageInfo {
   name: string;
-  flag: string;
+  code: string;
 }
 
+// Bayroq emojilari Windows'da ko'rsatilmaydi — o'rniga globus ikonka va til kodi.
 const languageMap: Record<string, LanguageInfo> = {
-  uz: { name: "O'zbekcha", flag: '🇺🇿' },
-  en: { name: 'English', flag: '🇺🇸' },
-  ru: { name: 'Русский', flag: '🇷🇺' },
-  tr: { name: 'Türkçe', flag: '🇹🇷' },
-  ar: { name: 'العربية', flag: '🇸🇦' },
+  uz: { name: "O'zbekcha", code: 'UZ' },
+  en: { name: 'English', code: 'EN' },
+  ru: { name: 'Русский', code: 'RU' },
+  tr: { name: 'Türkçe', code: 'TR' },
+  ar: { name: 'العربية', code: 'AR' },
 };
 
 const LanguageSwitcher: React.FC = () => {
@@ -36,14 +37,9 @@ const LanguageSwitcher: React.FC = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-gray-700 hover:text-lime-500 flex items-center gap-2 px-3 py-2 rounded-md group">
-          <span
-            aria-hidden="true"
-            className="text-base leading-none transition-transform duration-300 group-hover:scale-110"
-          >
-            {currentLangInfo.flag}
-          </span>
-          <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors duration-200">
+        <Button variant="ghost" size="sm" className="flex items-center gap-1.5 rounded-full px-3 py-2 group">
+          <Globe aria-hidden="true" className="h-4 w-4 text-muted-foreground transition-transform duration-300 group-hover:rotate-12" />
+          <span className="text-sm font-semibold text-foreground">
             {currentLangInfo.name}
           </span>
           <span className="sr-only">Change language</span>
@@ -51,10 +47,8 @@ const LanguageSwitcher: React.FC = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[150px]">
         {Object.entries(languageMap).map(([langCode, info]) => (
-          <DropdownMenuItem key={langCode} onClick={() => changeLanguage(langCode)} className="flex items-center gap-2 cursor-pointer">
-            <span aria-hidden="true" className="text-base leading-none">
-              {info.flag}
-            </span>
+          <DropdownMenuItem key={langCode} onClick={() => changeLanguage(langCode)} className="flex items-center gap-2.5 cursor-pointer">
+            <span className="w-7 rounded-md bg-muted px-1 py-0.5 text-center text-[10px] font-bold text-muted-foreground">{info.code}</span>
             <span>{info.name}</span>
           </DropdownMenuItem>
         ))}

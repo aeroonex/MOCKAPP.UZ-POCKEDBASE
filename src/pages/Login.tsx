@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "next-themes";
+import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import { ShieldCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import CustomAuthForm from "@/components/CustomAuthForm";
@@ -16,7 +17,8 @@ import Benefits from "@/components/landing/Benefits";
 import ExamSteps from "@/components/landing/ExamSteps";
 import DarkBand from "@/components/landing/DarkBand";
 import Reveal from "@/components/landing/Reveal";
-import { Rise3D } from "@/components/landing/motion";
+import { Rise3D, WordsInView } from "@/components/landing/motion";
+import ScrollPath from "@/components/landing/ScrollPath";
 import { Faq, FinalCta, Footer } from "@/components/landing/FaqCta";
 
 const Login: React.FC = () => {
@@ -67,6 +69,15 @@ const Login: React.FC = () => {
     };
   }, []);
 
+  // Scroll bo'yicha fon rangining yumshoq o'zgarishi (oq → och ko'k → och binafsha → oq)
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll();
+  const pageBg = useTransform(
+    scrollYProgress,
+    [0, 0.2, 0.38, 0.58, 0.8, 1],
+    reduce ? ["#f6f7fb", "#f6f7fb", "#f6f7fb", "#f6f7fb", "#f6f7fb", "#f6f7fb"] : ["#f6f7fb", "#e9f1ff", "#f6f7fb", "#eaf6ff", "#f1eeff", "#f6f7fb"],
+  );
+
   useEffect(() => {
     if (session) {
       setShowGlobalSpinner(true);
@@ -85,11 +96,13 @@ const Login: React.FC = () => {
   }, [navigate, session]);
 
   return (
-    <div className="landing min-h-screen text-[var(--l-ink)]">
+    <motion.div style={{ backgroundColor: pageBg }} className="landing min-h-screen text-[var(--l-ink)]">
       <LandingHeader onOpenLogin={openLoginModal} onTryGuest={handleTryMe} />
 
       <main>
         <Hero onTryGuest={handleTryMe} onOpenPricing={goPricing} busy={showGlobalSpinner} />
+        <div className="relative">
+        <ScrollPath sectionIds={["features", "how", "band", "pricing", "faq", "contact"]} />
         <Benefits />
         <ExamSteps />
         <DarkBand />
@@ -100,7 +113,7 @@ const Login: React.FC = () => {
             <div className="grid gap-10 lg:grid-cols-12">
               <Reveal className="lg:col-span-5">
                 <p className="kicker">{t("landing_page.pricing_kicker")}</p>
-                <h2 className="mt-3 text-3xl font-black tracking-[-0.03em] text-[var(--l-ink)] sm:text-5xl">{t("landing_page.select_tariff")}</h2>
+                <h2 className="mt-3 text-3xl font-black tracking-[-0.03em] text-[var(--l-ink)] sm:text-5xl"><WordsInView text={t("landing_page.select_tariff")} /></h2>
                 <p className="mt-4 text-lg text-[var(--l-muted)]">{t("landing_page.pricing_desc")}</p>
                 <div className="mt-8 flex items-start gap-3 rounded-2xl border border-[var(--l-line)] bg-white p-4">
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#bef264] text-[var(--l-ink)]">
@@ -133,6 +146,7 @@ const Login: React.FC = () => {
 
         <Faq />
         <FinalCta onTryGuest={handleTryMe} busy={showGlobalSpinner} />
+        </div>
       </main>
 
       <Footer />
@@ -156,7 +170,7 @@ const Login: React.FC = () => {
         </DialogContent>
       </Dialog>
       {showGlobalSpinner && <LoadingSpinner />}
-    </div>
+    </motion.div>
   );
 };
 

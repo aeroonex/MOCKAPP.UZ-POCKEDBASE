@@ -5,6 +5,7 @@ import { ArrowRight, MessageSquareText, Phone } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Reveal from "./Reveal";
+import { ScaleIn, WordsInView } from "./motion";
 
 /** E'tirozlarga javob — FAQ. */
 export const Faq: React.FC = () => {
@@ -18,30 +19,31 @@ export const Faq: React.FC = () => {
   ];
 
   return (
-    <section id="faq" className="scroll-mt-24 bg-white py-20 sm:py-28">
+    <section id="faq" className="scroll-mt-24 py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <div className="grid gap-10 lg:grid-cols-12">
           <Reveal className="lg:col-span-4">
             <p className="kicker">{t("landing_page.nav_faq")}</p>
-            <h2 className="mt-3 text-3xl font-black tracking-[-0.03em] text-[var(--l-ink)] sm:text-5xl">{t("landing_page.faq_title")}</h2>
+            <h2 className="mt-3 text-3xl font-black tracking-[-0.03em] text-[var(--l-ink)] sm:text-5xl"><WordsInView text={t("landing_page.faq_title")} /></h2>
             <p className="mt-4 text-lg text-[var(--l-muted)]">{t("landing_page.faq_desc")}</p>
           </Reveal>
-          <Reveal className="lg:col-span-8" delay={0.08}>
+          <div className="lg:col-span-8">
             <Accordion type="single" collapsible className="space-y-3">
               {items.map((it, i) => (
-                <AccordionItem
-                  key={i}
-                  value={`q${i}`}
-                  className="rounded-2xl border border-[var(--l-line)] bg-[var(--l-bg)] px-5 transition-colors data-[state=open]:bg-white data-[state=open]:shadow-[0_16px_40px_-24px_rgba(15,23,42,0.3)]"
-                >
-                  <AccordionTrigger className="py-5 text-left text-base font-bold text-[var(--l-ink)] hover:no-underline [&>svg]:text-[var(--l-blue)]">
-                    {it.q}
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-5 text-[15px] leading-relaxed text-[var(--l-muted)]">{it.a}</AccordionContent>
-                </AccordionItem>
+                <Reveal key={i} delay={i * 0.08} distance={22} direction="left">
+                  <AccordionItem
+                    value={`q${i}`}
+                    className="rounded-2xl border border-[var(--l-line)] bg-[var(--l-bg)] px-5 transition-colors data-[state=open]:bg-white data-[state=open]:shadow-[0_16px_40px_-24px_rgba(15,23,42,0.3)]"
+                  >
+                    <AccordionTrigger className="py-5 text-left text-base font-bold text-[var(--l-ink)] hover:no-underline [&>svg]:text-[var(--l-blue)]">
+                      {it.q}
+                    </AccordionTrigger>
+                    <AccordionContent className="pb-5 text-[15px] leading-relaxed text-[var(--l-muted)]">{it.a}</AccordionContent>
+                  </AccordionItem>
+                </Reveal>
               ))}
             </Accordion>
-          </Reveal>
+          </div>
         </div>
       </div>
     </section>
@@ -58,11 +60,11 @@ export const FinalCta: React.FC<CtaProps> = ({ onTryGuest, busy }) => {
   const { t } = useTranslation();
   return (
     <section id="contact" className="scroll-mt-24 px-5 pb-20 sm:px-6 sm:pb-28 lg:px-8">
-      <Reveal className="mx-auto max-w-7xl">
+      <ScaleIn className="mx-auto max-w-7xl">
         <div className="cta-band relative overflow-hidden rounded-[2rem] px-6 py-14 text-white sm:px-12 sm:py-20">
           <div className="relative grid items-center gap-10 lg:grid-cols-12">
             <div className="lg:col-span-7">
-              <h2 className="text-3xl font-black tracking-[-0.03em] sm:text-5xl">{t("landing_page.cta_title")}</h2>
+              <h2 className="text-3xl font-black tracking-[-0.03em] sm:text-5xl"><WordsInView text={t("landing_page.cta_title")} /></h2>
               <p className="mt-4 max-w-xl text-lg text-blue-100">{t("landing_page.cta_desc")}</p>
               <button type="button" onClick={onTryGuest} disabled={busy} className="btn-cta btn-cta-invert group mt-8">
                 {t("landing_page.cta_free")}
@@ -87,7 +89,7 @@ export const FinalCta: React.FC<CtaProps> = ({ onTryGuest, busy }) => {
             </div>
           </div>
         </div>
-      </Reveal>
+      </ScaleIn>
     </section>
   );
 };
@@ -96,11 +98,11 @@ export const Footer: React.FC = () => {
   const { t } = useTranslation();
   const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   return (
-    <footer className="border-t border-[var(--l-line)] bg-white py-10">
+    <footer className="border-t border-[var(--l-line)] py-10">
       <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
         <div className="flex items-center gap-2.5">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-[var(--l-blue)] text-sm font-black text-white">M</span>
-          <span className="text-sm font-bold text-[var(--l-ink)]">Mockapp.uz</span>
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-[var(--l-blue)] text-sm font-black text-white">E</span>
+          <span className="text-sm font-bold text-[var(--l-ink)]">Edumock.uz</span>
           <span className="text-sm text-slate-500">· {t("landing_page.footer_tagline")}</span>
         </div>
         <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
@@ -116,7 +118,7 @@ export const Footer: React.FC = () => {
             </button>
           ))}
         </nav>
-        <p className="text-xs text-slate-500">© {new Date().getFullYear()} Mockapp.uz</p>
+        <p className="text-xs text-slate-500">© {new Date().getFullYear()} Edumock.uz</p>
       </div>
     </footer>
   );
