@@ -69,7 +69,7 @@ const ExamScene: React.FC = () => {
               </div>
             </div>
             <div className="mt-4 overflow-hidden rounded-xl border border-white/10">
-              <img src="/images/placeholder-landscape.svg" alt="" className="aspect-[16/7] w-full object-cover" decoding="async" />
+              <img src="/images/speaking-scene.svg" alt="" width={800} height={350} className="aspect-[16/7] w-full object-cover" decoding="async" />
             </div>
             <div className="mt-4 flex items-end gap-[3px]" aria-hidden="true">
               {[8, 14, 22, 12, 18, 26, 10, 16, 24, 14, 20, 9, 15, 23, 11, 17, 25, 13, 19, 8, 12, 20, 16, 10].map((h, i) => (
