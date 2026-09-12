@@ -33,24 +33,10 @@ export default defineConfig(async ({ mode }) => {
       target: "es2020",
       cssCodeSplit: true,
       chunkSizeWarningLimit: 600,
-      rollupOptions: {
-        output: {
-          // Vendor kutubxonalarni alohida chunk'larga ajratish — brauzer keshi uzoq saqlaydi,
-          // ilova kodi o'zgarganda faqat kichik chunk qayta yuklanadi.
-          manualChunks(id) {
-            if (!id.includes("node_modules")) return undefined;
-            if (id.includes("/react-dom/") || id.includes("/react/") || id.includes("/scheduler/")) return "vendor-react";
-            if (id.includes("react-router")) return "vendor-router";
-            if (id.includes("@radix-ui")) return "vendor-radix";
-            if (id.includes("framer-motion")) return "vendor-motion";
-            if (id.includes("recharts") || id.includes("d3-")) return "vendor-charts";
-            if (id.includes("i18next")) return "vendor-i18n";
-            if (id.includes("/pocketbase/")) return "vendor-pocketbase";
-            if (id.includes("@fontsource")) return "vendor-fonts";
-            return "vendor";
-          },
-        },
-      },
+      // Eslatma: vendor kutubxonalarni qo'lda chunk'larga bo'lish (manualChunks) chunk'lar
+      // orasida siklik bog'liqlik hosil qilib, production'da "Cannot read properties of
+      // undefined (reading 'forwardRef')" xatosiga olib keldi. Rollup'ning o'z tartibiga ishonamiz;
+      // sahifalar React.lazy orqali baribir alohida yuklanadi.
     },
   };
 });
