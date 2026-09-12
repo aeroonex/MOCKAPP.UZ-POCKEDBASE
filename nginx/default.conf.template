@@ -1,4 +1,5 @@
 # Mockapp.uz — frontend (SPA) + API/fayllar proxy. Bitta domen ostida.
+# ${API_UPSTREAM} nginx ishga tushganda envsubst bilan to'ldiriladi (default: api:4000).
 # SSL tashqi reverse-proxy (Nginx Proxy Manager / Cloudflare) tomonidan tugatiladi.
 
 map $sent_http_content_type $cache_control_for_type {
@@ -33,7 +34,7 @@ server {
 
     # ---- API (Fastify) ----
     location /api/ {
-        proxy_pass         http://api:4000;
+        proxy_pass         http://${API_UPSTREAM};
         proxy_http_version 1.1;
         proxy_set_header   Host              $host;
         proxy_set_header   X-Real-IP         $remote_addr;
@@ -49,7 +50,7 @@ server {
 
     # ---- Yuklangan fayllar (video/rasm), Range qo'llab-quvvatlanadi ----
     location /files/ {
-        proxy_pass         http://api:4000;
+        proxy_pass         http://${API_UPSTREAM};
         proxy_http_version 1.1;
         proxy_set_header   Host  $host;
         proxy_set_header   Range $http_range;

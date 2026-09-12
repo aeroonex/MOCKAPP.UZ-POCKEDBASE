@@ -1,0 +1,77 @@
+# PostgreSQL 16 — StatefulSet + doimiy disk (local-path). Faqat klaster ichidan ko'rinadi.
+apiVersion: v1
+kind: Service
+metadata:
+  name: edumock-db
+  namespace: edumock
+  labels: { app: edumock-db }
+spec:
+  clusterIP: None
+  selector: { app: edumock-db }
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: edumock-db
+  namespace: edumock
+spec:
+  serviceName: edumock-db
+  replicas: 1
+  selector:
+    matchLabels: { app: edumock-db }
+  template:
+    metadata:
+      labels: { app: edumock-db }
+    spec:
+      securityContext:
+        fsGroup: 999
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: mockapp
+            - name: POSTGRES_DB
+              value: mockapp
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: edumock-secrets, key: POSTGRES_PASSWORD }
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+            - name: TZ
+              value: Asia/Tashkent
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U mockapp -d mockapp"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U mockapp -d mockapp"]
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 5
+          resources:
+            requests: { cpu: "50m", memory: "128Mi" }
+            limits:   { cpu: "1000m", memory: "768Mi" }
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: local-path
+        resources:
+          requests:
+            storage: 5Gi

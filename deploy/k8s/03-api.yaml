@@ -1,0 +1,95 @@
+# Backend API (Fastify + PostgreSQL). Yuklangan fayllar doimiy diskda (/data).
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: edumock-uploads
+  namespace: edumock
+spec:
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 60Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: edumock-api
+  namespace: edumock
+  labels: { app: edumock-api }
+spec:
+  type: ClusterIP
+  selector: { app: edumock-api }
+  ports:
+    - name: http
+      port: 4000
+      targetPort: 4000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edumock-api
+  namespace: edumock
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  strategy:
+    type: Recreate   # bitta RWO disk — bir vaqtda bitta pod
+  selector:
+    matchLabels: { app: edumock-api }
+  template:
+    metadata:
+      labels: { app: edumock-api }
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: api
+          # Image host'da qurilib, k3s containerd'ga import qilinadi (deploy/k8s-deploy.sh)
+          image: edumock-api:latest
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 4000
+          env:
+            - { name: NODE_ENV, value: production }
+            - { name: TZ, value: Asia/Tashkent }
+            - { name: PORT, value: "4000" }
+            - { name: HOST, value: 0.0.0.0 }
+            - { name: DATA_DIR, value: /data }
+            - { name: JWT_EXPIRES_IN, value: 30d }
+            - { name: MAX_VIDEO_BYTES, value: "2147483648" }
+            - { name: MAX_IMAGE_BYTES, value: "5242880" }
+            - { name: DEFAULT_STORAGE_LIMIT_BYTES, value: "2147483648" }
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef: { name: edumock-secrets, key: DATABASE_URL }
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef: { name: edumock-secrets, key: JWT_SECRET }
+            - name: ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef: { name: edumock-secrets, key: ADMIN_EMAIL }
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: edumock-secrets, key: ADMIN_PASSWORD }
+          volumeMounts:
+            - name: uploads
+              mountPath: /data
+          readinessProbe:
+            httpGet: { path: /api/health, port: 4000 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet: { path: /api/health, port: 4000 }
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 5
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits:   { cpu: "1500m", memory: "768Mi" }
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: edumock-uploads

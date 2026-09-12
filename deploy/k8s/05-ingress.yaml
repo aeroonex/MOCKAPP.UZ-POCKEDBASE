@@ -1,0 +1,39 @@
+# edumock.uz → edumock-web (ingress-nginx + cert-manager, letsencrypt-prod)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: edumock
+  namespace: edumock
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # 2 GB gacha video yuklash — buferlashsiz oqim, uzoq timeout
+    nginx.ingress.kubernetes.io/proxy-body-size: "2100m"
+    nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: edumock.uz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: edumock-web
+                port: { number: 80 }
+    - host: www.edumock.uz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: edumock-web
+                port: { number: 80 }
+  tls:
+    - hosts: [edumock.uz, www.edumock.uz]
+      secretName: edumock-tls

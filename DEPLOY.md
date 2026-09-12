@@ -1,4 +1,21 @@
-# Mockapp.uz — Self-hosted deploy (Docker)
+# Mockapp.uz — Self-hosted deploy
+
+Ikki variant: **A) k3s (Kubernetes)** — hozirgi serverdagi usul; **B) docker compose** — oddiy VPS uchun.
+
+## A) k3s (ingress-nginx + cert-manager)
+
+```bash
+cd /opt/edumock                        # loyiha kodi
+bash deploy/k8s-deploy.sh              # build → k3s import → apply (namespace: edumock)
+kubectl -n edumock get pods,ingress,certificate
+```
+
+- Manifestlar: `deploy/k8s/` (namespace, Postgres StatefulSet, API, Web, Ingress)
+- Superadmin ma'lumotlari birinchi joylashda `.admin-credentials` fayliga yoziladi (600)
+- Yangilash: kodni yangilab yana `bash deploy/k8s-deploy.sh` (yangi TAG bilan rollout)
+- Faqat manifest o'zgargan bo'lsa: `SKIP_BUILD=1 bash deploy/k8s-deploy.sh`
+
+## B) docker compose
 
 Arxitektura (bitta domen ostida):
 

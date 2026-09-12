@@ -1,0 +1,53 @@
+# Frontend (nginx + Vite build). /api va /files ni edumock-api ga proxy qiladi.
+apiVersion: v1
+kind: Service
+metadata:
+  name: edumock-web
+  namespace: edumock
+  labels: { app: edumock-web }
+spec:
+  type: ClusterIP
+  selector: { app: edumock-web }
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edumock-web
+  namespace: edumock
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }
+  selector:
+    matchLabels: { app: edumock-web }
+  template:
+    metadata:
+      labels: { app: edumock-web }
+    spec:
+      containers:
+        - name: web
+          image: edumock-web:latest
+          imagePullPolicy: Never
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - { name: API_UPSTREAM, value: "edumock-api.edumock.svc.cluster.local:4000" }
+            - { name: TZ, value: Asia/Tashkent }
+          readinessProbe:
+            httpGet: { path: /healthz, port: 80 }
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /healthz, port: 80 }
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests: { cpu: "20m", memory: "32Mi" }
+            limits:   { cpu: "500m", memory: "128Mi" }
