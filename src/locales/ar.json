@@ -355,7 +355,8 @@
     "net_testing": "جارٍ القياس…",
     "net_ok": "جيد · {{ping}} مللي ثانية",
     "net_slow": "بطيء — قد يتأخر الرفع",
-    "net_offline": "لا يوجد اتصال"
+    "net_offline": "لا يوجد اتصال",
+    "mic_tap": "انقر في أي مكان للتفعيل"
   },
   "records_page": {
     "your_recordings": "تسجيلاتك",

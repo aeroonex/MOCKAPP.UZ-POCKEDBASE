@@ -356,7 +356,8 @@
     "net_testing": "Ölçülüyor…",
     "net_ok": "İyi · {{ping}} ms",
     "net_slow": "Yavaş — yükleme gecikebilir",
-    "net_offline": "Bağlantı yok"
+    "net_offline": "Bağlantı yok",
+    "mic_tap": "Etkinleştirmek için sayfaya tıklayın"
   },
   "records_page": {
     "your_recordings": "Kayıtlarınız",

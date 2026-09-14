@@ -386,7 +386,8 @@
     "net_testing": "Measuring…",
     "net_ok": "Good · {{ping}} ms",
     "net_slow": "Slow — upload may lag",
-    "net_offline": "No connection"
+    "net_offline": "No connection",
+    "mic_tap": "Click anywhere to activate"
   },
   "records_page": {
     "your_recordings": "Your Recordings",

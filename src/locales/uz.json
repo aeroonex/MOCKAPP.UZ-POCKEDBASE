@@ -386,7 +386,8 @@
     "net_testing": "O'lchanmoqda…",
     "net_ok": "Yaxshi · {{ping}} ms",
     "net_slow": "Sekin — yuklash kechikishi mumkin",
-    "net_offline": "Ulanish yo'q"
+    "net_offline": "Ulanish yo'q",
+    "mic_tap": "Faollashtirish uchun sahifani bosing"
   },
   "records_page": {
     "your_recordings": "Sizning yozuvlaringiz",

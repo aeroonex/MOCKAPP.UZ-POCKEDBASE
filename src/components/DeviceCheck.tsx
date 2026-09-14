@@ -76,6 +76,13 @@ const DeviceCheck: React.FC<DeviceCheckProps> = ({ webcamStream }) => {
   const [micStatus, setMicStatus] = useState<Status>("checking");
   const [level, setLevel] = useState(0);
   const [micRun, setMicRun] = useState(0);
+  // Brauzer foydalanuvchi bosmaguncha AudioContext'ni "suspended" qiladi — shunda daraja o'lchanmaydi
+  const [needsGesture, setNeedsGesture] = useState(false);
+  const ctxRef = useRef<AudioContext | null>(null);
+  const resumeAudio = useCallback(() => {
+    const ctx = ctxRef.current;
+    if (ctx && ctx.state !== "running") ctx.resume().catch(() => undefined);
+  }, []);
   useEffect(() => {
     let cancelled = false;
     let stream: MediaStream | null = null;
@@ -84,6 +91,7 @@ const DeviceCheck: React.FC<DeviceCheckProps> = ({ webcamStream }) => {
     let heardSince = 0;
     let detected = false;
     let lastPaint = 0;
+    const onGesture = () => resumeAudio();
 
     (async () => {
       try {
@@ -93,6 +101,14 @@ const DeviceCheck: React.FC<DeviceCheckProps> = ({ webcamStream }) => {
           return;
         }
         ctx = new AudioContext();
+        ctxRef.current = ctx;
+        const syncState = () => setNeedsGesture(ctx?.state !== "running");
+        ctx.onstatechange = syncState;
+        await ctx.resume().catch(() => undefined);
+        syncState();
+        // Bosish/klaviatura bo'lganda kontekstni uyg'otamiz (bir marta yetadi)
+        window.addEventListener("pointerdown", onGesture, { capture: true });
+        window.addEventListener("keydown", onGesture, { capture: true });
         const src = ctx.createMediaStreamSource(stream);
         const analyser = ctx.createAnalyser();
         analyser.fftSize = 512;
@@ -131,10 +147,13 @@ const DeviceCheck: React.FC<DeviceCheckProps> = ({ webcamStream }) => {
     return () => {
       cancelled = true;
       cancelAnimationFrame(raf);
+      window.removeEventListener("pointerdown", onGesture, { capture: true });
+      window.removeEventListener("keydown", onGesture, { capture: true });
       stream?.getTracks().forEach((tr) => tr.stop());
+      ctxRef.current = null;
       ctx?.close().catch(() => undefined);
     };
-  }, [micRun]);
+  }, [micRun, resumeAudio]);
 
   // Internet
   const [netStatus, setNetStatus] = useState<Status>("checking");
@@ -165,7 +184,13 @@ const DeviceCheck: React.FC<DeviceCheckProps> = ({ webcamStream }) => {
   };
 
   const micText =
-    micStatus === "ok" ? t("mock_test_page.mic_ok") : micStatus === "fail" ? t("mock_test_page.mic_missing") : t("mock_test_page.mic_speak");
+    micStatus === "ok"
+      ? t("mock_test_page.mic_ok")
+      : micStatus === "fail"
+        ? t("mock_test_page.mic_missing")
+        : needsGesture
+          ? t("mock_test_page.mic_tap")
+          : t("mock_test_page.mic_speak");
   const netText =
     netStatus === "checking"
       ? t("mock_test_page.net_testing")
@@ -216,7 +241,7 @@ const DeviceCheck: React.FC<DeviceCheckProps> = ({ webcamStream }) => {
         </div>
 
         {/* Mikrofon */}
-        <div className="rounded-xl border border-border bg-background/60 p-3">
+        <div className="cursor-pointer rounded-xl border border-border bg-background/60 p-3" onClick={resumeAudio}>
           <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
             <Mic className="h-3.5 w-3.5" />
             {t("mock_test_page.check_mic")}
