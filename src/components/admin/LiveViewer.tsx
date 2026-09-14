@@ -23,7 +23,9 @@ const LiveViewer: React.FC<{ target: WatchTarget | null; onClose: () => void }> 
   const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [state, setState] = useState<State>("connecting");
-  const [muted, setMuted] = useState(false);
+  // Avtoijro siyosati: ovozli oqim avtomatik ijro etilmaydi (qora ekran). Shuning uchun ovozsiz
+  // boshlaymiz (muted autoplay har doim ruxsat etiladi), admin "Ovozli" bosib eshitadi.
+  const [muted, setMuted] = useState(true);
 
   useEffect(() => {
     if (!target) return;
@@ -67,8 +69,11 @@ const LiveViewer: React.FC<{ target: WatchTarget | null; onClose: () => void }> 
         if (e.data.kind === "offer") {
           pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
           pc.ontrack = (ev) => {
-            if (videoRef.current && ev.streams[0]) {
-              videoRef.current.srcObject = ev.streams[0];
+            const v = videoRef.current;
+            if (v && ev.streams[0]) {
+              v.srcObject = ev.streams[0];
+              v.muted = true; // ijro kafolati uchun ovozsiz boshlanadi
+              v.play().catch(() => undefined);
               setState("live");
             }
           };
