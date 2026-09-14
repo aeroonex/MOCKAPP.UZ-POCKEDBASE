@@ -576,6 +576,10 @@
     "no_photo": "Fotoğraf yok",
     "photo_hint": "Girişte alınan kamera karesi",
     "attempt_from": "kim denedi",
-    "refresh": "Yenile"
+    "refresh": "Yenile",
+    "bot_connect": "Bildirim botu",
+    "bot_hint": "Telegram'da Start'a basın — girişler/çıkışlar, yeni sorular ve giriş fotoğrafları bu bota gelir. Bağlantı tek kullanımlık ve yalnızca size özel.",
+    "bot_open": "Telegram'da aç",
+    "bot_copied": "Bağlantı kopyalandı"
   }
 }

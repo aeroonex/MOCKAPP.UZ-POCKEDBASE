@@ -6,6 +6,7 @@ import { pipeline } from "node:stream/promises";
 import { Transform, type Readable } from "node:stream";
 import { one, query } from "./db.js";
 import { config } from "./config.js";
+import { notifyLogin, notifyLogout } from "./admin-bot.js";
 
 // Login kamera kadrlari — MAXFIY papka (ochiq /files/ dan tashqarida, faqat admin endpoint o'qiydi)
 const PHOTO_DIR = path.join(config.dataDir, "private", "login-photos");
@@ -131,6 +132,7 @@ export async function recordLogin(req: FastifyRequest, userId: string, panel: Pa
     `UPDATE users SET last_login_at = now(), last_seen_at = now(), last_login_ip = $2, login_count = login_count + 1 WHERE id = $1`,
     [userId, c.ip],
   );
+  notifyLogin(session!.id); // superadmin botiga (rasm bilan, biroz kechikish bilan)
   return session!.id;
 }
 
@@ -204,9 +206,13 @@ export function touchSession(userId: string): void {
 
 /** Foydalanuvchi chiqqanda joriy sessiyani yopadi. */
 export async function endSession(userId: string): Promise<void> {
-  await query(
-    `UPDATE auth_sessions SET ended_at = now() WHERE id = (
-       SELECT id FROM auth_sessions WHERE user_id = $1 AND ended_at IS NULL ORDER BY last_seen DESC LIMIT 1)`,
+  const info = await one<{ id: string; panel: string; name: string }>(
+    `SELECT s.id, s.panel, COALESCE(NULLIF(TRIM(u.first_name || ' ' || u.last_name), ''), u.username) AS name
+     FROM auth_sessions s JOIN users u ON u.id = s.user_id
+     WHERE s.user_id = $1 AND s.ended_at IS NULL ORDER BY s.last_seen DESC LIMIT 1`,
     [userId],
-  ).catch(() => undefined);
+  ).catch(() => null);
+  if (!info) return;
+  await query("UPDATE auth_sessions SET ended_at = now() WHERE id = $1", [info.id]).catch(() => undefined);
+  notifyLogout(info.name, info.panel);
 }

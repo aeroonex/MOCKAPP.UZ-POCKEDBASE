@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import {
-  Activity, Camera, Clock, LogIn, Monitor, MapPin, RefreshCw, ShieldAlert, Users, Wifi, X, XCircle, CheckCircle2, LogOut, Radio, Video,
+  Activity, Camera, Clock, LogIn, Monitor, MapPin, RefreshCw, ShieldAlert, Users, Wifi, X, XCircle, CheckCircle2, LogOut, Radio, Video, Send,
 } from "lucide-react";
 import LiveViewer, { type WatchTarget } from "@/components/admin/LiveViewer";
 import { api, API_BASE_URL, auth } from "@/lib/api";
@@ -347,6 +347,16 @@ const MonitoringPanel: React.FC = () => {
     qc.invalidateQueries({ queryKey: ["admin-logins"] });
   };
 
+  const [botLink, setBotLink] = useState<string | null>(null);
+  const getBotLink = async () => {
+    try {
+      const r = await api.post<{ link: string }>("/api/admin/bot-link");
+      setBotLink(r.link);
+    } catch (e) {
+      showError(e instanceof Error ? e.message : String(e));
+    }
+  };
+
   const panelChips = useMemo(() => {
     const bp = p?.by_panel ?? {};
     return (["dashboard", "station", "admin"] as Panel[]).filter((k) => bp[k]).map((k) => ({ k, n: bp[k] }));
@@ -383,7 +393,12 @@ const MonitoringPanel: React.FC = () => {
             </button>
           ))}
         </div>
-        <Button size="sm" variant="outline" className="gap-1.5" onClick={refresh}><RefreshCw className="h-3.5 w-3.5" /> {t("monitoring.refresh")}</Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" className="gap-1.5 border-sky-500/40 text-sky-600 dark:text-sky-400" onClick={getBotLink}>
+            <Send className="h-3.5 w-3.5" /> {t("monitoring.bot_connect")}
+          </Button>
+          <Button size="sm" variant="outline" className="gap-1.5" onClick={refresh}><RefreshCw className="h-3.5 w-3.5" /> {t("monitoring.refresh")}</Button>
+        </div>
       </div>
 
       {/* Onlayn */}
@@ -450,6 +465,26 @@ const MonitoringPanel: React.FC = () => {
 
       <ActivityDialog userId={activityUser} onClose={() => setActivityUser(null)} onPhoto={setPhotoSession} />
       <LiveViewer target={watchTarget} onClose={() => setWatchTarget(null)} />
+
+      {/* Bot ulash havolasi */}
+      <Dialog open={!!botLink} onOpenChange={(o) => !o && setBotLink(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Send className="h-5 w-5" /> {t("monitoring.bot_connect")}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">{t("monitoring.bot_hint")}</p>
+          <a href={botLink ?? "#"} target="_blank" rel="noreferrer" className="block truncate rounded-lg border border-sky-500/40 bg-sky-500/10 px-3 py-2.5 text-center text-sm font-semibold text-sky-600 hover:bg-sky-500/20 dark:text-sky-300">
+            {t("monitoring.bot_open")}
+          </a>
+          <button
+            type="button"
+            onClick={() => { if (botLink) { navigator.clipboard?.writeText(botLink).then(() => showSuccess(t("monitoring.bot_copied"))).catch(() => undefined); } }}
+            className="w-full break-all rounded-md bg-muted/50 px-3 py-2 text-center text-xs text-muted-foreground hover:bg-muted"
+          >
+            {botLink}
+          </button>
+        </DialogContent>
+      </Dialog>
 
       {/* Rasm kattalashtirish */}
       <Dialog open={!!photoSession} onOpenChange={(o) => !o && setPhotoSession(null)}>

@@ -4,6 +4,7 @@ import { one, query } from "../db.js";
 import { hashPassword, publicUser, requireAdmin, userId, USER_COLUMNS, type AuthUserRow } from "../auth.js";
 import { createReadStream, existsSync } from "node:fs";
 import { loginPhotoAbs } from "../sessions.js";
+import { createAdminBotLink } from "../admin-bot.js";
 
 const updateUserSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(254).optional(),
@@ -180,5 +181,12 @@ export async function adminRoutes(app: FastifyInstance) {
     const { id } = req.params as { id: string };
     await query("UPDATE auth_sessions SET ended_at = now() WHERE id = $1", [id]);
     return { ok: true };
+  });
+
+  // Superadmin bildirishnoma boti uchun bir martalik ulanish havolasi (magic link)
+  app.post("/api/admin/bot-link", { preHandler: requireAdmin }, async (_req, reply) => {
+    const link = await createAdminBotLink();
+    if (!link) return reply.code(503).send({ code: 503, message: "Bot sozlanmagan (ADMIN_BOT_TOKEN yo'q)" });
+    return { link };
   });
 }

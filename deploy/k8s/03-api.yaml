@@ -75,6 +75,9 @@ spec:
             - name: ADMIN_PASSWORD
               valueFrom:
                 secretKeyRef: { name: edumock-secrets, key: ADMIN_PASSWORD }
+            - name: ADMIN_BOT_TOKEN
+              valueFrom:
+                secretKeyRef: { name: edumock-secrets, key: ADMIN_BOT_TOKEN, optional: true }
           volumeMounts:
             - name: uploads
               mountPath: /data

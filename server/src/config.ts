@@ -47,6 +47,8 @@ export const config = {
   stationBaseUrl: (env.STATION_BASE_URL?.trim() || "https://cefr.edumock.uz").replace(/[/]+$/, ""),
   stationTokenExpiresIn: env.STATION_TOKEN_EXPIRES_IN?.trim() || "12h",
   /** Piper TTS ("imtihonchi ovozi"): binar va ovoz modeli; topilmasa mijoz brauzer TTS'iga qaytadi */
+  // Superadmin bildirishnoma boti (kirish/chiqish/yangi savol + login rasmlari). Maxfiy — env orqali.
+  adminBotToken: env.ADMIN_BOT_TOKEN?.trim() || "",
   piperBin: env.PIPER_BIN?.trim() || "/opt/piper/piper",
   piperVoiceDir: env.PIPER_VOICE_DIR?.trim() || "/opt/piper/voices",
   piperVoice: env.PIPER_VOICE?.trim() || "en_US-lessac-medium",

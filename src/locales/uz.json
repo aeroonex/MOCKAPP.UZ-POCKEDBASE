@@ -937,6 +937,10 @@
     "no_photo": "Rasm yo'q",
     "photo_hint": "Kirishda olingan kamera kadri",
     "attempt_from": "kim urindi",
-    "refresh": "Yangilash"
+    "refresh": "Yangilash",
+    "bot_connect": "Bildirishnoma boti",
+    "bot_hint": "Telegramda Start bosing — kirish/chiqish, yangi savollar va login rasmlari shu botga keladi. Havola bir martalik va faqat siz uchun.",
+    "bot_open": "Telegramda ochish",
+    "bot_copied": "Havola nusxalandi"
   }
 }

@@ -937,6 +937,10 @@
     "no_photo": "No photo",
     "photo_hint": "Camera frame taken at login",
     "attempt_from": "who tried",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "bot_connect": "Notification bot",
+    "bot_hint": "Press Start in Telegram — logins/logouts, new questions and login photos come to this bot. The link is one-time and only for you.",
+    "bot_open": "Open in Telegram",
+    "bot_copied": "Link copied"
   }
 }

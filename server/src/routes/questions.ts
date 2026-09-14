@@ -3,6 +3,7 @@ import { z } from "zod";
 import { one, query } from "../db.js";
 import { requireAuth, requireFullAuth, userId, type JwtPayload } from "../auth.js";
 import { enqueueTts, ttsForQuestion } from "../tts.js";
+import { notifyNewQuestion } from "../admin-bot.js";
 
 const PARTS = ["Part 1.1", "Part 1.2", "Part 2", "Part 3"] as const;
 
@@ -101,6 +102,15 @@ export async function questionRoutes(app: FastifyInstance) {
       [userId(req), b.type, JSON.stringify(b.sub_questions), b.question_text, JSON.stringify(b.image_urls)],
     );
     enqueueTts([...b.sub_questions, b.question_text]);
+    // Superadmin botiga bildirishnoma
+    void (async () => {
+      const u = await one<{ name: string }>(
+        "SELECT COALESCE(NULLIF(TRIM(first_name || ' ' || last_name), ''), username) AS name FROM users WHERE id = $1",
+        [userId(req)],
+      ).catch(() => null);
+      const preview = b.question_text || b.sub_questions.join(" · ");
+      notifyNewQuestion(u?.name || "—", b.type, preview);
+    })();
     return reply.code(201).send(toClient(row!));
   });
 
