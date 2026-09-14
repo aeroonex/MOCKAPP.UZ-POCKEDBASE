@@ -13,7 +13,10 @@ import {
   Part3Question,
 } from "@/lib/types";
 import { allSpeakingParts } from "@/lib/constants";
-import { getQuestions, updateQuestionCooldown } from "@/lib/local-db";
+import { getQuestions, updateQuestionCooldown, resetQuestionCooldowns } from "@/lib/local-db";
+import { registrationsApi } from "@/lib/registrations";
+import { ApiError } from "@/lib/api";
+import { toast } from "sonner";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "@/context/AuthProvider"; // useAuth import qilindi
 
@@ -309,13 +312,23 @@ export const useMockTestLogic = ({
     const now = new Date();
     const twoHoursInMs = 2 * 60 * 60 * 1000;
     let hasEnoughQuestions = true;
-    let missingParts: string[] = [];
+    const missingParts: string[] = [];
+    let cooldownAutoReset = false; // yangi savol qolmagan qismda kutish vaqti avtomatik tiklanadi
     const isGuestMode = localStorage.getItem("isGuestMode") === "true"; // Mehmon rejimini tekshirish
 
     allSpeakingParts.forEach(part => {
-      let eligibleQuestions = allAvailableQuestionsRef.current[part].filter(q =>
+      const allOfPart = allAvailableQuestionsRef.current[part];
+      let eligibleQuestions = allOfPart.filter(q =>
         !q.last_used || (now.getTime() - new Date(q.last_used!).getTime() > twoHoursInMs)
       );
+
+      // Ishlatilmagan savollar tugagan bo'lsa — cooldown'ni hisobga olmay barcha savollardan tanlaymiz
+      const countFor = (qs: typeof allOfPart) =>
+        part === "Part 1.1" ? qs.reduce((n, q) => n + ((q as Part1_1Question).sub_questions?.length || 0), 0) : qs.length;
+      if (countFor(eligibleQuestions) < minQuestions[part] && countFor(allOfPart) >= minQuestions[part]) {
+        eligibleQuestions = allOfPart;
+        cooldownAutoReset = true;
+      }
 
       if (part === "Part 1.1") {
         const allPart1_1SubQuestions: { questionId: string; subQuestion: string; originalQuestion: Part1_1Question }[] = [];
@@ -353,6 +366,15 @@ export const useMockTestLogic = ({
       return;
     }
 
+    // Butun tizim uchun kutish vaqtini tiklaymiz (serverda last_used tozalanadi), keyin tanlanganlar yana belgilanadi
+    if (cooldownAutoReset && user?.id) {
+      await resetQuestionCooldowns();
+      allAvailableQuestionsRef.current = Object.fromEntries(
+        allSpeakingParts.map((p) => [p, allAvailableQuestionsRef.current[p].map((q) => ({ ...q, last_used: undefined }))]),
+      ) as Record<SpeakingPart, SpeakingQuestion[]>;
+      toast.info(t("add_question_page.info_cooldown_auto_reset"));
+    }
+
     // Mehmon rejimi uchun rasmlarni almashtirish (bu qism o'zgarishsiz qoladi)
     if (isGuestMode) {
       const placeholderImageUrl = "/images/placeholder-landscape.svg";
@@ -378,8 +400,22 @@ export const useMockTestLogic = ({
     setIsStudentInfoFormOpen(true);
   };
 
-  const handleStudentInfoSave = async (id: string, name: string, phone: string) => {
-    const newStudentInfo: StudentInfo = { id, name, phone };
+  const handleStudentInfoSave = async (id: string, name: string, phone: string, registrationId?: string) => {
+    const newStudentInfo: StudentInfo = { id, name, phone, registration_id: registrationId };
+    // Ro'yxatdagi o'quvchi: urinish serverda hisoblanadi (limit tugagan bo'lsa test boshlanmaydi)
+    if (registrationId) {
+      try {
+        const a = await registrationsApi.startAttempt(registrationId);
+        newStudentInfo.attempt = a.attempt;
+        if (a.attempt > 1) toast.warning(t("mock_test_page.attempt_retry_toast", { n: a.attempt, limit: a.attempt_limit }));
+        else toast.info(t("mock_test_page.attempt_toast", { n: a.attempt, limit: a.attempt_limit }));
+      } catch (e) {
+        if (e instanceof ApiError && e.status === 409) showError(t("mock_test_page.attempts_exhausted", { n: 3 }));
+        else showError(e instanceof Error ? e.message : t("common.error"));
+        setIsStudentInfoFormOpen(false);
+        return;
+      }
+    }
     setStudentInfo(newStudentInfo);
     const recordingStarted = await startRecording(newStudentInfo);
     if (recordingStarted) {

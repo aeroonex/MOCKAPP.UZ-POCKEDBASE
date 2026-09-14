@@ -34,12 +34,18 @@ export const config = {
 
   maxVideoBytes: int("MAX_VIDEO_BYTES", 2 * 1024 * 1024 * 1024),
   maxImageBytes: int("MAX_IMAGE_BYTES", 5 * 1024 * 1024),
-  defaultStorageLimitBytes: int("DEFAULT_STORAGE_LIMIT_BYTES", 2 * 1024 * 1024 * 1024),
+  defaultStorageLimitBytes: int("DEFAULT_STORAGE_LIMIT_BYTES", 100 * 1024 * 1024 * 1024),
 
   corsOrigins: (env.CORS_ORIGINS || "")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean),
+
+  // Saytning tashqi manzili — Telegram xabarlaridagi havolalar uchun
+  publicBaseUrl: (env.PUBLIC_BASE_URL?.trim() || "https://edumock.uz").replace(/[/]+$/, ""),
+  // Imtihon stansiyasi manzili (parol bilan kiriladigan qisqartirilgan interfeys)
+  stationBaseUrl: (env.STATION_BASE_URL?.trim() || "https://cefr.edumock.uz").replace(/[/]+$/, ""),
+  stationTokenExpiresIn: env.STATION_TOKEN_EXPIRES_IN?.trim() || "12h",
 } as const;
 
 if (config.jwtSecret.length < 32) {

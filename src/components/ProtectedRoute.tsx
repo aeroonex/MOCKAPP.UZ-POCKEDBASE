@@ -4,10 +4,11 @@ import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/context/AuthProvider";
 import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
+import { isStationHost } from "@/lib/station";
 
 const ProtectedRoute: React.FC = () => {
   const { session, loading } = useAuth();
-  const isGuestMode = localStorage.getItem("isGuestMode") === "true";
+  const isGuestMode = localStorage.getItem("isGuestMode") === "true" && !isStationHost();
   const isMobile = useIsMobile(); // Use the hook
 
   if (loading) {

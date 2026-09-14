@@ -8,3 +8,9 @@ pb_migrations/*.bak
 .env.production
 *.log
 .DS_Store
+
+# Local secrets / server artifacts
+.admin-credentials
+.env.deploy
+server/.env
+server/data/

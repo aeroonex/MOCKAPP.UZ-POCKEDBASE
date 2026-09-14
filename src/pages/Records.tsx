@@ -8,7 +8,7 @@ import { Download, PlayCircle, Trash2, ArrowLeft, Cloud, Zap, CheckCircle2, Lock
 import { format } from "date-fns";
 import { RecordedSession } from "@/lib/types";
 import { showError, showSuccess } from "@/utils/toast";
-import { getLocalRecordings, deleteLocalRecording, getRecordingBlob, updateLocalRecordingCloudUrl, upsertRecordingMetadataToCloud, syncCloudStorageUsage } from "@/lib/local-db";
+import { getLocalRecordings, deleteLocalRecording, getRecordingBlob, uploadRecordingToCloud, syncCloudStorageUsage } from "@/lib/local-db";
 import { Link } from "react-router-dom";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription as DialogDescriptionComponent, // Renamed to avoid conflict
@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge"; // Badge import qilindi
 import { useAuth } from "@/context/AuthProvider"; // useAuth import qilindi
 import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 import { cn } from "@/lib/utils";
+import { isStationHost } from "@/lib/station";
 
 // Xotira ishlatilishini ko'rsatuvchi kichik komponent
 const StorageUsageCard: React.FC<{ isGuest: boolean, onOpenPricing: () => void }> = ({ isGuest, onOpenPricing }) => {
@@ -153,6 +154,7 @@ const Records: React.FC = () => {
   const [uploadErrorRecordId, setUploadErrorRecordId] = useState<string | null>(null);
   const [isPricingDialogOpen, setIsPricingDialogOpen] = useState(false);
   const isMobile = useIsMobile(); // Use the hook
+  const isStation = isStationHost(); // cefr.* — ustoz paneli: o'chirish taqiqlangan
   const [uploadBytesMap, setUploadBytesMap] = useState<Record<string, { loaded: number; total: number }>>({});
   const [downloadBytesMap, setDownloadBytesMap] = useState<Record<string, { loaded: number; total: number }>>({});
 
@@ -224,37 +226,10 @@ const Records: React.FC = () => {
     setUploadBytesMap((prev) => ({ ...prev, [recording.id]: { loaded: 0, total: blob.size } }));
 
     try {
-      const file = new File([blob], `${recording.id}.webm`, { type: blob.type || "video/webm" });
-      // Maydonlar fayldan OLDIN yuborilishi shart — server ularni oqim boshlanishidan oldin o'qiydi.
-      const form = new FormData();
-      form.append("local_id", recording.id);
-      form.append("timestamp", recording.timestamp);
-      form.append("duration", String(recording.duration));
-      if (recording.student_id) form.append("student_id", recording.student_id);
-      if (recording.student_name) form.append("student_name", recording.student_name);
-      if (recording.student_phone) form.append("student_phone", recording.student_phone);
-      form.append("size_bytes", String(blob.size));
-      form.append("video", file);
-
-      // XHR orqali real vaqtda yuklash jarayoni (baytlarda)
-      const created = await api.upload<{ video_url?: string }>("/api/recordings", form, (loaded, total) => {
+      // Umumiy yuklash funksiyasi (XHR orqali real vaqtda jarayon, baytlarda)
+      await uploadRecordingToCloud(recording.id, (loaded, total) => {
         setUploadBytesMap((prev) => ({ ...prev, [recording.id]: { loaded, total } }));
         setProgress(recording.id, (loaded / total) * 100);
-      });
-
-      const publicUrl = created?.video_url ? api.fileUrl(created.video_url) : undefined;
-      if (!publicUrl) throw new Error(t("records_page.error_getting_public_url"));
-
-      await updateLocalRecordingCloudUrl(recording.id, publicUrl);
-      await upsertRecordingMetadataToCloud({
-        id: recording.id,
-        user_id: user.id,
-        timestamp: recording.timestamp,
-        duration: recording.duration,
-        student_id: recording.student_id,
-        student_name: recording.student_name,
-        student_phone: recording.student_phone,
-        cloud_url: publicUrl,
       });
 
       // Recalculate used bytes from actual cloud records
@@ -432,6 +407,17 @@ const Records: React.FC = () => {
                               {t("records_page.uploaded_to_cloud")}
                             </p>
                           )}
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {recording.registration_id && (
+                              <Badge variant="outline" className="text-[10px] border-indigo-400 text-indigo-600 dark:text-indigo-300">📋 {t("records_page.badge_registered")}</Badge>
+                            )}
+                            {recording.tg_backup_at && (
+                              <Badge variant="outline" className="text-[10px] border-sky-400 text-sky-600 dark:text-sky-300">📦 {t("records_page.badge_tg_backup")}</Badge>
+                            )}
+                            {recording.video_deleted_at && (
+                              <Badge variant="outline" className="text-[10px] border-amber-400 text-amber-600 dark:text-amber-300">🗑 {t("records_page.badge_server_deleted")}</Badge>
+                            )}
+                          </div>
                           {uploadError && (
                             <p className="text-xs text-red-500 flex items-center gap-1 mt-1">
                               <Cloud className="h-3 w-3" />
@@ -528,7 +514,8 @@ const Records: React.FC = () => {
                             </Button>
                           )}
 
-                          {/* Delete Button */}
+                          {/* Delete Button — imtihon stansiyasida (ustoz paneli) o'chirish yo'q */}
+                          {!isStation && (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <button
@@ -559,6 +546,7 @@ const Records: React.FC = () => {
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
+                          )}
                         </div>
                       </div>
 

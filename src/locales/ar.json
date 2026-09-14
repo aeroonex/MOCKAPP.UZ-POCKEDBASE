@@ -30,7 +30,7 @@
     "dark_mode": "الوضع الداكن",
     "system": "النظام",
     "forgot_password_contact_admin_message": "هل نسيت كلمة المرور؟ يرجى الاتصال بالمسؤول.",
-    "admin_contact_phone": "+998 77 207 71 17",
+    "admin_contact_phone": "+998 50 571 65 15",
     "saving": "جار الحفظ...",
     "sign_in": "تسجيل الدخول",
     "captcha_challenge_error": "يرجى إكمال تحدي CAPTCHA.",
@@ -53,7 +53,7 @@
     "subtitle": "نتائج حقيقية.",
     "slogan": "جودة التعليم من Edumock.uz مع تطبيقك عالي الجودة",
     "contact_us": "اتصل بنا",
-    "phone_number": "+998 77 207 71 17",
+    "phone_number": "+998 50 571 65 15",
     "description": "<strong class=\"text-primary\">Edumock.uz</strong> هي منصة تعليمية تساهم في تطوير مراكز التدريب في أوزبكستان، والتي تتولى بالكامل تنظيم جزء التحدث في امتحانات CEFR في مراكز التدريب وتضمن للطلاب إعدادًا عالي الجودة.",
     "trust_section": {
       "title_line1": "ندعم مراكز التدريب",
@@ -205,6 +205,8 @@
     "add_new_question": "إضافة سؤال جديد",
     "mock_test": "اختبار تجريبي",
     "start_the_test": "ابدأ الاختبار",
+    "registrations": "قائمة التسجيل",
+    "view_registrations": "المسجلون في الامتحان",
     "records": "التسجيلات",
     "view_recorded_videos": "عرض الفيديوهات المسجلة"
   },

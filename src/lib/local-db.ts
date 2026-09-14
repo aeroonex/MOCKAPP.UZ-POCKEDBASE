@@ -258,6 +258,8 @@ interface StoredRecording {
   student_phone?: string;
   videoBlob: Blob; // This is the actual blob stored in IndexedDB
   cloud_url?: string; // Cloud'ga yuklangan videoning ommaviy URL manzili
+  registration_id?: string; // Ro'yxatdagi o'quvchi bilan bog'lanish
+  attempt?: number; // Nechinchi urinish
 }
 
 // Yangi: Supabase jadvaliga yozuv metama'lumotlarini kiritish yoki yangilash
@@ -270,6 +272,7 @@ export const upsertRecordingMetadataToCloud = async (recording: Omit<RecordedSes
       student_id: recording.student_id ?? "",
       student_name: recording.student_name ?? "",
       student_phone: recording.student_phone ?? "",
+      registration_id: recording.registration_id ?? "",
     });
   } catch (e: any) {
     console.error("Error upserting recording metadata:", e?.message || e);
@@ -353,6 +356,9 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
           video_url: localVersion ? URL.createObjectURL(localVersion.videoBlob) : cloudUrl,
           cloud_url: cloudUrl,
           isLocalBlobAvailable: !!localVersion,
+          registration_id: rec.registration_id || localVersion?.registration_id || undefined,
+          tg_backup_at: rec.tg_backup_at || null,
+          video_deleted_at: rec.video_deleted_at || null,
         });
       });
 
@@ -403,6 +409,64 @@ export const getRecordingBlob = async (id: string): Promise<Blob | undefined> =>
   const db = await initDB();
   const recording = await db.get(STORE_RECORDINGS, id);
   return recording?.videoBlob;
+};
+
+/**
+ * Videoni serverga yuklaydi (multipart, jarayon bilan). Records sahifasi va avtomatik yuklash ishlatadi.
+ * Qaytadi: serverdagi videoning to'liq URL'i.
+ */
+export const uploadRecordingToCloud = async (
+  recordingId: string,
+  onProgress?: (loaded: number, total: number) => void,
+): Promise<string> => {
+  const db = await initDB();
+  const rec: StoredRecording | undefined = await db.get(STORE_RECORDINGS, recordingId);
+  if (!rec?.videoBlob) throw new Error(i18n.t("records_page.error_no_video_data"));
+  const blob = rec.videoBlob;
+  const file = new File([blob], `${rec.id}.webm`, { type: blob.type || "video/webm" });
+  // Maydonlar fayldan OLDIN yuborilishi shart — server ularni oqim boshlanishidan oldin o'qiydi.
+  const form = new FormData();
+  form.append("local_id", rec.id);
+  form.append("timestamp", rec.timestamp);
+  form.append("duration", String(rec.duration));
+  if (rec.student_id) form.append("student_id", rec.student_id);
+  if (rec.student_name) form.append("student_name", rec.student_name);
+  if (rec.student_phone) form.append("student_phone", rec.student_phone);
+  if (rec.registration_id) form.append("registration_id", rec.registration_id);
+  if (rec.attempt) form.append("attempt", String(rec.attempt));
+  form.append("size_bytes", String(blob.size));
+  form.append("video", file);
+
+  const created = await api.upload<{ video_url?: string }>("/api/recordings", form, onProgress);
+  const url = created?.video_url ? api.fileUrl(created.video_url) : "";
+  if (!url) throw new Error(i18n.t("records_page.error_getting_public_url"));
+  await updateLocalRecordingCloudUrl(rec.id, url);
+  return url;
+};
+
+/**
+ * Ro'yxatdagi o'quvchi bilan topshirilgan test tugagach — videoni fonda serverga yuklaydi
+ * (toast bilan xabar beradi; xato bo'lsa Yozuvlar sahifasidan qo'lda yuklash mumkin).
+ */
+export const autoUploadRecording = async (recordingId: string): Promise<void> => {
+  if (!auth.model) return;
+  const { setProgress, removeProgress } = await import("@/utils/uploadProgress");
+  const { toast } = await import("sonner");
+  const toastId = toast.loading(i18n.t("records_page.auto_upload_started"));
+  setProgress(recordingId, 0);
+  try {
+    await uploadRecordingToCloud(recordingId, (loaded, total) => {
+      const pct = total ? Math.round((loaded / total) * 100) : 0;
+      setProgress(recordingId, pct);
+      toast.loading(i18n.t("records_page.auto_upload_progress", { percent: pct }), { id: toastId });
+    });
+    setProgress(recordingId, 100);
+    toast.success(i18n.t("records_page.auto_upload_done"), { id: toastId, duration: 6000 });
+  } catch (e: any) {
+    toast.error(i18n.t("records_page.auto_upload_failed", { message: e?.message || String(e) }), { id: toastId, duration: 8000 });
+  } finally {
+    removeProgress(recordingId);
+  }
 };
 
 export const addLocalRecording = async (

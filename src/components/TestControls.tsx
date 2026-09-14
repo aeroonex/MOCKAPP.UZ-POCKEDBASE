@@ -80,15 +80,17 @@ const TestControls: React.FC<TestControlsProps> = ({
       )}
 
       {currentPhase === "finished" && (
-        <div className="space-y-4 text-center w-full max-w-sm"> {/* Tugmalarni markazga joylashtirish uchun kenglik qo'shildi */}
-          <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">{t("add_question_page.test_finished")}</h3>
-          <p className="text-muted-foreground">{t("add_question_page.all_questions_reviewed")}</p>
-          <Button onClick={handleResetTest} variant="outline" className="w-full">
-            {t("add_question_page.restart_test")}
+        // Test yakunlandi: o'quvchiga faqat minnatdorchilik — qayta topshirish tugmasi yo'q (urinishlar cheklangan)
+        <div className="space-y-4 text-center w-full max-w-md py-6">
+          <div className="mx-auto h-20 w-20 rounded-full bg-gradient-to-br from-emerald-400 to-green-600 text-white flex items-center justify-center text-4xl shadow-lg shadow-emerald-500/30">
+            ✓
+          </div>
+          <h3 className="text-3xl font-extrabold text-green-600 dark:text-green-400">{t("mock_test_page.finished_thanks")}</h3>
+          <p className="text-muted-foreground">{t("mock_test_page.finished_desc")}</p>
+          <p className="text-xs text-muted-foreground">{t("add_question_page.last_session_available_in_records")}</p>
+          <Button onClick={handleResetTest} variant="ghost" size="sm" className="text-muted-foreground mt-4">
+            {t("mock_test_page.finished_next")}
           </Button>
-          <p className="text-sm text-muted-foreground mt-2">
-            {t("add_question_page.last_session_available_in_records")}
-          </p>
         </div>
       )}
     </div>

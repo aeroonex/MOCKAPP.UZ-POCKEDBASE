@@ -18,6 +18,7 @@ export interface AuthUser {
   storage_used_bytes: number;
   verified: boolean;
   blocked: boolean;
+  paid_until: string | null;
   created: string;
   updated: string;
 }
@@ -134,6 +135,8 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
 
   if (!res.ok) {
     if (res.status === 401 && auth.isValid) auth.clear();
+    // 402 — obuna tugagan / bloklangan: darvoza popup'ini ochamiz
+    if (res.status === 402) window.dispatchEvent(new CustomEvent("edumock:locked", { detail: (data as { reason?: string } | null)?.reason }));
     const msg = (data as { message?: string } | null)?.message || `HTTP ${res.status}`;
     throw new ApiError(res.status, msg, data);
   }
@@ -162,6 +165,7 @@ export const api = {
         if (xhr.status >= 200 && xhr.status < 300) {
           resolve(xhr.response as T);
         } else {
+          if (xhr.status === 402) window.dispatchEvent(new CustomEvent("edumock:locked"));
           const msg = (xhr.response as { message?: string } | null)?.message || `HTTP ${xhr.status}`;
           reject(new ApiError(xhr.status, msg, xhr.response));
         }

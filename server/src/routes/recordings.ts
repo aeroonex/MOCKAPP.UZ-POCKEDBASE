@@ -1,9 +1,10 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { one, query, withTransaction } from "../db.js";
-import { requireAuth, userId } from "../auth.js";
+import { requireAuth, requireFullAuth, userId } from "../auth.js";
 import { config } from "../config.js";
 import { FileTooLargeError, publicUrl, relPath, removeFile, streamToFile } from "../storage.js";
+import { backupRecordingToTelegram } from "../bot.js";
 
 interface RecordingRow {
   id: string;
@@ -17,12 +18,16 @@ interface RecordingRow {
   video_path: string | null;
   size_bytes: number;
   cloud_url: string;
+  registration_id: string | null;
+  attempt: number | null;
+  tg_backup_at: Date | null;
+  video_deleted_at: Date | null;
   created: Date;
   updated: Date;
 }
 
 const COLS = `id, local_id, user_id, "timestamp", duration, student_id, student_name, student_phone,
-  video_path, size_bytes, cloud_url, created, updated`;
+  video_path, size_bytes, cloud_url, registration_id, attempt, tg_backup_at, video_deleted_at, created, updated`;
 
 function toClient(r: RecordingRow) {
   const video_url = r.video_path ? publicUrl(r.video_path) : r.cloud_url || "";
@@ -38,9 +43,20 @@ function toClient(r: RecordingRow) {
     size_bytes: Number(r.size_bytes),
     video_url,
     cloud_url: video_url,
+    registration_id: r.registration_id,
+    attempt: r.attempt === null ? null : Number(r.attempt),
+    tg_backup_at: r.tg_backup_at,
+    video_deleted_at: r.video_deleted_at,
     created: r.created,
     updated: r.updated,
   };
+}
+
+/** registration_id faqat shu foydalanuvchining arizasiga ishora qilishi mumkin; aks holda null. */
+async function ownRegistrationId(uid: string, id: string | undefined): Promise<string | null> {
+  if (!id) return null;
+  const row = await one<{ id: string }>("SELECT id FROM registrations WHERE id = $1 AND user_id = $2", [id, uid]);
+  return row?.id ?? null;
 }
 
 const metaSchema = z.object({
@@ -50,6 +66,8 @@ const metaSchema = z.object({
   student_id: z.string().trim().max(80).optional(),
   student_name: z.string().trim().max(200).optional(),
   student_phone: z.string().trim().max(50).optional(),
+  registration_id: z.string().uuid().optional().or(z.literal("").transform(() => undefined)),
+  attempt: z.coerce.number().int().min(1).max(99).optional(),
 });
 
 /** users.storage_used_bytes ni recordings jadvalidan qayta hisoblaydi. */
@@ -187,9 +205,10 @@ export async function recordingRoutes(app: FastifyInstance) {
             throw new FileTooLargeError(Number(locked?.storage_limit_bytes ?? 0));
           }
 
+          const regId = await ownRegistrationId(uid, m.registration_id);
           const saved = await one<RecordingRow>(
-            `INSERT INTO recordings (local_id, user_id, "timestamp", duration, student_id, student_name, student_phone, video_path, size_bytes)
-             VALUES ($1, $2, COALESCE($3, now()), COALESCE($4, 0), COALESCE($5, ''), COALESCE($6, ''), COALESCE($7, ''), $8, $9)
+            `INSERT INTO recordings (local_id, user_id, "timestamp", duration, student_id, student_name, student_phone, video_path, size_bytes, registration_id, attempt)
+             VALUES ($1, $2, COALESCE($3, now()), COALESCE($4, 0), COALESCE($5, ''), COALESCE($6, ''), COALESCE($7, ''), $8, $9, $10, $11)
              ON CONFLICT (local_id, user_id) DO UPDATE SET
                "timestamp" = COALESCE(EXCLUDED."timestamp", recordings."timestamp"),
                duration = COALESCE(EXCLUDED.duration, recordings.duration),
@@ -197,15 +216,20 @@ export async function recordingRoutes(app: FastifyInstance) {
                student_name = COALESCE(NULLIF(EXCLUDED.student_name, ''), recordings.student_name),
                student_phone = COALESCE(NULLIF(EXCLUDED.student_phone, ''), recordings.student_phone),
                video_path = EXCLUDED.video_path,
-               size_bytes = EXCLUDED.size_bytes
+               size_bytes = EXCLUDED.size_bytes,
+               registration_id = COALESCE(EXCLUDED.registration_id, recordings.registration_id),
+               attempt = COALESCE(EXCLUDED.attempt, recordings.attempt),
+               tg_backup_at = NULL, tg_backup_error = '', video_deleted_at = NULL
              RETURNING ${COLS}`,
-            [m.local_id, uid, m.timestamp ?? null, m.duration ?? null, m.student_id ?? null, m.student_name ?? null, m.student_phone ?? null, videoRel, size],
+            [m.local_id, uid, m.timestamp ?? null, m.duration ?? null, m.student_id ?? null, m.student_name ?? null, m.student_phone ?? null, videoRel, size, regId, m.attempt ?? null],
             client,
           );
           if (prev?.video_path && prev.video_path !== videoRel) await removeFile(prev.video_path);
           await recalcUsage(uid, client);
           return saved!;
         });
+        // Admin panel ulangan bo'lsa — videoni Telegram'ga zaxiralash (javobni kutmasdan)
+        void backupRecordingToTelegram({ ...row, duration: Number(row.duration), size_bytes: Number(row.size_bytes), attempt: row.attempt === null ? null : Number(row.attempt) });
         return reply.code(201).send(toClient(row));
       } catch (err) {
         await removeFile(videoRel);
@@ -225,22 +249,26 @@ export async function recordingRoutes(app: FastifyInstance) {
       return reply.code(400).send({ code: 400, message: "Invalid input", data: parsed.error.flatten() });
     }
     const m = parsed.data;
+    const uid = userId(req);
+    const regId = await ownRegistrationId(uid, m.registration_id);
     const row = await one<RecordingRow>(
-      `INSERT INTO recordings (local_id, user_id, "timestamp", duration, student_id, student_name, student_phone)
-       VALUES ($1, $2, COALESCE($3, now()), COALESCE($4, 0), COALESCE($5, ''), COALESCE($6, ''), COALESCE($7, ''))
+      `INSERT INTO recordings (local_id, user_id, "timestamp", duration, student_id, student_name, student_phone, registration_id)
+       VALUES ($1, $2, COALESCE($3, now()), COALESCE($4, 0), COALESCE($5, ''), COALESCE($6, ''), COALESCE($7, ''), $8)
        ON CONFLICT (local_id, user_id) DO UPDATE SET
          "timestamp" = COALESCE(EXCLUDED."timestamp", recordings."timestamp"),
          duration = COALESCE(EXCLUDED.duration, recordings.duration),
          student_id = COALESCE(NULLIF(EXCLUDED.student_id, ''), recordings.student_id),
          student_name = COALESCE(NULLIF(EXCLUDED.student_name, ''), recordings.student_name),
-         student_phone = COALESCE(NULLIF(EXCLUDED.student_phone, ''), recordings.student_phone)
+         student_phone = COALESCE(NULLIF(EXCLUDED.student_phone, ''), recordings.student_phone),
+         registration_id = COALESCE(EXCLUDED.registration_id, recordings.registration_id)
        RETURNING ${COLS}`,
-      [m.local_id, userId(req), m.timestamp ?? null, m.duration ?? null, m.student_id ?? null, m.student_name ?? null, m.student_phone ?? null],
+      [m.local_id, uid, m.timestamp ?? null, m.duration ?? null, m.student_id ?? null, m.student_name ?? null, m.student_phone ?? null, regId],
     );
     return toClient(row!);
   });
 
-  app.delete("/api/recordings/:localId", { preHandler: requireAuth }, async (req, reply) => {
+  // O'chirish faqat asosiy saytdan (imtihon stansiyasi tokeni — 403)
+  app.delete("/api/recordings/:localId", { preHandler: requireFullAuth }, async (req, reply) => {
     const { localId } = req.params as { localId: string };
     const uid = userId(req);
     const row = await one<{ video_path: string | null }>(

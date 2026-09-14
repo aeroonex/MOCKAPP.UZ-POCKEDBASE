@@ -6,6 +6,8 @@ import {
   verifyPassword,
   publicUser,
   requireAuth,
+  requireFullAuth,
+  isStation,
   userId,
   USER_COLUMNS,
   type AuthUserRow,
@@ -25,7 +27,7 @@ const registerSchema = z.object({
 });
 
 const loginSchema = z.object({
-  identity: emailSchema,
+  identity: z.string().trim().min(3).max(254), // email yoki username
   password: z.string().min(1).max(200),
 });
 
@@ -79,8 +81,8 @@ export async function authRoutes(app: FastifyInstance) {
     const username = await usernameFromEmail(email);
     const password_hash = await hashPassword(password);
     const row = await one<AuthUserRow>(
-      `INSERT INTO users (email, username, password_hash, first_name, last_name, storage_limit_bytes)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO users (email, username, password_hash, first_name, last_name, storage_limit_bytes, tariff_name)
+       VALUES ($1, $2, $3, $4, $5, $6, 'Premium')
        RETURNING ${USER_COLUMNS}`,
       [email, username, password_hash, first_name, last_name, config.defaultStorageLimitBytes],
     );
@@ -100,15 +102,13 @@ export async function authRoutes(app: FastifyInstance) {
     }
     const { identity, password } = parsed.data;
     const row = await one<AuthUserRow & { password_hash: string }>(
-      `SELECT ${USER_COLUMNS}, password_hash FROM users WHERE email = $1`,
+      `SELECT ${USER_COLUMNS}, password_hash FROM users WHERE email = lower($1) OR username = $1`,
       [identity],
     );
     if (!row || !(await verifyPassword(password, row.password_hash))) {
       return reply.code(400).send({ code: 400, message: "Invalid email or password" });
     }
-    if (row.blocked) {
-      return reply.code(403).send({ code: 403, message: "Account is blocked" });
-    }
+    // Bloklangan/obunasi tugagan foydalanuvchi ham kira oladi — ilova qulflangan holatni ko'rsatadi (to'lov popup)
     const token = await reply.jwtSign({ sub: row.id, role: row.role } satisfies JwtPayload, {
       expiresIn: config.jwtExpiresIn,
     });
@@ -119,7 +119,6 @@ export async function authRoutes(app: FastifyInstance) {
   app.get("/api/auth/me", { preHandler: requireAuth }, async (req, reply) => {
     const row = await one<AuthUserRow>(`SELECT ${USER_COLUMNS} FROM users WHERE id = $1`, [userId(req)]);
     if (!row) return reply.code(401).send({ code: 401, message: "Unauthorized" });
-    if (row.blocked) return reply.code(403).send({ code: 403, message: "Account is blocked" });
     return publicUser(row);
   });
 
@@ -127,15 +126,17 @@ export async function authRoutes(app: FastifyInstance) {
   app.post("/api/auth/refresh", { preHandler: requireAuth }, async (req, reply) => {
     const row = await one<AuthUserRow>(`SELECT ${USER_COLUMNS} FROM users WHERE id = $1`, [userId(req)]);
     if (!row) return reply.code(401).send({ code: 401, message: "Unauthorized" });
-    if (row.blocked) return reply.code(403).send({ code: 403, message: "Account is blocked" });
-    const token = await reply.jwtSign({ sub: row.id, role: row.role } satisfies JwtPayload, {
-      expiresIn: config.jwtExpiresIn,
-    });
+    // Stansiya tokeni yangilanganda ham stansiya bo'lib qoladi (rol ko'tarilmaydi)
+    const station = isStation(req);
+    const token = await reply.jwtSign(
+      (station ? { sub: row.id, role: "user", station: true } : { sub: row.id, role: row.role }) satisfies JwtPayload,
+      { expiresIn: station ? config.stationTokenExpiresIn : config.jwtExpiresIn },
+    );
     return { token, record: publicUser(row) };
   });
 
   // Profilni yangilash (faqat ruxsat etilgan maydonlar — role/tarif/limit emas)
-  app.patch("/api/auth/me", { preHandler: requireAuth }, async (req, reply) => {
+  app.patch("/api/auth/me", { preHandler: requireFullAuth }, async (req, reply) => {
     const parsed = updateMeSchema.safeParse(req.body);
     if (!parsed.success) {
       return reply.code(400).send({ code: 400, message: "Invalid input", data: parsed.error.flatten() });
@@ -155,7 +156,7 @@ export async function authRoutes(app: FastifyInstance) {
   });
 
   // Parolni almashtirish
-  app.post("/api/auth/change-password", { preHandler: requireAuth }, async (req, reply) => {
+  app.post("/api/auth/change-password", { preHandler: requireFullAuth }, async (req, reply) => {
     const parsed = changePasswordSchema.safeParse(req.body);
     if (!parsed.success) {
       return reply.code(400).send({ code: 400, message: "Invalid input" });
@@ -169,7 +170,7 @@ export async function authRoutes(app: FastifyInstance) {
   });
 
   // Emailni almashtirish
-  app.post("/api/auth/change-email", { preHandler: requireAuth }, async (req, reply) => {
+  app.post("/api/auth/change-email", { preHandler: requireFullAuth }, async (req, reply) => {
     const parsed = changeEmailSchema.safeParse(req.body);
     if (!parsed.success) {
       return reply.code(400).send({ code: 400, message: "Invalid input" });

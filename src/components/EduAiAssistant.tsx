@@ -45,7 +45,7 @@ const systemInstruction = `
     3. Screen Recording: When starting the test, the user MUST select 'Entire Screen' in the pop-up window, check the 'Also share system audio' box, and click 'Share'.
 
     Contact Information (for Purchase or Assistance):
-    - Phone 1: +998 77 207 71 17
+    - Phone 1: +998 50 571 65 15
     - Phone 2: +998 50 571 65 15
     - Telegram (Personal Contact): @aero_one
 

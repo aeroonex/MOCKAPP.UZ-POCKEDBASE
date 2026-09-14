@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { one, query } from "../db.js";
-import { requireAuth, userId, type JwtPayload } from "../auth.js";
+import { requireAuth, requireFullAuth, userId, type JwtPayload } from "../auth.js";
 
 const PARTS = ["Part 1.1", "Part 1.2", "Part 2", "Part 3"] as const;
 
@@ -55,6 +55,20 @@ export async function questionRoutes(app: FastifyInstance) {
   app.get("/api/questions", async (req) => {
     const q = req.query as { scope?: string; type?: string };
     const uid = q.scope === "public" ? null : await optionalUser(req);
+    // Avtomatik cooldown: biror qismning BARCHA savollari 2 soat ichida ishlatilgan bo'lsa —
+    // o'sha qism kutish vaqti o'z-o'zidan tiklanadi (xuddi "Kutish vaqtini tiklash" tugmasi bosilgandek).
+    if (uid) {
+      const reset = await query<{ type: string }>(
+        `UPDATE questions SET last_used = NULL
+         WHERE user_id = $1 AND type IN (
+           SELECT type FROM questions WHERE user_id = $1 GROUP BY type
+           HAVING COUNT(*) = COUNT(*) FILTER (WHERE last_used IS NOT NULL AND last_used > now() - interval '2 hours')
+         )
+         RETURNING type`,
+        [uid],
+      );
+      if (reset.length) req.log.info({ uid, parts: [...new Set(reset.map((r) => r.type))] }, "question cooldown auto-reset");
+    }
     const params: unknown[] = [];
     let where = uid ? "user_id = $1" : "user_id IS NULL";
     if (uid) params.push(uid);
@@ -130,7 +144,7 @@ export async function questionRoutes(app: FastifyInstance) {
     return { ok: true, count: rows.length };
   });
 
-  app.delete("/api/questions/:id", { preHandler: requireAuth }, async (req, reply) => {
+  app.delete("/api/questions/:id", { preHandler: requireFullAuth }, async (req, reply) => {
     const { id } = req.params as { id: string };
     const rows = await query("DELETE FROM questions WHERE id = $1 AND user_id = $2 RETURNING id", [id, userId(req)]);
     return rows.length ? reply.code(204).send() : reply.code(404).send({ code: 404, message: "Not found" });

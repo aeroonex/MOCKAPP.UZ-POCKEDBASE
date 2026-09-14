@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 import { one } from "../db.js";
-import { requireAuth, userId } from "../auth.js";
+import { requireAuth, requireFullAuth, userId } from "../auth.js";
 import { config } from "../config.js";
 import { FileTooLargeError, publicUrl, relPath, removeFile, streamToFile } from "../storage.js";
 
@@ -42,7 +42,7 @@ export async function imageRoutes(app: FastifyInstance) {
     return reply.code(201).send({ id: row!.id, url: publicUrl(rel), size_bytes: size, mime: part.mimetype });
   });
 
-  app.delete("/api/images/:id", { preHandler: requireAuth }, async (req, reply) => {
+  app.delete("/api/images/:id", { preHandler: requireFullAuth }, async (req, reply) => {
     const { id } = req.params as { id: string };
     const row = await one<{ path: string }>(
       "DELETE FROM images WHERE id = $1 AND user_id = $2 RETURNING path",

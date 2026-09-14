@@ -72,11 +72,11 @@ export const FinalCta: React.FC<CtaProps> = ({ onTryGuest, busy }) => {
               </button>
             </div>
             <div className="grid gap-3 lg:col-span-5">
-              <a href="tel:+998772077117" className="cta-contact">
+              <a href="tel:+998505716515" className="cta-contact">
                 <Phone className="h-5 w-5" />
                 <span>
                   <span className="block text-xs text-blue-100">{t("landing_page.call_us")}</span>
-                  <span className="block text-lg font-bold">+998 77 207 71 17</span>
+                  <span className="block text-lg font-bold">+998 50 571 65 15</span>
                 </span>
               </a>
               <a href="https://t.me/aero_one" target="_blank" rel="noopener noreferrer" className="cta-contact">

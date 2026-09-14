@@ -1,4 +1,4 @@
-# edumock.uz → edumock-web (ingress-nginx + cert-manager, letsencrypt-prod)
+# edumock.uz va cefr.edumock.uz (imtihon stansiyasi) → edumock-web (ingress-nginx + cert-manager, letsencrypt-prod)
 # www kerak bo'lsa: Cloudflare'da CNAME www → edumock.uz qo'shib, host va tls.hosts ga www.edumock.uz ni qaytaring.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -26,6 +26,26 @@ spec:
               service:
                 name: edumock-web
                 port: { number: 80 }
+    # Superadmin paneli — xuddi shu ilova (admin.* host)
+    - host: admin.edumock.uz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: edumock-web
+                port: { number: 80 }
+    # Imtihon stansiyasi — xuddi shu ilova, frontend host nomidan rejimni aniqlaydi
+    - host: cefr.edumock.uz
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: edumock-web
+                port: { number: 80 }
   tls:
-    - hosts: [edumock.uz]
+    - hosts: [edumock.uz, cefr.edumock.uz, admin.edumock.uz]
       secretName: edumock-tls

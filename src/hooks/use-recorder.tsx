@@ -3,10 +3,11 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { showSuccess, showError } from "@/utils/toast";
 import { StudentInfo } from "@/lib/types";
-import { addLocalRecording, updateLocalRecordingCloudUrl, upsertRecordingMetadataToCloud } from "@/lib/local-db";
+import { addLocalRecording, autoUploadRecording } from "@/lib/local-db";
+import { auth } from "@/lib/api";
+import { isStationHost } from "@/lib/station";
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
-import { setUploadProgress, removeUploadProgress } from "@/utils/uploadProgress";
 
 const MAX_RECORDING_DURATION_MS = 60 * 60 * 1000;
 const MIME_TYPE = "video/webm; codecs=vp8,opus";
@@ -140,9 +141,16 @@ export const useRecorder = () => {
             student_id: studentInfo?.id,
             student_name: studentInfo?.name,
             student_phone: studentInfo?.phone,
+            registration_id: studentInfo?.registration_id,
+            attempt: studentInfo?.attempt,
             videoBlob: blob,
           });
           showSuccess(t("add_question_page.success_video_saved"));
+
+          // Ro'yxatdagi o'quvchi bilan topshirilgan bo'lsa (yoki imtihon stansiyasida — har doim) videoni fonda serverga yuklaymiz
+          if ((studentInfo?.registration_id || isStationHost()) && auth.model) {
+            void autoUploadRecording(recordingId);
+          }
 
         } catch (dbError: any) {
           showError(`${t("add_question_page.error_saving_record_data")} ${dbError.message}`);

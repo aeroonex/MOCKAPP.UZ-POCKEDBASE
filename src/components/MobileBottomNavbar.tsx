@@ -7,6 +7,7 @@ import {
   Search,
   ShoppingCart,
   ListChecks,
+  ClipboardList,
   Menu,
   User,
   Settings as SettingsIcon,
@@ -18,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
+import { isStationHost } from "@/lib/station";
 
 interface MobileBottomNavbarProps {
   handleLogout: () => void;
@@ -44,12 +46,36 @@ const MobileBottomNavbar: React.FC<MobileBottomNavbarProps> = ({
     return null;
   }
 
-  const primaryItems = [
-    { icon: Home, label: t("common.home"), path: "/home", action: () => navigate("/home") },
-    { icon: Search, label: t("home_page.questions"), path: "/questions", action: () => navigate("/questions") },
-    { icon: ListChecks, label: t("home_page.mock_test"), path: "/mock-test", action: () => navigate("/mock-test") },
-    { icon: ShoppingCart, label: t("home_page.records"), path: "/records", action: () => navigate("/records") },
-  ];
+  const station = isStationHost();
+  const primaryItems = station
+    ? [
+        { icon: Home, label: t("common.home"), path: "/home", action: () => navigate("/home") },
+        { icon: Search, label: t("home_page.questions"), path: "/questions", action: () => navigate("/questions") },
+        { icon: ListChecks, label: t("home_page.mock_test"), path: "/mock-test", action: () => navigate("/mock-test") },
+        { icon: ShoppingCart, label: t("home_page.records"), path: "/records", action: () => navigate("/records") },
+      ]
+    : [
+        { icon: Home, label: t("common.home"), path: "/home", action: () => navigate("/home") },
+        { icon: Search, label: t("home_page.questions"), path: "/questions", action: () => navigate("/questions") },
+        { icon: ListChecks, label: t("home_page.mock_test"), path: "/mock-test", action: () => navigate("/mock-test") },
+        { icon: ClipboardList, label: t("home_page.registrations"), path: "/registrations", action: () => navigate("/registrations") },
+        { icon: ShoppingCart, label: t("home_page.records"), path: "/records", action: () => navigate("/records") },
+      ];
+
+  if (station) {
+    return (
+      <div className="button-container">
+        {primaryItems.map((item) => (
+          <button key={item.path} className={cn("button", location.pathname === item.path ? "active-button" : "")} onClick={item.action} aria-label={item.label}>
+            <item.icon className="icon" />
+          </button>
+        ))}
+        <button className="button" onClick={async () => { await handleLogout(); navigate("/"); }} aria-label={t("common.logout")}>
+          <LogOut className="icon" />
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="button-container">

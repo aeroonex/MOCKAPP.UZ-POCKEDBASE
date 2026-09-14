@@ -60,7 +60,9 @@ spec:
             - { name: JWT_EXPIRES_IN, value: 30d }
             - { name: MAX_VIDEO_BYTES, value: "2147483648" }
             - { name: MAX_IMAGE_BYTES, value: "5242880" }
-            - { name: DEFAULT_STORAGE_LIMIT_BYTES, value: "2147483648" }
+            - { name: DEFAULT_STORAGE_LIMIT_BYTES, value: "107374182400" }
+            - { name: PUBLIC_BASE_URL, value: "https://edumock.uz" }
+            - { name: STATION_BASE_URL, value: "https://cefr.edumock.uz" }
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef: { name: edumock-secrets, key: DATABASE_URL }

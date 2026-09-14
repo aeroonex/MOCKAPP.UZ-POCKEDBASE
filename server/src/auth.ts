@@ -38,6 +38,8 @@ export async function verifyPassword(password: string, stored: string): Promise<
 export interface JwtPayload {
   sub: string;
   role: "user" | "developer";
+  /** Imtihon stansiyasi (cefr.*) tokeni — faqat mock test / yozuvlar / o'quvchi qidiruvi */
+  station?: boolean;
 }
 
 export interface AuthUserRow {
@@ -54,6 +56,7 @@ export interface AuthUserRow {
   storage_used_bytes: number;
   verified: boolean;
   blocked: boolean;
+  paid_until: Date | null;
   created: Date;
   updated: Date;
 }
@@ -74,6 +77,7 @@ export function publicUser(u: AuthUserRow) {
     storage_used_bytes: Number(u.storage_used_bytes),
     verified: u.verified,
     blocked: u.blocked,
+    paid_until: u.paid_until ?? null,
     created: u.created,
     updated: u.updated,
   };
@@ -82,7 +86,7 @@ export function publicUser(u: AuthUserRow) {
 export type PublicUser = ReturnType<typeof publicUser>;
 
 export const USER_COLUMNS = `id, email, username, first_name, last_name, bio, avatar_url, role, tariff_name,
-  storage_limit_bytes, storage_used_bytes, verified, blocked, created, updated`;
+  storage_limit_bytes, storage_used_bytes, verified, blocked, paid_until, created, updated`;
 
 /** Fastify preHandler: JWT talab qiladi. */
 export async function requireAuth(req: FastifyRequest, reply: FastifyReply) {
@@ -107,4 +111,20 @@ export async function requireAdmin(req: FastifyRequest, reply: FastifyReply) {
 
 export function userId(req: FastifyRequest): string {
   return (req.user as JwtPayload).sub;
+}
+
+export function isStation(req: FastifyRequest): boolean {
+  return !!(req.user as JwtPayload | undefined)?.station;
+}
+
+/** Fastify preHandler: JWT talab qiladi va stansiya tokenini rad etadi (boshqaruv amallari uchun). */
+export async function requireFullAuth(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const payload = await req.jwtVerify<JwtPayload>();
+    if (payload.station) {
+      return reply.code(403).send({ code: 403, message: "Not available in exam station mode" });
+    }
+  } catch {
+    return reply.code(401).send({ code: 401, message: "Unauthorized" });
+  }
 }

@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState, lazy, Suspense } from "react";
-import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { isAdminHost, isStationHost } from "@/lib/station";
+import AccessGate, { useIsLocked } from "@/components/AccessGate";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
@@ -27,8 +29,11 @@ const MockTest = lazy(() => import("@/pages/MockTest"));
 const Settings = lazy(() => import("@/pages/Settings"));
 const UserProfile = lazy(() => import("@/pages/UserProfile"));
 const Questions = lazy(() => import("@/pages/Questions"));
+const Registrations = lazy(() => import("@/pages/Registrations"));
 const Records = lazy(() => import("@/pages/Records"));
 const SuperAdminDashboard = lazy(() => import("@/pages/SuperAdminDashboard"));
+const StationLogin = lazy(() => import("@/pages/StationLogin"));
+const AdminPanel = lazy(() => import("@/pages/AdminPanel"));
 const EduAiAssistant = lazy(() => import("@/components/EduAiAssistant"));
 
 const AppContent: React.FC = () => {
@@ -41,6 +46,9 @@ const AppContent: React.FC = () => {
   const isMobile = useIsMobile();
   const { session } = useAuth();
   const isGuestMode = localStorage.getItem("isGuestMode") === "true";
+  const station = isStationHost();
+  const adminHost = isAdminHost();
+  const locked = useIsLocked(); // obuna tugagan / bloklangan — Sozlamalardan tashqari hammasi nofaol
 
   const handleLogout = async () => {
     if (session) {
@@ -61,7 +69,29 @@ const AppContent: React.FC = () => {
         isMobile && "pb-[calc(5rem+env(safe-area-inset-bottom))]",
       )}
     >
+      {!adminHost && <AccessGate />}
+      <div className={cn(locked && !adminHost && "pointer-events-none select-none grayscale opacity-60 transition-all duration-500")}>
       <Suspense fallback={<LoadingSpinner />}>
+      {adminHost ? (
+        // Superadmin paneli (admin.*): faqat developer roli
+        <Routes>
+          <Route path="*" element={<AdminPanel />} />
+        </Routes>
+      ) : station ? (
+        // Imtihon stansiyasi (cefr.*): faqat parol bilan kirish, Mock Test va Yozuvlar
+        <Routes>
+          <Route path="/" element={<StationLogin />} />
+          <Route path="/login" element={<StationLogin />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/home" element={<Home setIsGuideDialogOpen={setIsGuideDialogOpen} handleLogout={handleLogout} isGuideDialogOpen={isGuideDialogOpen} />} />
+            <Route path="/mock-test" element={<MockTest />} />
+            <Route path="/records" element={<Records />} />
+            <Route path="/add-question" element={<AddQuestion />} />
+            <Route path="/questions" element={<Questions />} />
+          </Route>
+          <Route path="*" element={<Navigate to={session ? "/home" : "/"} replace />} />
+        </Routes>
+      ) : (
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
@@ -86,15 +116,18 @@ const AppContent: React.FC = () => {
           <Route path="/settings" element={<Settings />} />
           <Route path="/user-profile" element={<UserProfile />} />
           <Route path="/questions" element={<Questions />} />
+          <Route path="/registrations" element={<Registrations />} />
           <Route path="/records" element={<Records />} />
           <Route path="/mood-journal" element={<MoodJournal />} />
         </Route>
 
         <Route path="*" element={<NotFound />} />
       </Routes>
+      )}
       </Suspense>
+      </div>
 
-      {isEduAiConfigured && !isMockTestPage && !isMobile && (
+      {isEduAiConfigured && !station && !isMockTestPage && !isMobile && (
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -118,12 +151,12 @@ const AppContent: React.FC = () => {
         </Suspense>
       )}
 
-      <MobileBottomNavbar
+      {!adminHost && <MobileBottomNavbar
         handleLogout={handleLogout}
         setIsGuideDialogOpen={setIsGuideDialogOpen}
         isGuestMode={isGuestMode}
         session={session}
-      />
+      />}
     </div>
   );
 };

@@ -162,7 +162,7 @@ const Login: React.FC = () => {
             <CustomAuthForm />
             <div className="mt-6 border-t border-[var(--l-line)] pt-4 text-xs text-slate-500">
               <p className="leading-relaxed">{t("common.forgot_password_contact_admin_message")}</p>
-              <a href="tel:+998772077117" className="mt-1 inline-block font-bold text-[var(--l-blue)] underline-offset-4 hover:underline">
+              <a href="tel:+998505716515" className="mt-1 inline-block font-bold text-[var(--l-blue)] underline-offset-4 hover:underline">
                 {t("common.admin_contact_phone")}
               </a>
             </div>

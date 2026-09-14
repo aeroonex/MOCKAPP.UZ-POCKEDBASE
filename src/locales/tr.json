@@ -30,7 +30,7 @@
     "dark_mode": "Karanlık Mod",
     "system": "Sistem",
     "forgot_password_contact_admin_message": "Şifrenizi mi unuttunuz? Lütfen yöneticiyle iletişime geçin.",
-    "admin_contact_phone": "+998 77 207 71 17",
+    "admin_contact_phone": "+998 50 571 65 15",
     "saving": "Kaydediliyor...",
     "sign_in": "Giriş Yap",
     "captcha_challenge_error": "Lütfen CAPTCHA doğrulamasını tamamlayın.",
@@ -54,7 +54,7 @@
     "subtitle": "Gerçek sonuçlar.",
     "slogan": "Edumock.uz kaliteli eğitim, kaliteli uygulamanızla",
     "contact_us": "Bize Ulaşın",
-    "phone_number": "+998 77 207 71 17",
+    "phone_number": "+998 50 571 65 15",
     "description": "<strong class=\"text-primary\">Edumock.uz</strong>, Özbekistan'daki eğitim merkezlerinin gelişimine katkıda bulunan, CEFR sınavlarının Konuşma bölümünün organizasyonunu tamamen üstlenen ve öğrencilere kaliteli hazırlık garantisi veren bir eğitim platformudur.",
     "trust_section": {
       "title_line1": "Eğitim merkezlerini güçlendiriyoruz",
@@ -206,6 +206,8 @@
     "add_new_question": "Yeni bir soru ekle",
     "mock_test": "Deneme Sınavı",
     "start_the_test": "Sınavı başlat",
+    "registrations": "Kayıt Listesi",
+    "view_registrations": "Sınava kayıt olanlar",
     "records": "Kayıtlar",
     "view_recorded_videos": "Kaydedilmiş videoları görüntüle"
   },

@@ -40,6 +40,8 @@ export interface StudentInfo {
   id: string;
   name: string;
   phone: string;
+  registration_id?: string; // Ro'yxatdan tanlangan bo'lsa — video avtomatik serverga yuklanadi
+  attempt?: number; // Nechinchi urinish (1..limit)
 }
 
 export interface MoodEntry {
@@ -62,4 +64,8 @@ export interface RecordedSession {
   video_url: string; // Blob URL from IndexedDB or Supabase public URL
   cloud_url?: string; // Cloud'ga yuklangan videoning ommaviy URL manzili
   isLocalBlobAvailable?: boolean; // Yangi: video blob mahalliy IndexedDBda mavjudligini bildiradi
+  registration_id?: string; // Ro'yxatdagi o'quvchi (bot orqali ro'yxatdan o'tgan)
+  attempt?: number; // Nechinchi urinish
+  tg_backup_at?: string | null; // Telegram admin paneliga zaxiralangan vaqti
+  video_deleted_at?: string | null; // Serverdan avtomatik o'chirilgan vaqti (Telegram nusxasi qoladi)
 }

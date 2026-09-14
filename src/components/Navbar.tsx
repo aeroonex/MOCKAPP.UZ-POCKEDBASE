@@ -4,7 +4,8 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LogOut, User, Settings, Home as HomeIcon } from "lucide-react";
+import { Menu, LogOut, User, Settings, Home as HomeIcon, ListChecks, Video, PlusCircle, Book } from "lucide-react";
+import { isStationHost, stationCenterName } from "@/lib/station";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { showSuccess } from "@/utils/toast";
 import { useAuth } from "@/context/AuthProvider";
@@ -18,11 +19,21 @@ const allNavLinks = [
   { name: "common.profile", path: "/user-profile", icon: User, protected: true },
 ];
 
+// Imtihon stansiyasi: faqat kerakli bo'limlar
+const stationNavLinks = [
+  { name: "common.home", path: "/home", icon: HomeIcon, protected: true },
+  { name: "home_page.mock_test", path: "/mock-test", icon: ListChecks, protected: true },
+  { name: "home_page.questions", path: "/questions", icon: Book, protected: true },
+  { name: "home_page.add_question", path: "/add-question", icon: PlusCircle, protected: true },
+  { name: "home_page.records", path: "/records", icon: Video, protected: true },
+];
+
 const Navbar: React.FC = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { session } = useAuth();
-  const isGuestMode = localStorage.getItem("isGuestMode") === "true";
+  const station = isStationHost();
+  const isGuestMode = localStorage.getItem("isGuestMode") === "true" && !station;
   const { t } = useTranslation();
 
   const handleLogout = async () => {
@@ -38,7 +49,7 @@ const Navbar: React.FC = () => {
   };
 
   const renderNavLinks = () => {
-    let filteredLinks = allNavLinks;
+    let filteredLinks = station ? stationNavLinks : allNavLinks;
 
     if (isGuestMode && !session) {
       filteredLinks = allNavLinks.filter(link => link.path === '/home');
@@ -72,6 +83,7 @@ const Navbar: React.FC = () => {
     <nav className="bg-primary text-white px-3 py-3 sm:p-4 shadow-md flex items-center justify-between">
       <Link to="/home" className="text-lg sm:text-2xl font-bold">
         <span className="font-extrabold">Edumock.uz</span>
+        {station && <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-[10px] sm:text-xs font-semibold align-middle">CEFR · {stationCenterName() || t("station.title")}</span>}
       </Link>
 
       {isMobile ? (
