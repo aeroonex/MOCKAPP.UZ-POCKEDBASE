@@ -283,6 +283,12 @@ const StudentInfoForm: React.FC<StudentInfoFormProps> = ({ isOpen, onClose, onSa
             />
           </div>
         </div>
+        {user && !selected && (
+          <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <Video className="h-3 w-3 shrink-0" />
+            {t("mock_test_page.auto_upload_hint")}
+          </p>
+        )}
         <DialogFooter>
           <Button type="submit" onClick={handleSubmit}>
             {t("mock_test_page.start_test")}

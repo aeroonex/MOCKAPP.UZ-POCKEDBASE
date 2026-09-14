@@ -5,7 +5,6 @@ import { showSuccess, showError } from "@/utils/toast";
 import { StudentInfo } from "@/lib/types";
 import { addLocalRecording, autoUploadRecording, updateLocalRecordingCloudUrl } from "@/lib/local-db";
 import { api, auth } from "@/lib/api";
-import { isStationHost } from "@/lib/station";
 import { ExamCompositor, type OverlayState } from "@/lib/exam-compositor";
 import { ChunkUploader } from "@/lib/chunk-uploader";
 import { useTranslation } from 'react-i18next';
@@ -152,8 +151,9 @@ export const useRecorder = () => {
         ...micStream.getAudioTracks(),
       ]);
 
-      // Oqim bilan yuklash: ro'yxatdagi o'quvchi yoki imtihon stansiyasi (tizimga kirgan bo'lsa)
-      const streamToCloud = ChunkUploader.available() && (!!studentInfo?.registration_id || isStationHost());
+      // Oqim bilan yuklash: tizimga kirgan har qanday hisobda — ro'yxatdagi ham, qo'lda kiritilgan o'quvchi ham
+      // (server yuklangan har bir videoni Telegram'ga zaxiralaydi). Mehmon rejimida faqat lokal nusxa.
+      const streamToCloud = ChunkUploader.available();
       const uploader = streamToCloud ? new ChunkUploader(localId) : null;
       uploaderRef.current = uploader;
 
