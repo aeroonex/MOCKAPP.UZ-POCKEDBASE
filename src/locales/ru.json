@@ -365,7 +365,11 @@
     "duration_hint": "Около 10 минут",
     "no_pause_hint": "Без паузы",
     "live": "В эфире",
-    "current_part": "Текущая часть"
+    "current_part": "Текущая часть",
+    "end_test_confirm_title": "Завершить тест?",
+    "end_test_confirm_desc": "Тест завершится, записанные ответы будут сохранены. Продолжить будет нельзя.",
+    "end_test_confirm_yes": "Да, завершить",
+    "end_test_confirm_no": "Отмена"
   },
   "records_page": {
     "your_recordings": "Ваши записи",

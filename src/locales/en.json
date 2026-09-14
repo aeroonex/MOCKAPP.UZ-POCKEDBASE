@@ -365,7 +365,11 @@
     "duration_hint": "About 10 minutes",
     "no_pause_hint": "No pause",
     "live": "Live",
-    "current_part": "Current part"
+    "current_part": "Current part",
+    "end_test_confirm_title": "End the test?",
+    "end_test_confirm_desc": "The test will end and the answers recorded so far will be saved. It cannot be resumed.",
+    "end_test_confirm_yes": "Yes, end test",
+    "end_test_confirm_no": "Cancel"
   },
   "records_page": {
     "your_recordings": "Your Recordings",

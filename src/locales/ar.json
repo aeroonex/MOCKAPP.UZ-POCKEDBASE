@@ -334,7 +334,11 @@
     "duration_hint": "حوالي 10 دقائق",
     "no_pause_hint": "بدون إيقاف مؤقت",
     "live": "مباشر",
-    "current_part": "الجزء الحالي"
+    "current_part": "الجزء الحالي",
+    "end_test_confirm_title": "إنهاء الاختبار؟",
+    "end_test_confirm_desc": "سينتهي الاختبار وستُحفظ الإجابات المسجلة حتى الآن. لا يمكن المتابعة بعد ذلك.",
+    "end_test_confirm_yes": "نعم، إنهاء",
+    "end_test_confirm_no": "إلغاء"
   },
   "records_page": {
     "your_recordings": "تسجيلاتك",

@@ -2,6 +2,17 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { TestPhase } from "@/hooks/use-mock-test-logic";
 import { useTranslation } from 'react-i18next';
 import { ArrowRight, Check, Loader2, MonitorSmartphone, Play, Square } from "lucide-react";
@@ -64,10 +75,27 @@ const TestControls: React.FC<TestControlsProps> = ({
             <Loader2 className="h-4 w-4 animate-spin" />
             {t("mock_test_page.next_question_auto")}
           </Button>
-          <Button onClick={handleEndTest} variant="outline" className="flex-1 gap-2 border-red-500/50 text-red-500 hover:bg-red-500/10 hover:text-red-500">
-            <Square className="h-3.5 w-3.5 fill-current" />
-            {t("mock_test_page.end_test")}
-          </Button>
+          {/* Tugatish — tasodifan bosilmasligi uchun tasdiqlash so'raladi */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" className="flex-1 gap-2 border-red-500/50 text-red-500 hover:bg-red-500/10 hover:text-red-500">
+                <Square className="h-3.5 w-3.5 fill-current" />
+                {t("mock_test_page.end_test")}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="z-[9999]">
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("mock_test_page.end_test_confirm_title")}</AlertDialogTitle>
+                <AlertDialogDescription>{t("mock_test_page.end_test_confirm_desc")}</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t("mock_test_page.end_test_confirm_no")}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleEndTest} className="bg-red-600 text-white hover:bg-red-700">
+                  {t("mock_test_page.end_test_confirm_yes")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       )}
 

@@ -335,7 +335,11 @@
     "duration_hint": "Yaklaşık 10 dakika",
     "no_pause_hint": "Duraklatma yok",
     "live": "Canlı",
-    "current_part": "Mevcut bölüm"
+    "current_part": "Mevcut bölüm",
+    "end_test_confirm_title": "Test bitirilsin mi?",
+    "end_test_confirm_desc": "Test sona erecek ve şimdiye kadar kaydedilen cevaplar saklanacak. Devam ettirilemez.",
+    "end_test_confirm_yes": "Evet, bitir",
+    "end_test_confirm_no": "İptal"
   },
   "records_page": {
     "your_recordings": "Kayıtlarınız",

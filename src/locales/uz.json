@@ -365,7 +365,11 @@
     "duration_hint": "Taxminan 10 daqiqa",
     "no_pause_hint": "Pauza yo'q",
     "live": "Jonli",
-    "current_part": "Joriy qism"
+    "current_part": "Joriy qism",
+    "end_test_confirm_title": "Testni tugatasizmi?",
+    "end_test_confirm_desc": "Test yakunlanadi va shu paytgacha yozilgan javoblar saqlanadi. Davom ettirib bo'lmaydi.",
+    "end_test_confirm_yes": "Ha, tugatish",
+    "end_test_confirm_no": "Bekor qilish"
   },
   "records_page": {
     "your_recordings": "Sizning yozuvlaringiz",
