@@ -105,15 +105,17 @@ const MockTest: React.FC = () => {
     });
   }, [isTestStarted, currentPhase, currentQ, currentPartName, currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, countdown, initialCountdown, studentInfo, t, updateOverlay]);
 
-  React.useEffect(() => {
-    if (webcamVideoRef.current) {
-      if (webcamStream) {
-        webcamVideoRef.current.srcObject = webcamStream;
-      } else {
-        webcamVideoRef.current.srcObject = null;
-      }
-    }
-  }, [webcamStream]);
+  // Kamera oynasi test boshlanganda (oqim allaqachon ochilgan bo'lsa ham) paydo bo'ladi —
+  // shuning uchun oqim elementga callback-ref orqali, element yaratilgan paytda ulanadi
+  const attachWebcam = React.useCallback(
+    (el: HTMLVideoElement | null) => {
+      webcamVideoRef.current = el;
+      if (!el) return;
+      el.srcObject = webcamStream;
+      if (webcamStream) el.play().catch(() => undefined);
+    },
+    [webcamStream],
+  );
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -130,7 +132,7 @@ const MockTest: React.FC = () => {
             {webcamStream && (
               <div className="flex flex-col items-center">
                 <video
-                  ref={webcamVideoRef}
+                  ref={attachWebcam}
                   autoPlay
                   muted
                   playsInline
