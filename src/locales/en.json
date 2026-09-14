@@ -854,5 +854,23 @@
     "avg_overall_short": "Avg overall",
     "total_short": "Total",
     "approved_short": "Approved"
+  },
+  "integrity": {
+    "video_fullscreen": "LEFT FULL SCREEN",
+    "video_face": "FACE NOT IN FRAME",
+    "video_multi": "MULTIPLE FACES",
+    "video_away": "LEFT THE WINDOW",
+    "fullscreen_title": "Full-screen mode was exited",
+    "fullscreen_desc": "This has been recorded ({{n}}). Return to full screen to continue.",
+    "fullscreen_btn": "Return to full screen",
+    "away_banner": "Attention: you left the exam window — this has been recorded ({{n}})",
+    "face_banner": "Your face is not visible — look at the camera",
+    "multi_banner": "More than one person in frame — this has been recorded",
+    "count_title": "Integrity flags",
+    "badge": "Integrity: {{n}} flag(s)",
+    "ev_blur": "left the window",
+    "ev_fullscreen": "exited full screen",
+    "ev_face": "face not in frame",
+    "ev_multi": "multiple faces"
   }
 }

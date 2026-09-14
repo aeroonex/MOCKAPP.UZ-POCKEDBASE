@@ -16,6 +16,8 @@ export interface OverlayState {
   initialCountdown: number;
   student?: { id: string; name: string; phone: string } | null;
   brand?: string;
+  /** Halollik ogohlantirishi (masalan "OYNADAN CHIQILDI") — sarlavhada sariq rangda */
+  alert?: string | null;
 }
 
 export interface CompositorOptions {
@@ -152,6 +154,12 @@ export class ExamCompositor {
     ctx.font = `600 13px ${FONT}`;
     ctx.fillStyle = "#94a3b8";
     ctx.fillText(fmtClock(elapsed), 84, y);
+    // halollik ogohlantirishi
+    if (this.state?.alert) {
+      ctx.font = `800 12px ${FONT}`;
+      ctx.fillStyle = "#fbbf24";
+      ctx.fillText(`⚠ ${this.state.alert}`, 136, y);
+    }
     // brend va sana
     ctx.textAlign = "right";
     ctx.font = `800 14px ${FONT}`;

@@ -14,6 +14,8 @@ import { Readable } from "node:stream";
 import fsp from "node:fs/promises";
 import { Bot, GrammyError, HttpError, InlineKeyboard, InputFile, Keyboard, type Context } from "grammy";
 import { config } from "./config.js";
+import { integritySummaryHtml } from "./integrity.js";
+import { buildResultPdf } from "./results-pdf.js";
 import { one, query } from "./db.js";
 import { absPath, publicUrl, relPath, streamToFile, FileTooLargeError } from "./storage.js";
 import {
@@ -690,6 +692,7 @@ export interface RecordingForBackup {
   size_bytes: number;
   registration_id: string | null;
   attempt?: number | null;
+  integrity?: unknown;
 }
 
 function fmtDuration(sec: number): string {
@@ -751,6 +754,9 @@ export async function backupRecordingToTelegram(rec: RecordingForBackup): Promis
   if (st.exam_info) lines.push(`📅 Imtihon: ${esc(st.exam_info)}`);
   lines.push(`🕐 Topshirilgan: ${formatTashkent(new Date(rec.timestamp))}`, `⏱ Davomiyligi: ${fmtDuration(Number(rec.duration))}`);
   if (rec.size_bytes) lines.push(`💾 Hajmi: ${fmtBytes(Number(rec.size_bytes))}`);
+  // Halollik nazorati xulosasi (hodisa bo'lmasa — toza)
+  const integrity = integritySummaryHtml(Array.isArray(rec.integrity) ? rec.integrity : []);
+  lines.push(integrity ?? "🛡 Nazorat: buzilish yo'q ✅");
   if (link) lines.push("", `🔗 <a href="${link}">Serverdan ochish</a>`);
 
   const caption = lines.join("\n");
@@ -847,23 +853,37 @@ async function sendResultsToStudent(r: RegistrationWithSpeaking, st: SettingsRow
       )
     : null;
 
+  const safeName = r.full_name.replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "") || "student";
+  const videoLink = rec?.video_path ? `${config.publicBaseUrl}${publicUrl(rec.video_path)}` : "";
+
+  // 1) Natija varaqasi (PDF) — asosiy xabar; tayyorlab bo'lmasa matnning o'zi ketadi
   let sent = false;
+  const pdf = await buildResultPdf({ reg: r, settings: st, videoUrl: videoLink || undefined }).catch((e) => {
+    console.error(`[publish] PDF ${formatSeq(r.seq)}:`, e instanceof Error ? e.message : e);
+    return null;
+  });
+  if (pdf) {
+    await bot.api.sendDocument(chatId, new InputFile(pdf, `${safeName}_natija.pdf`), { caption: text, parse_mode: "HTML" });
+    sent = true;
+  }
+
+  // 2) Speaking video (bo'lsa)
+  const videoCaption = sent ? `📹 <b>Speaking video</b> — ${esc(r.full_name)}` : text;
   if (rec?.tg_file_id) {
     // Telegram'da allaqachon bor — file_id orqali qayta yuklamasdan
-    await bot.api.sendDocument(chatId, rec.tg_file_id, { caption: text, parse_mode: "HTML" });
+    await bot.api.sendDocument(chatId, rec.tg_file_id, { caption: videoCaption, parse_mode: "HTML" });
     sent = true;
   } else if (rec?.video_path) {
     const abs = absPath(rec.video_path);
     const stat = await fsp.stat(abs).catch(() => null);
     if (stat && stat.size <= TG_MAX_UPLOAD_BYTES) {
       const ext = rec.video_path.split(".").pop() || "webm";
-      const safeName = r.full_name.replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "") || "speaking";
-      const res = await bot.api.sendDocument(chatId, new InputFile(abs, `${safeName}_speaking.${ext}`), { caption: text, parse_mode: "HTML" });
+      const res = await bot.api.sendDocument(chatId, new InputFile(abs, `${safeName}_speaking.${ext}`), { caption: videoCaption, parse_mode: "HTML" });
       const fileId = res.document?.file_id || "";
       if (fileId) await query("UPDATE recordings SET tg_file_id = $2 WHERE registration_id = $1 AND video_path = $3", [r.id, fileId, rec.video_path]);
       sent = true;
     } else if (stat) {
-      await bot.api.sendMessage(chatId, `${text}\n\n🔗 <a href="${config.publicBaseUrl}${publicUrl(rec.video_path)}">Speaking videoni ochish</a>`, { parse_mode: "HTML" });
+      await bot.api.sendMessage(chatId, `${sent ? "📹 Speaking video" : text}\n\n🔗 <a href="${videoLink}">Speaking videoni ochish</a>`, { parse_mode: "HTML" });
       sent = true;
     }
   }

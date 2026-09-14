@@ -417,6 +417,20 @@ const Records: React.FC = () => {
                             {recording.video_deleted_at && (
                               <Badge variant="outline" className="text-[10px] border-amber-400 text-amber-600 dark:text-amber-300">🗑 {t("records_page.badge_server_deleted")}</Badge>
                             )}
+                            {(() => {
+                              // Halollik nazorati: hodisalar bo'lsa qizil belgi (vaqtlari sarlavhada)
+                              const ev = (recording.integrity ?? []).filter((e) => e.type === "window_blur" || e.type === "fullscreen_exit" || e.type === "face_missing" || e.type === "faces_multiple");
+                              if (!ev.length) return null;
+                              const fmt = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
+                              const label = (type: string) =>
+                                type === "window_blur" ? t("integrity.ev_blur") : type === "fullscreen_exit" ? t("integrity.ev_fullscreen") : type === "face_missing" ? t("integrity.ev_face") : t("integrity.ev_multi");
+                              const title = ev.map((e) => `${fmt(e.t)} — ${label(e.type)}${e.detail ? ` (${e.detail})` : ""}`).join("\n");
+                              return (
+                                <Badge variant="outline" className="text-[10px] border-red-400 bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300 cursor-help" title={title}>
+                                  🛡 {t("integrity.badge", { n: ev.length })}
+                                </Badge>
+                              );
+                            })()}
                           </div>
                           {uploadError && (
                             <p className="text-xs text-red-500 flex items-center gap-1 mt-1">

@@ -260,6 +260,7 @@ interface StoredRecording {
   cloud_url?: string; // Cloud'ga yuklangan videoning ommaviy URL manzili
   registration_id?: string; // Ro'yxatdagi o'quvchi bilan bog'lanish
   attempt?: number; // Nechinchi urinish
+  integrity?: { t: number; type: string; detail?: string }[]; // Halollik hodisalari
 }
 
 // Yangi: Supabase jadvaliga yozuv metama'lumotlarini kiritish yoki yangilash
@@ -359,6 +360,7 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
           registration_id: rec.registration_id || localVersion?.registration_id || undefined,
           tg_backup_at: rec.tg_backup_at || null,
           video_deleted_at: rec.video_deleted_at || null,
+          integrity: Array.isArray(rec.integrity) && rec.integrity.length ? rec.integrity : localVersion?.integrity,
         });
       });
 
@@ -446,6 +448,7 @@ export const uploadRecordingToCloud = async (
   if (rec.student_phone) form.append("student_phone", rec.student_phone);
   if (rec.registration_id) form.append("registration_id", rec.registration_id);
   if (rec.attempt) form.append("attempt", String(rec.attempt));
+  if (rec.integrity?.length) form.append("integrity", JSON.stringify(rec.integrity));
   form.append("size_bytes", String(blob.size));
   form.append("video", file);
 

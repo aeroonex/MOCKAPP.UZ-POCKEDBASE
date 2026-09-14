@@ -14,3 +14,6 @@ pb_migrations/*.bak
 .env.deploy
 server/.env
 server/data/
+
+# MediaPipe wasm (scripts/copy-mediapipe.mjs nusxalaydi)
+public/models/wasm/

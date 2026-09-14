@@ -9,6 +9,7 @@ import {
   FileTooLargeError, absPath, assembleChunks, cleanupStaleChunks, listChunks, publicUrl, relPath, removeChunkDir, removeFile, streamToFile, writeChunk,
 } from "../storage.js";
 import { remuxWebm } from "../media.js";
+import { integritySummaryHtml, parseIntegrity, type IntegrityEvent } from "../integrity.js";
 import { backupRecordingToTelegram } from "../bot.js";
 
 interface RecordingRow {
@@ -27,12 +28,13 @@ interface RecordingRow {
   attempt: number | null;
   tg_backup_at: Date | null;
   video_deleted_at: Date | null;
+  integrity: IntegrityEvent[];
   created: Date;
   updated: Date;
 }
 
 const COLS = `id, local_id, user_id, "timestamp", duration, student_id, student_name, student_phone,
-  video_path, size_bytes, cloud_url, registration_id, attempt, tg_backup_at, video_deleted_at, created, updated`;
+  video_path, size_bytes, cloud_url, registration_id, attempt, tg_backup_at, video_deleted_at, integrity, created, updated`;
 
 function toClient(r: RecordingRow) {
   const video_url = r.video_path ? publicUrl(r.video_path) : r.cloud_url || "";
@@ -52,6 +54,7 @@ function toClient(r: RecordingRow) {
     attempt: r.attempt === null ? null : Number(r.attempt),
     tg_backup_at: r.tg_backup_at,
     video_deleted_at: r.video_deleted_at,
+    integrity: Array.isArray(r.integrity) ? r.integrity : [],
     created: r.created,
     updated: r.updated,
   };
@@ -73,6 +76,8 @@ const metaSchema = z.object({
   student_phone: z.string().trim().max(50).optional(),
   registration_id: z.string().uuid().optional().or(z.literal("").transform(() => undefined)),
   attempt: z.coerce.number().int().min(1).max(99).optional(),
+  // multipart'da JSON matn, finalize'da massiv — parseIntegrity ikkalasini ham tekshiradi
+  integrity: z.unknown().optional(),
 });
 
 type RecordingMeta = z.infer<typeof metaSchema>;
@@ -109,9 +114,10 @@ async function saveRecording(uid: string, m: RecordingMeta, videoRel: string, si
     }
 
     const regId = await ownRegistrationId(uid, m.registration_id);
+    const integrity = parseIntegrity(m.integrity);
     const saved = await one<RecordingRow>(
-      `INSERT INTO recordings (local_id, user_id, "timestamp", duration, student_id, student_name, student_phone, video_path, size_bytes, registration_id, attempt)
-       VALUES ($1, $2, COALESCE($3, now()), COALESCE($4, 0), COALESCE($5, ''), COALESCE($6, ''), COALESCE($7, ''), $8, $9, $10, $11)
+      `INSERT INTO recordings (local_id, user_id, "timestamp", duration, student_id, student_name, student_phone, video_path, size_bytes, registration_id, attempt, integrity)
+       VALUES ($1, $2, COALESCE($3, now()), COALESCE($4, 0), COALESCE($5, ''), COALESCE($6, ''), COALESCE($7, ''), $8, $9, $10, $11, $12::jsonb)
        ON CONFLICT (local_id, user_id) DO UPDATE SET
          "timestamp" = COALESCE(EXCLUDED."timestamp", recordings."timestamp"),
          duration = COALESCE(EXCLUDED.duration, recordings.duration),
@@ -122,9 +128,10 @@ async function saveRecording(uid: string, m: RecordingMeta, videoRel: string, si
          size_bytes = EXCLUDED.size_bytes,
          registration_id = COALESCE(EXCLUDED.registration_id, recordings.registration_id),
          attempt = COALESCE(EXCLUDED.attempt, recordings.attempt),
+         integrity = CASE WHEN jsonb_array_length(EXCLUDED.integrity) > 0 THEN EXCLUDED.integrity ELSE recordings.integrity END,
          tg_backup_at = NULL, tg_backup_error = '', video_deleted_at = NULL
        RETURNING ${COLS}`,
-      [m.local_id, uid, m.timestamp ?? null, m.duration ?? null, m.student_id ?? null, m.student_name ?? null, m.student_phone ?? null, videoRel, size, regId, m.attempt ?? null],
+      [m.local_id, uid, m.timestamp ?? null, m.duration ?? null, m.student_id ?? null, m.student_name ?? null, m.student_phone ?? null, videoRel, size, regId, m.attempt ?? null, JSON.stringify(integrity)],
       client,
     );
     if (prev?.video_path && prev.video_path !== videoRel) await removeFile(prev.video_path);

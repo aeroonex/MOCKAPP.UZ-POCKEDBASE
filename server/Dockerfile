@@ -32,6 +32,8 @@ RUN corepack enable && corepack prepare pnpm@10.15.1 --activate
 COPY package.json pnpm-lock.yaml* ./
 RUN pnpm install --frozen-lockfile --prod && pnpm store prune
 COPY --from=build /app/dist ./dist
+# Natija PDF uchun Unicode shriftlar
+COPY assets ./assets
 RUN mkdir -p /data && chown -R node:node /data /app
 USER node
 EXPOSE 4000

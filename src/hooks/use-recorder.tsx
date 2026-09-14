@@ -195,6 +195,7 @@ export const useRecorder = () => {
 
         const blob = new Blob(recordedChunksRef.current, { type: mimeType.split(";")[0] });
         const duration = Math.round((Date.now() - startTimeRef.current) / 1000);
+        const integrity = recorderState.integrityEvents.slice();
 
         showSuccess(t("add_question_page.success_video_saving"));
 
@@ -209,6 +210,7 @@ export const useRecorder = () => {
             student_phone: studentInfo?.phone,
             registration_id: studentInfo?.registration_id,
             attempt: studentInfo?.attempt,
+            integrity,
             videoBlob: blob,
           });
           showSuccess(t("add_question_page.success_video_saved"));
@@ -227,6 +229,7 @@ export const useRecorder = () => {
             registration_id: studentInfo?.registration_id,
             attempt: studentInfo?.attempt,
             mime: mimeType.split(";")[0],
+            integrity,
           }, recordingId);
         }
 
@@ -242,6 +245,8 @@ export const useRecorder = () => {
 
       recorder.start(TIMESLICE_MS);
       startTimeRef.current = Date.now();
+      recorderState.startedAt = startTimeRef.current;
+      recorderState.integrityEvents = [];
       recorderState.isRecording = true;
       setIsRecording(true);
       showSuccess(t("add_question_page.success_recording_started"));

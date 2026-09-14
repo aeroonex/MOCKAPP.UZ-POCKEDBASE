@@ -493,5 +493,23 @@
     "open_assistant": "EduAi Asistanını Aç",
     "typing": "Yazıyor...",
     "chat_button_label": "Sohbet"
+  },
+  "integrity": {
+    "video_fullscreen": "TAM EKRANDAN ÇIKILDI",
+    "video_face": "YÜZ KADRAJDA DEĞİL",
+    "video_multi": "BİRDEN FAZLA YÜZ",
+    "video_away": "PENCEREDEN ÇIKILDI",
+    "fullscreen_title": "Tam ekran modundan çıkıldı",
+    "fullscreen_desc": "Bu kaydedildi ({{n}}). Devam etmek için tam ekrana dönün.",
+    "fullscreen_btn": "Tam ekrana dön",
+    "away_banner": "Dikkat: sınav penceresinden çıktınız — bu kaydedildi ({{n}})",
+    "face_banner": "Yüzünüz görünmüyor — kameraya bakın",
+    "multi_banner": "Kadrajda birden fazla kişi var — bu kaydedildi",
+    "count_title": "Dürüstlük işaretleri",
+    "badge": "Dürüstlük: {{n}} işaret",
+    "ev_blur": "pencereden çıkış",
+    "ev_fullscreen": "tam ekrandan çıkış",
+    "ev_face": "yüz kadrajda değil",
+    "ev_multi": "birden fazla yüz"
   }
 }

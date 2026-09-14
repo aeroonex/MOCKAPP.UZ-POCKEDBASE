@@ -70,4 +70,5 @@ export interface RecordedSession {
   attempt?: number; // Nechinchi urinish
   tg_backup_at?: string | null; // Telegram admin paneliga zaxiralangan vaqti
   video_deleted_at?: string | null; // Serverdan avtomatik o'chirilgan vaqti (Telegram nusxasi qoladi)
+  integrity?: { t: number; type: string; detail?: string }[]; // Halollik nazorati hodisalari
 }

@@ -854,5 +854,23 @@
     "avg_overall_short": "O'rt. overall",
     "total_short": "Jami",
     "approved_short": "Tasdiq."
+  },
+  "integrity": {
+    "video_fullscreen": "TO'LIQ EKRANDAN CHIQILDI",
+    "video_face": "YUZ KADRDA YO'Q",
+    "video_multi": "KADRDA BIR NECHA YUZ",
+    "video_away": "OYNADAN CHIQILDI",
+    "fullscreen_title": "To'liq ekran rejimidan chiqildi",
+    "fullscreen_desc": "Bu holat yozuvga belgilandi ({{n}}). Davom etish uchun to'liq ekranga qayting.",
+    "fullscreen_btn": "To'liq ekranga qaytish",
+    "away_banner": "Diqqat: imtihon oynasidan chiqdingiz — bu belgilandi ({{n}})",
+    "face_banner": "Yuzingiz kadrda ko'rinmayapti — kameraga qarang",
+    "multi_banner": "Kadrda bir nechta odam bor — bu belgilandi",
+    "count_title": "Halollik nazorati belgilari",
+    "badge": "Nazorat: {{n}} belgi",
+    "ev_blur": "oynadan chiqish",
+    "ev_fullscreen": "to'liq ekrandan chiqish",
+    "ev_face": "yuz kadrda yo'q",
+    "ev_multi": "bir nechta yuz"
   }
 }

@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion, useReducedMotion } from "framer-motion";
+import { useExamIntegrity } from "@/hooks/use-exam-integrity";
+import { Maximize2, ShieldAlert } from "lucide-react";
 
 const ease = [0.22, 0.61, 0.36, 1] as const;
 
@@ -49,6 +51,25 @@ const MockTest: React.FC = () => {
   const currentQ = getCurrentQuestion();
   const isIdle = !isTestStarted && currentPhase === "idle";
   const isRunning = isTestStarted && currentPhase !== "finished";
+
+  // Halollik nazorati: oynadan chiqish, to'liq ekran, yuz kadrda yo'qligi
+  const integrity = useExamIntegrity(isRunning, webcamStream);
+  const [awayBanner, setAwayBanner] = React.useState(false);
+  React.useEffect(() => {
+    if (!integrity.status.awayAlertAt) return;
+    setAwayBanner(true);
+    const id = setTimeout(() => setAwayBanner(false), 7000);
+    return () => clearTimeout(id);
+  }, [integrity.status.awayAlertAt]);
+  const videoAlert = integrity.status.fullscreenLost
+    ? t("integrity.video_fullscreen")
+    : integrity.status.multipleFaces
+      ? t("integrity.video_multi")
+      : integrity.status.faceMissing
+        ? t("integrity.video_face")
+        : awayBanner
+          ? t("integrity.video_away")
+          : null;
 
   // Videoga chiziladigan holat (savol, rasm, bosqich, taymer) — har o'zgarishda kompozitorga beriladi
   React.useEffect(() => {
@@ -102,8 +123,9 @@ const MockTest: React.FC = () => {
       countdown,
       initialCountdown,
       student: studentInfo ? { id: studentInfo.id, name: studentInfo.name, phone: studentInfo.phone } : null,
+      alert: videoAlert,
     });
-  }, [isTestStarted, currentPhase, currentQ, currentPartName, currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, countdown, initialCountdown, studentInfo, t, updateOverlay]);
+  }, [isTestStarted, currentPhase, currentQ, currentPartName, currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, countdown, initialCountdown, studentInfo, t, updateOverlay, videoAlert]);
 
   // Kamera oynasi test boshlanganda (oqim allaqachon ochilgan bo'lsa ham) paydo bo'ladi —
   // shuning uchun oqim elementga callback-ref orqali, element yaratilgan paytda ulanadi
@@ -157,6 +179,40 @@ const MockTest: React.FC = () => {
           </div>
         )}
 
+        {/* Halollik: to'liq ekrandan chiqilsa — bloklovchi oyna (qaytish faqat tugma bilan, brauzer talabi) */}
+        {isRunning && integrity.status.fullscreenLost && (
+          <div className="fixed inset-0 z-40 grid place-items-center bg-background/95 p-6">
+            <div className="w-full max-w-md rounded-2xl border border-red-500/40 bg-card p-6 text-center shadow-2xl">
+              <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-red-500/15 text-red-500">
+                <ShieldAlert className="h-7 w-7" />
+              </div>
+              <h2 className="mt-4 text-xl font-extrabold tracking-tight text-foreground">{t("integrity.fullscreen_title")}</h2>
+              <p className="mt-2 text-sm text-muted-foreground">{t("integrity.fullscreen_desc", { n: integrity.status.fullscreenExits })}</p>
+              <button type="button" onClick={integrity.requestFullscreen} className="exam-cta mt-5">
+                <Maximize2 className="h-5 w-5" />
+                {t("integrity.fullscreen_btn")}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Halollik: yuz yo'q / bir nechta yuz / oynadan chiqildi — yuqori banner */}
+        {isRunning && !integrity.status.fullscreenLost && (integrity.status.faceMissing || integrity.status.multipleFaces || awayBanner) && (
+          <div
+            className={cn(
+              "fixed top-14 left-1/2 z-30 inline-flex max-w-[92vw] -translate-x-1/2 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold shadow-lg",
+              awayBanner || integrity.status.multipleFaces ? "bg-red-600 text-white" : "bg-amber-500 text-slate-950",
+            )}
+          >
+            <ShieldAlert className="h-4 w-4 shrink-0" />
+            {awayBanner
+              ? t("integrity.away_banner", { n: integrity.status.awayCount })
+              : integrity.status.multipleFaces
+                ? t("integrity.multi_banner")
+                : t("integrity.face_banner")}
+          </div>
+        )}
+
         <motion.section
           initial={reduce ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -184,6 +240,11 @@ const MockTest: React.FC = () => {
                   <>
                     <span className="rec-dot h-1.5 w-1.5 rounded-full bg-red-500" />
                     {t("mock_test_page.live")} · {currentPartName}
+                    {integrity.eventCount > 0 && (
+                      <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-red-500/15 px-1.5 py-0.5 text-red-500" title={t("integrity.count_title")}>
+                        <ShieldAlert className="h-3 w-3" /> {integrity.eventCount}
+                      </span>
+                    )}
                   </>
                 ) : (
                   t("mock_test_page.lobby_kicker")

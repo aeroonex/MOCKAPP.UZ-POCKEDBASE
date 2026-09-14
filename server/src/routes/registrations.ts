@@ -4,10 +4,13 @@ import { one, query } from "../db.js";
 import { hashPassword, requireAuth, requireFullAuth, userId, verifyPassword } from "../auth.js";
 import { removeFile } from "../storage.js";
 import { config } from "../config.js";
+import { publicUrl } from "../storage.js";
+import { buildResultPdf } from "../results-pdf.js";
 import { getBotUsername, isBotRunning, isPublishing, notifyRegistrationStatus, publishResults, startBotFor, stopBotFor, validateBotToken } from "../bot.js";
 import {
   activeAdminInvite,
   createAdminInvite,
+  findSettingsByUser,
   getOrCreateSettings,
   getRegistration,
   getRegistrationWithSpeaking,
@@ -291,6 +294,23 @@ export async function registrationRoutes(app: FastifyInstance) {
       counts.total += Number(r.n);
     }
     return { items: rows.map(registrationToClient), counts };
+  });
+
+  // Natija varaqasi (PDF) — chop etish / qo'lda yuborish uchun
+  app.get("/api/registrations/:id/result.pdf", { preHandler: requireFullAuth }, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const uid = userId(req);
+    const reg = await getRegistrationWithSpeaking(id, uid);
+    if (!reg) return reply.code(404).send({ code: 404, message: "Not found" });
+    const st = await findSettingsByUser(uid);
+    if (!st) return reply.code(400).send({ code: 400, message: "Registration settings are not configured" });
+    const videoUrl = reg.sp_video_path ? `${config.publicBaseUrl}${publicUrl(reg.sp_video_path)}` : undefined;
+    const pdf = await buildResultPdf({ reg, settings: st, videoUrl });
+    const safe = reg.full_name.replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "") || "natija";
+    return reply
+      .header("Content-Type", "application/pdf")
+      .header("Content-Disposition", `inline; filename="${encodeURIComponent(safe)}_natija.pdf"`)
+      .send(pdf);
   });
 
   app.get("/api/registrations/export.csv", { preHandler: requireFullAuth }, async (req, reply) => {

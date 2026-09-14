@@ -15,6 +15,8 @@ export interface FinalizeMeta {
   registration_id?: string;
   attempt?: number;
   mime: string;
+  /** Halollik hodisalari (tab/to'liq ekran/yuz) — vaqt bilan */
+  integrity?: unknown[];
 }
 
 export interface FinalizedRecording {
