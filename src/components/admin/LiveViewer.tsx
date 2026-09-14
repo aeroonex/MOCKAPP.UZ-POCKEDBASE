@@ -5,7 +5,8 @@ import { useTranslation } from "react-i18next";
 import { Loader2, Mic, MicOff, VideoOff } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ICE_SERVERS, newCallId, openRtcStream, rtcSignal, rtcStop, rtcWatch, type RtcEvent } from "@/lib/rtc";
+import { startWatch, type WatchState } from "@/lib/rtc-watcher";
+import { cn } from "@/lib/utils";
 
 /** Kuzatiladigan foydalanuvchi (onlayn kartadan) */
 export interface WatchTarget {
@@ -13,104 +14,31 @@ export interface WatchTarget {
   name: string;
 }
 
-type State = "connecting" | "waiting" | "live" | "offline" | "error";
-
 /**
  * Admin tomoni: onlayn foydalanuvchining kamerasini JONLI ko'radi va eshitadi (bir tomonlama).
- * Media WebRTC bilan to'g'ridan-to'g'ri keladi; qotmaydi (sifat internetga qarab avtomatik moslanadi).
+ * Barcha WebRTC mantiq rtc-watcher singletonida — bu shunchaki ko'rinish.
  */
 const LiveViewer: React.FC<{ target: WatchTarget | null; onClose: () => void }> = ({ target, onClose }) => {
   const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [state, setState] = useState<State>("connecting");
-  // Avtoijro siyosati: ovozli oqim avtomatik ijro etilmaydi (qora ekran). Shuning uchun ovozsiz
-  // boshlaymiz (muted autoplay har doim ruxsat etiladi), admin "Ovozli" bosib eshitadi.
+  const [state, setState] = useState<WatchState>("connecting");
   const [muted, setMuted] = useState(true);
 
   useEffect(() => {
     if (!target) return;
-    let closed = false;
-    let watcherId = "";
-    let sourceConnId = "";
-    let pc: RTCPeerConnection | null = null;
-    const callId = newCallId();
-    let watchTimer: ReturnType<typeof setTimeout> | null = null;
-
-    const cleanup = () => {
-      closed = true;
-      if (watchTimer) clearTimeout(watchTimer);
-      if (sourceConnId) void rtcStop(sourceConnId, callId);
-      try {
-        pc?.close();
-      } catch {
-        /* ignore */
-      }
-      stream.close();
-    };
-
-    const tryWatch = (sources: Array<{ connId: string; userId: string }>) => {
-      if (closed || sourceConnId) return;
-      const src = sources.find((s) => s.userId === target.userId);
-      if (!src) return;
-      sourceConnId = src.connId;
-      if (watchTimer) clearTimeout(watchTimer);
-      setState("waiting");
-      void rtcWatch(src.connId, callId).catch(() => setState("error"));
-    };
-
-    const onEvent = async (e: RtcEvent) => {
-      if (closed) return;
-      if (e.event === "hello") {
-        watcherId = e.data.connId;
-      } else if (e.event === "sources") {
-        tryWatch(e.data.list);
-      } else if (e.event === "signal") {
-        if (e.data.callId !== callId) return;
-        if (e.data.kind === "offer") {
-          pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
-          pc.ontrack = (ev) => {
-            const v = videoRef.current;
-            if (v && ev.streams[0]) {
-              v.srcObject = ev.streams[0];
-              v.muted = true; // ijro kafolati uchun ovozsiz boshlanadi
-              v.play().catch(() => undefined);
-            }
-          };
-          pc.onicecandidate = (ev) => {
-            if (ev.candidate && sourceConnId) void rtcSignal(sourceConnId, callId, "ice", ev.candidate.toJSON());
-          };
-          // "LIVE" faqat media yo'li HAQIQATAN ulanganda ko'rsatiladi (aks holda qora ekran chalg'itmasin)
-          pc.oniceconnectionstatechange = () => {
-            if (!pc || closed) return;
-            const st = pc.iceConnectionState;
-            if (st === "connected" || st === "completed") setState("live");
-            else if (st === "failed") setState("error");
-          };
-          await pc.setRemoteDescription(e.data.data as RTCSessionDescriptionInit);
-          const answer = await pc.createAnswer();
-          await pc.setLocalDescription(answer);
-          void rtcSignal(e.data.from, callId, "answer", answer);
-        } else if (e.data.kind === "ice" && pc) {
-          try {
-            await pc.addIceCandidate(e.data.data as RTCIceCandidateInit);
-          } catch {
-            /* ignore */
-          }
+    setMuted(true);
+    const ctrl = startWatch(target.userId, {
+      onState: setState,
+      onStream: (stream) => {
+        const v = videoRef.current;
+        if (v) {
+          v.srcObject = stream;
+          v.muted = true;
+          v.play().catch(() => undefined);
         }
-      } else if (e.event === "peer-gone") {
-        if (e.data.connId === sourceConnId && !closed) setState("offline");
-      }
-    };
-
-    setState("connecting");
-    const stream = openRtcStream("watcher", (e) => void onEvent(e));
-    // Manba topilmasa — jonli emas
-    watchTimer = setTimeout(() => {
-      if (!closed && !sourceConnId) setState("offline");
-    }, 6000);
-
-    return cleanup;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      },
+    });
+    return () => ctrl.stop();
   }, [target?.userId]);
 
   const toggleMute = () => {
@@ -126,8 +54,8 @@ const LiveViewer: React.FC<{ target: WatchTarget | null; onClose: () => void }> 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span className="relative flex h-2.5 w-2.5">
-              <span className={cn2("absolute inline-flex h-full w-full rounded-full opacity-70", state === "live" ? "animate-ping bg-rose-400" : "")} />
-              <span className={cn2("relative inline-flex h-2.5 w-2.5 rounded-full", state === "live" ? "bg-rose-500" : "bg-slate-400")} />
+              <span className={cn("absolute inline-flex h-full w-full rounded-full opacity-70", state === "live" && "animate-ping bg-rose-400")} />
+              <span className={cn("relative inline-flex h-2.5 w-2.5 rounded-full", state === "live" ? "bg-rose-500" : "bg-slate-400")} />
             </span>
             {t("live.watching", { name: target?.name ?? "" })}
           </DialogTitle>
@@ -142,15 +70,10 @@ const LiveViewer: React.FC<{ target: WatchTarget | null; onClose: () => void }> 
                   <Loader2 className="mx-auto h-8 w-8 animate-spin opacity-70" />
                   <p className="text-sm opacity-80">{state === "waiting" ? t("live.connecting") : t("live.starting")}</p>
                 </div>
-              ) : state === "offline" ? (
-                <div className="space-y-2">
-                  <VideoOff className="mx-auto h-8 w-8 opacity-60" />
-                  <p className="text-sm opacity-80">{t("live.offline")}</p>
-                </div>
               ) : (
                 <div className="space-y-2">
-                  <VideoOff className="mx-auto h-8 w-8 text-rose-400" />
-                  <p className="text-sm opacity-80">{t("live.error")}</p>
+                  <VideoOff className={cn("mx-auto h-8 w-8", state === "error" ? "text-rose-400" : "opacity-60")} />
+                  <p className="text-sm opacity-80">{state === "offline" ? t("live.offline") : t("live.error")}</p>
                 </div>
               )}
             </div>
@@ -173,10 +96,5 @@ const LiveViewer: React.FC<{ target: WatchTarget | null; onClose: () => void }> 
     </Dialog>
   );
 };
-
-// kichik cn (import qilmaslik uchun)
-function cn2(...c: (string | false | undefined)[]) {
-  return c.filter(Boolean).join(" ");
-}
 
 export default LiveViewer;

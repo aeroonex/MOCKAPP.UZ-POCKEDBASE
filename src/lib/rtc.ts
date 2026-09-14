@@ -19,12 +19,11 @@ export const ICE_SERVERS: RTCIceServer[] = [
 
 export type RtcRole = "source" | "watcher";
 export type RtcEvent =
-  | { event: "hello"; data: { connId: string } }
-  | { event: "sources"; data: { list: Array<{ connId: string; userId: string; sid: string; name: string }> } }
-  | { event: "watch-start"; data: { callId: string; watcherId: string } }
+  | { event: "hello"; data: { connId: string; userId: string } }
+  | { event: "sources"; data: { list: Array<{ userId: string; sid: string; name: string }> } }
+  | { event: "watch-start"; data: { callId: string; watcherUserId: string } }
   | { event: "watch-stop"; data: { callId: string } }
-  | { event: "signal"; data: { callId: string; kind: "offer" | "answer" | "ice"; data: unknown; from: string } }
-  | { event: "peer-gone"; data: { connId: string } };
+  | { event: "signal"; data: { callId: string; kind: "offer" | "answer" | "ice"; data: unknown; fromUserId: string } };
 
 /**
  * SSE oqimni ochadi (fetch + Authorization sarlavhasi bilan — EventSource header qo'sha olmaydi).
@@ -83,9 +82,10 @@ export function openRtcStream(role: RtcRole, onEvent: (e: RtcEvent) => void, onO
   };
 }
 
-export const rtcWatch = (target: string, callId: string) => api.post("/api/rtc/watch", { target, callId });
-export const rtcSignal = (to: string, callId: string, kind: "offer" | "answer" | "ice", data: unknown) =>
-  api.post("/api/rtc/signal", { to, callId, kind, data }).catch(() => undefined);
-export const rtcStop = (to: string, callId: string) => api.post("/api/rtc/stop", { to, callId }).catch(() => undefined);
+export const rtcWatch = (targetUserId: string, callId: string) => api.post("/api/rtc/watch", { targetUserId, callId });
+export const rtcSignal = (toUserId: string, toRole: RtcRole, callId: string, kind: "offer" | "answer" | "ice", data: unknown) =>
+  api.post("/api/rtc/signal", { toUserId, toRole, callId, kind, data }).catch(() => undefined);
+export const rtcStop = (toUserId: string, toRole: RtcRole, callId: string) =>
+  api.post("/api/rtc/stop", { toUserId, toRole, callId }).catch(() => undefined);
 
 export const newCallId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;

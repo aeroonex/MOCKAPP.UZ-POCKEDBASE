@@ -14,7 +14,7 @@ const LiveSource: React.FC = () => {
   const { t } = useTranslation();
   const [live, setLive] = useState(false);
   const streamRef = useRef<MediaStream | null>(null);
-  const callsRef = useRef<Map<string, { pc: RTCPeerConnection; watcherId: string }>>(new Map());
+  const callsRef = useRef<Map<string, { pc: RTCPeerConnection; watcherUserId: string }>>(new Map());
 
   useEffect(() => {
     if (!auth.token) return;
@@ -53,28 +53,29 @@ const LiveSource: React.FC = () => {
       refreshLive();
     };
 
-    const startCall = async (callId: string, watcherId: string) => {
+    const startCall = async (callId: string, watcherUserId: string) => {
+      if (callsRef.current.has(callId)) return; // takroriy watch-start
       const stream = await ensureStream();
       if (!stream || closed) return;
       const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
-      callsRef.current.set(callId, { pc, watcherId });
+      callsRef.current.set(callId, { pc, watcherUserId });
       refreshLive();
       stream.getTracks().forEach((tr) => pc.addTrack(tr, stream));
       pc.onicecandidate = (e) => {
-        if (e.candidate) void rtcSignal(watcherId, callId, "ice", e.candidate.toJSON());
+        if (e.candidate) void rtcSignal(watcherUserId, "watcher", callId, "ice", e.candidate.toJSON());
       };
       pc.onconnectionstatechange = () => {
-        if (["failed", "closed", "disconnected"].includes(pc.connectionState)) endCall(callId);
+        if (["failed", "closed"].includes(pc.connectionState)) endCall(callId);
       };
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
-      void rtcSignal(watcherId, callId, "offer", offer);
+      void rtcSignal(watcherUserId, "watcher", callId, "offer", offer);
     };
 
     const onEvent = async (e: RtcEvent) => {
       if (closed) return;
       if (e.event === "watch-start") {
-        await startCall(e.data.callId, e.data.watcherId);
+        await startCall(e.data.callId, e.data.watcherUserId);
       } else if (e.event === "watch-stop") {
         endCall(e.data.callId);
       } else if (e.event === "signal") {
@@ -86,9 +87,6 @@ const LiveSource: React.FC = () => {
         } catch {
           /* ignore */
         }
-      } else if (e.event === "peer-gone") {
-        // kuzatuvchi uzildi — o'sha calllarni yopamiz
-        for (const [callId, c] of callsRef.current) if (c.watcherId === e.data.connId) endCall(callId);
       }
     };
 
