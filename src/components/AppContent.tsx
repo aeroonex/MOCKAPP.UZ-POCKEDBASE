@@ -33,6 +33,7 @@ const UserProfile = lazy(() => import("@/pages/UserProfile"));
 const Questions = lazy(() => import("@/pages/Questions"));
 const Registrations = lazy(() => import("@/pages/Registrations"));
 const Records = lazy(() => import("@/pages/Records"));
+const WritingChecker = lazy(() => import("@/pages/WritingChecker"));
 const SuperAdminDashboard = lazy(() => import("@/pages/SuperAdminDashboard"));
 const StationLogin = lazy(() => import("@/pages/StationLogin"));
 const AdminPanel = lazy(() => import("@/pages/AdminPanel"));
@@ -125,6 +126,7 @@ const AppContent: React.FC = () => {
           <Route path="/questions" element={<Questions />} />
           <Route path="/registrations" element={<Registrations />} />
           <Route path="/records" element={<Records />} />
+          <Route path="/writing" element={<WritingChecker />} />
           <Route path="/mood-journal" element={<MoodJournal />} />
         </Route>
 

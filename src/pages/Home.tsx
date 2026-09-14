@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Book, PlusCircle, ListChecks, Video, ClipboardList, Settings as SettingsIcon, User as UserIcon, Home as HomeIcon, LogOut, Info, Send } from "lucide-react";
+import { Book, PlusCircle, ListChecks, Video, ClipboardList, Settings as SettingsIcon, User as UserIcon, Home as HomeIcon, LogOut, Info, Send, PenLine } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { showSuccess } from "@/utils/toast";
@@ -78,6 +78,13 @@ export default function Home({ setIsGuideDialogOpen, handleLogout, isGuideDialog
       subtitle: t("home_page.view_recorded_videos"),
       path: "/records",
       accent: "from-rose-500/30 to-rose-500/0 text-rose-300 hover:border-rose-400/60 hover:shadow-rose-500/30",
+    },
+    {
+      icon: <PenLine className="w-8 h-8 sm:w-10 sm:h-10" />,
+      title: t("writing.title"),
+      subtitle: t("writing.home_subtitle"),
+      path: "/writing",
+      accent: "from-violet-500/30 to-violet-500/0 text-violet-300 hover:border-violet-400/60 hover:shadow-violet-500/30",
     },
   ];
   // Stansiyada: Savollar, Savol qo'shish, Yozuvlar (Mock Test tepada); Ro'yxat — faqat asosiy saytda
