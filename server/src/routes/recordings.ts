@@ -3,7 +3,12 @@ import { z } from "zod";
 import { one, query, withTransaction } from "../db.js";
 import { requireAuth, requireFullAuth, userId } from "../auth.js";
 import { config } from "../config.js";
-import { FileTooLargeError, publicUrl, relPath, removeFile, streamToFile } from "../storage.js";
+import type { Readable } from "node:stream";
+import fsp from "node:fs/promises";
+import {
+  FileTooLargeError, absPath, assembleChunks, cleanupStaleChunks, listChunks, publicUrl, relPath, removeChunkDir, removeFile, streamToFile, writeChunk,
+} from "../storage.js";
+import { remuxWebm } from "../media.js";
 import { backupRecordingToTelegram } from "../bot.js";
 
 interface RecordingRow {
@@ -69,6 +74,67 @@ const metaSchema = z.object({
   registration_id: z.string().uuid().optional().or(z.literal("").transform(() => undefined)),
   attempt: z.coerce.number().int().min(1).max(99).optional(),
 });
+
+type RecordingMeta = z.infer<typeof metaSchema>;
+
+/** Bitta bo'lak uchun maksimal hajm (5 soniyalik yozuv odatda 0.3–1 MB). */
+const CHUNK_LIMIT_BYTES = 32 * 1024 * 1024;
+/** Tugallanmagan bo'laklar shu vaqtdan keyin o'chiriladi. */
+const STALE_CHUNKS_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Yozuv qatorini kvota nazorati bilan saqlaydi (yaratadi yoki yangilaydi), eski videoni o'chiradi,
+ * foydalanuvchi hajmini qayta hisoblaydi va Telegram zaxirasini ishga tushiradi.
+ */
+async function saveRecording(uid: string, m: RecordingMeta, videoRel: string, size: number): Promise<RecordingRow> {
+  const row = await withTransaction(async (client) => {
+    const locked = await one<{ storage_limit_bytes: number }>(
+      "SELECT storage_limit_bytes FROM users WHERE id = $1 FOR UPDATE",
+      [uid],
+      client,
+    );
+    const prev = await one<{ video_path: string | null; size_bytes: number }>(
+      "SELECT video_path, size_bytes FROM recordings WHERE local_id = $1 AND user_id = $2",
+      [m.local_id, uid],
+      client,
+    );
+    const usedRow = await one<{ used: number }>(
+      "SELECT COALESCE(SUM(size_bytes), 0)::bigint AS used FROM recordings WHERE user_id = $1",
+      [uid],
+      client,
+    );
+    const usedWithoutThis = Number(usedRow?.used ?? 0) - Number(prev?.size_bytes ?? 0);
+    if (usedWithoutThis + size > Number(locked?.storage_limit_bytes ?? 0)) {
+      throw new FileTooLargeError(Number(locked?.storage_limit_bytes ?? 0));
+    }
+
+    const regId = await ownRegistrationId(uid, m.registration_id);
+    const saved = await one<RecordingRow>(
+      `INSERT INTO recordings (local_id, user_id, "timestamp", duration, student_id, student_name, student_phone, video_path, size_bytes, registration_id, attempt)
+       VALUES ($1, $2, COALESCE($3, now()), COALESCE($4, 0), COALESCE($5, ''), COALESCE($6, ''), COALESCE($7, ''), $8, $9, $10, $11)
+       ON CONFLICT (local_id, user_id) DO UPDATE SET
+         "timestamp" = COALESCE(EXCLUDED."timestamp", recordings."timestamp"),
+         duration = COALESCE(EXCLUDED.duration, recordings.duration),
+         student_id = COALESCE(NULLIF(EXCLUDED.student_id, ''), recordings.student_id),
+         student_name = COALESCE(NULLIF(EXCLUDED.student_name, ''), recordings.student_name),
+         student_phone = COALESCE(NULLIF(EXCLUDED.student_phone, ''), recordings.student_phone),
+         video_path = EXCLUDED.video_path,
+         size_bytes = EXCLUDED.size_bytes,
+         registration_id = COALESCE(EXCLUDED.registration_id, recordings.registration_id),
+         attempt = COALESCE(EXCLUDED.attempt, recordings.attempt),
+         tg_backup_at = NULL, tg_backup_error = '', video_deleted_at = NULL
+       RETURNING ${COLS}`,
+      [m.local_id, uid, m.timestamp ?? null, m.duration ?? null, m.student_id ?? null, m.student_name ?? null, m.student_phone ?? null, videoRel, size, regId, m.attempt ?? null],
+      client,
+    );
+    if (prev?.video_path && prev.video_path !== videoRel) await removeFile(prev.video_path);
+    await recalcUsage(uid, client);
+    return saved!;
+  });
+  // Admin panel ulangan bo'lsa — videoni Telegram'ga zaxiralash (javobni kutmasdan)
+  void backupRecordingToTelegram({ ...row, duration: Number(row.duration), size_bytes: Number(row.size_bytes), attempt: row.attempt === null ? null : Number(row.attempt) });
+  return row;
+}
 
 /** users.storage_used_bytes ni recordings jadvalidan qayta hisoblaydi. */
 async function recalcUsage(uid: string, client = undefined as Parameters<typeof query>[2]) {
@@ -184,52 +250,7 @@ export async function recordingRoutes(app: FastifyInstance) {
       const m = meta.data;
 
       try {
-        const row = await withTransaction(async (client) => {
-          const locked = await one<{ storage_limit_bytes: number }>(
-            "SELECT storage_limit_bytes FROM users WHERE id = $1 FOR UPDATE",
-            [uid],
-            client,
-          );
-          const prev = await one<{ video_path: string | null; size_bytes: number }>(
-            "SELECT video_path, size_bytes FROM recordings WHERE local_id = $1 AND user_id = $2",
-            [m.local_id, uid],
-            client,
-          );
-          const usedRow = await one<{ used: number }>(
-            "SELECT COALESCE(SUM(size_bytes), 0)::bigint AS used FROM recordings WHERE user_id = $1",
-            [uid],
-            client,
-          );
-          const usedWithoutThis = Number(usedRow?.used ?? 0) - Number(prev?.size_bytes ?? 0);
-          if (usedWithoutThis + size > Number(locked?.storage_limit_bytes ?? 0)) {
-            throw new FileTooLargeError(Number(locked?.storage_limit_bytes ?? 0));
-          }
-
-          const regId = await ownRegistrationId(uid, m.registration_id);
-          const saved = await one<RecordingRow>(
-            `INSERT INTO recordings (local_id, user_id, "timestamp", duration, student_id, student_name, student_phone, video_path, size_bytes, registration_id, attempt)
-             VALUES ($1, $2, COALESCE($3, now()), COALESCE($4, 0), COALESCE($5, ''), COALESCE($6, ''), COALESCE($7, ''), $8, $9, $10, $11)
-             ON CONFLICT (local_id, user_id) DO UPDATE SET
-               "timestamp" = COALESCE(EXCLUDED."timestamp", recordings."timestamp"),
-               duration = COALESCE(EXCLUDED.duration, recordings.duration),
-               student_id = COALESCE(NULLIF(EXCLUDED.student_id, ''), recordings.student_id),
-               student_name = COALESCE(NULLIF(EXCLUDED.student_name, ''), recordings.student_name),
-               student_phone = COALESCE(NULLIF(EXCLUDED.student_phone, ''), recordings.student_phone),
-               video_path = EXCLUDED.video_path,
-               size_bytes = EXCLUDED.size_bytes,
-               registration_id = COALESCE(EXCLUDED.registration_id, recordings.registration_id),
-               attempt = COALESCE(EXCLUDED.attempt, recordings.attempt),
-               tg_backup_at = NULL, tg_backup_error = '', video_deleted_at = NULL
-             RETURNING ${COLS}`,
-            [m.local_id, uid, m.timestamp ?? null, m.duration ?? null, m.student_id ?? null, m.student_name ?? null, m.student_phone ?? null, videoRel, size, regId, m.attempt ?? null],
-            client,
-          );
-          if (prev?.video_path && prev.video_path !== videoRel) await removeFile(prev.video_path);
-          await recalcUsage(uid, client);
-          return saved!;
-        });
-        // Admin panel ulangan bo'lsa — videoni Telegram'ga zaxiralash (javobni kutmasdan)
-        void backupRecordingToTelegram({ ...row, duration: Number(row.duration), size_bytes: Number(row.size_bytes), attempt: row.attempt === null ? null : Number(row.attempt) });
+        const row = await saveRecording(uid, m, videoRel, size);
         return reply.code(201).send(toClient(row));
       } catch (err) {
         await removeFile(videoRel);
@@ -240,6 +261,119 @@ export async function recordingRoutes(app: FastifyInstance) {
       }
     },
   );
+
+  // ---------- Oqim bilan yuklash: test davomida 5 soniyalik bo'laklar keladi ----------
+  // Xom ikkilik tana (application/octet-stream) — oqim sifatida diskka yoziladi
+  app.addContentTypeParser("application/octet-stream", (_req, payload, done) => done(null, payload));
+
+  const localIdOk = (v: string) => /^[A-Za-z0-9_-]{1,64}$/.test(v);
+
+  app.put(
+    "/api/recordings/:localId/chunks/:seq",
+    { preHandler: requireAuth, bodyLimit: CHUNK_LIMIT_BYTES + 1024 },
+    async (req, reply) => {
+      const uid = userId(req);
+      const { localId, seq } = req.params as { localId: string; seq: string };
+      const n = Number(seq);
+      if (!localIdOk(localId) || !Number.isInteger(n) || n < 0 || n > 20000) {
+        return reply.code(400).send({ code: 400, message: "Invalid chunk address" });
+      }
+      const body = req.body as Readable | undefined;
+      if (!body || typeof body.pipe !== "function") {
+        return reply.code(400).send({ code: 400, message: "Binary body expected" });
+      }
+      const { bytes } = await listChunks(uid, localId);
+      if (bytes > config.maxVideoBytes) {
+        body.resume();
+        return reply.code(413).send({ code: 413, message: "Video is too large" });
+      }
+      try {
+        const size = await writeChunk(uid, localId, n, body, CHUNK_LIMIT_BYTES);
+        return { seq: n, size };
+      } catch (err) {
+        if (err instanceof FileTooLargeError) return reply.code(413).send({ code: 413, message: "Chunk is too large" });
+        throw err;
+      }
+    },
+  );
+
+  // Serverga yetib kelgan bo'laklar (uzilishdan keyin mijoz yetishmaganlarini qayta yuboradi)
+  app.get("/api/recordings/:localId/chunks", { preHandler: requireAuth }, async (req, reply) => {
+    const { localId } = req.params as { localId: string };
+    if (!localIdOk(localId)) return reply.code(400).send({ code: 400, message: "Invalid id" });
+    return listChunks(userId(req), localId);
+  });
+
+  const finalizeSchema = metaSchema.omit({ local_id: true }).extend({
+    chunks: z.coerce.number().int().min(1).max(20000),
+    size_bytes: z.coerce.number().int().min(0).optional(),
+    mime: z.enum(["video/webm", "video/mp4"]).default("video/webm"),
+  });
+
+  // Yakunlash: bo'laklarni birlashtirish, remux (ffmpeg bo'lsa), qatorni saqlash, zaxira
+  app.post("/api/recordings/:localId/finalize", { preHandler: requireAuth }, async (req, reply) => {
+    const uid = userId(req);
+    const { localId } = req.params as { localId: string };
+    if (!localIdOk(localId)) return reply.code(400).send({ code: 400, message: "Invalid id" });
+    const parsed = finalizeSchema.safeParse(req.body ?? {});
+    if (!parsed.success) return reply.code(400).send({ code: 400, message: "Invalid metadata", data: parsed.error.flatten() });
+    const f = parsed.data;
+
+    const { seqs, bytes } = await listChunks(uid, localId);
+    const have = new Set(seqs);
+    const missing: number[] = [];
+    for (let i = 0; i < f.chunks; i++) if (!have.has(i)) missing.push(i);
+    if (missing.length) {
+      return reply.code(409).send({ code: 409, message: "Missing chunks", data: { missing: missing.slice(0, 200) } });
+    }
+
+    const user = await one<{ storage_limit_bytes: number; storage_used_bytes: number }>(
+      "SELECT storage_limit_bytes, storage_used_bytes FROM users WHERE id = $1",
+      [uid],
+    );
+    if (!user) return reply.code(401).send({ code: 401, message: "Unauthorized" });
+    const existing = await one<{ size_bytes: number }>(
+      "SELECT size_bytes FROM recordings WHERE local_id = $1 AND user_id = $2",
+      [localId, uid],
+    );
+    const usedWithoutThis = Number(user.storage_used_bytes) - Number(existing?.size_bytes ?? 0);
+    if (usedWithoutThis + bytes > Number(user.storage_limit_bytes)) {
+      return reply.code(413).send({ code: 413, message: "Storage limit exceeded" });
+    }
+
+    const ext = f.mime === "video/mp4" ? "mp4" : "webm";
+    const rel = relPath("videos", uid, `${localId}.${ext}`);
+    let size: number;
+    try {
+      size = await assembleChunks(uid, localId, f.chunks, rel, config.maxVideoBytes);
+    } catch (err) {
+      await removeFile(rel);
+      if (err instanceof FileTooLargeError) return reply.code(413).send({ code: 413, message: "Video is too large" });
+      throw err;
+    }
+    // Davomiylik va cues (seek) uchun qayta muxlash — qayta kodlashsiz, xato bo'lsa asl fayl qoladi
+    if (ext === "webm") {
+      const remuxed = await remuxWebm(absPath(rel)).catch(() => false);
+      if (remuxed) {
+        const st = await fsp.stat(absPath(rel)).catch(() => null);
+        if (st) size = st.size;
+      }
+    }
+
+    try {
+      const row = await saveRecording(uid, { ...f, local_id: localId }, rel, size);
+      await removeChunkDir(uid, localId);
+      return reply.code(201).send(toClient(row));
+    } catch (err) {
+      await removeFile(rel);
+      if (err instanceof FileTooLargeError) return reply.code(413).send({ code: 413, message: "Storage limit exceeded" });
+      throw err;
+    }
+  });
+
+  // Tugallanmagan yozuvlarning bo'laklarini tozalash (ishga tushganda va har soatda)
+  void cleanupStaleChunks(STALE_CHUNKS_MS).catch(() => undefined);
+  setInterval(() => void cleanupStaleChunks(STALE_CHUNKS_MS).catch(() => undefined), 60 * 60 * 1000).unref();
 
   // Faqat metama'lumotni yaratish/yangilash (videosiz)
   app.put("/api/recordings/:localId/meta", { preHandler: requireAuth }, async (req, reply) => {

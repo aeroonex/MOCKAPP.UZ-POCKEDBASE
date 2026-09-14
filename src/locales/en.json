@@ -287,7 +287,7 @@
     "success_video_saving": "Video is saving, please wait...",
     "success_video_saved": "Recorded video successfully saved!",
     "error_saving_record_data": "Error saving record data:",
-    "error_recording_failed": "Error starting recording. Check permissions.",
+    "error_recording_failed": "Failed to start recording. Check camera and microphone permissions.",
     "success_recording_started": "Recording started!",
     "success_recording_max_time": "Recording stopped because maximum time was reached.",
     "error_webcam_stream": "Error getting webcam stream.",
@@ -315,12 +315,13 @@
     "question": "Question",
     "speak_text": "Please speak",
     "error_duplicate_question": "This question already exists in the system.",
-    "error_recording_not_supported_mobile": "Screen recording is not supported on mobile devices. Please use a desktop browser.",
+    "error_recording_not_supported_mobile": "Recording is not supported on this device. Please use a desktop browser.",
     "added": "Added",
     "last_used_full": "Last Used",
     "guest_mode_add_question_warning": "Adding and editing questions is disabled in guest mode. Please log in to use this feature.",
     "web_speech_api_not_supported": "Speech synthesis is not supported in this browser.",
-    "info_cooldown_auto_reset": "No unused questions left — all question cooldowns were reset automatically."
+    "info_cooldown_auto_reset": "No unused questions left — all question cooldowns were reset automatically.",
+    "error_mic_stopped": "Microphone disconnected — audio is not being recorded. Check the microphone."
   },
   "mock_test_page": {
     "mock_speaking_test": "Mock Speaking Test",
@@ -336,7 +337,7 @@
     "student_name_placeholder": "Student name",
     "student_phone_placeholder": "Phone number",
     "start_test": "Start Test",
-    "recording_not_supported_mobile_info": "Screen recording is not supported on mobile devices. Please use a desktop browser to record the test.",
+    "recording_not_supported_mobile_info": "Recording is not supported on mobile devices. Please run the test in a desktop browser (Chrome/Edge).",
     "search_registered": "Search registered students",
     "search_registered_placeholder": "Name or phone (2+ letters)…",
     "search_no_results": "Not found among approved students",
@@ -369,7 +370,8 @@
     "end_test_confirm_title": "End the test?",
     "end_test_confirm_desc": "The test will end and the answers recorded so far will be saved. It cannot be resumed.",
     "end_test_confirm_yes": "Yes, end test",
-    "end_test_confirm_no": "Cancel"
+    "end_test_confirm_no": "Cancel",
+    "no_camera": "No camera"
   },
   "records_page": {
     "your_recordings": "Your Recordings",

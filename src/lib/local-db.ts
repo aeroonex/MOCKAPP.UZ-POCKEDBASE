@@ -470,11 +470,16 @@ export const autoUploadRecording = async (recordingId: string): Promise<void> =>
 };
 
 export const addLocalRecording = async (
-  recording: Omit<RecordedSession, 'id' | 'timestamp' | 'user_id' | 'video_url' | 'isLocalBlobAvailable'> & { videoBlob: Blob }
+  recording: Omit<RecordedSession, 'id' | 'timestamp' | 'user_id' | 'video_url' | 'isLocalBlobAvailable'> & {
+    videoBlob: Blob;
+    /** Oqim bilan yuklashda ID yozuv boshida yaratiladi — serverdagi local_id bilan bir xil bo'lishi uchun */
+    id?: string;
+    timestamp?: string;
+  }
 ): Promise<string> => {
   const db = await initDB();
-  const newRecordingId = uuidv4();
-  const currentTimestamp = new Date().toISOString();
+  const newRecordingId = recording.id || uuidv4();
+  const currentTimestamp = recording.timestamp || new Date().toISOString();
   const userId = await getUserId() || 'local_user';
 
   const newRecording: StoredRecording = {

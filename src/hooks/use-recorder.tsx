@@ -1,31 +1,57 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { showSuccess, showError } from "@/utils/toast";
 import { StudentInfo } from "@/lib/types";
-import { addLocalRecording, autoUploadRecording } from "@/lib/local-db";
-import { auth } from "@/lib/api";
+import { addLocalRecording, autoUploadRecording, updateLocalRecordingCloudUrl } from "@/lib/local-db";
+import { api, auth } from "@/lib/api";
 import { isStationHost } from "@/lib/station";
+import { ExamCompositor, type OverlayState } from "@/lib/exam-compositor";
+import { ChunkUploader } from "@/lib/chunk-uploader";
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
+import i18n from "@/i18n";
 
 const MAX_RECORDING_DURATION_MS = 60 * 60 * 1000;
-const MIME_TYPE = "video/webm; codecs=vp8,opus";
+/** Bo'lak uzunligi: har 5 soniyada serverga ketadi */
+const TIMESLICE_MS = 5000;
+/** 960×540 @ 15 fps: 10 daqiqa ≈ 40 MB (Telegram zaxirasi 50 MB limitiga sig'adi) */
+const VIDEO_BPS = 550_000;
+const AUDIO_BPS = 64_000;
 
+/** Brauzer qo'llab-quvvatlaydigan eng yaxshi konteyner/kodek. */
+function pickMimeType(): string | null {
+  if (typeof MediaRecorder === "undefined") return null;
+  const candidates = [
+    "video/webm;codecs=vp9,opus",
+    "video/webm;codecs=vp8,opus",
+    "video/webm",
+    "video/mp4",
+  ];
+  return candidates.find((m) => MediaRecorder.isTypeSupported(m)) ?? null;
+}
+
+const isMobileDevice = () => /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
+/**
+ * Yozib olish: kamera + savol + taymer bitta canvas'ga chiziladi (ekran ulashishsiz),
+ * mikrofon bilan birga MediaRecorder'ga beriladi. Bo'laklar test davomida serverga oqim bilan ketadi.
+ */
 export const useRecorder = () => {
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [webcamStream, setWebcamStream] = useState<MediaStream | null>(null);
-  const [isRecordingSupported, setIsRecordingSupported] = useState<boolean>(false); // New state
+  const [isRecordingSupported, setIsRecordingSupported] = useState<boolean>(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
-  const screenStreamRef = useRef<MediaStream | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
   const webcamStreamRef = useRef<MediaStream | null>(null);
+  const compositorRef = useRef<ExamCompositor | null>(null);
+  const uploaderRef = useRef<ChunkUploader | null>(null);
+  const overlayRef = useRef<OverlayState | null>(null);
   const startTimeRef = useRef<number>(0);
   const recordingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { t } = useTranslation();
-  // const { user } = useAuth(); // user is not used directly in useRecorder, only in local-db for upload
 
   const clearRecordingTimeout = useCallback(() => {
     if (recordingTimeoutRef.current) {
@@ -39,10 +65,10 @@ export const useRecorder = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       mediaRecorderRef.current.stop();
     }
-    screenStreamRef.current?.getTracks().forEach(track => track.stop());
     micStreamRef.current?.getTracks().forEach(track => track.stop());
-    screenStreamRef.current = null;
     micStreamRef.current = null;
+    compositorRef.current?.stop();
+    compositorRef.current = null;
     setIsRecording(false);
   }, [clearRecordingTimeout]);
 
@@ -56,87 +82,113 @@ export const useRecorder = () => {
   }, [stopRecordingProcess]);
 
   useEffect(() => {
-    // Check if getDisplayMedia is supported
-    setIsRecordingSupported(!!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia));
+    const canvasOk = typeof HTMLCanvasElement !== "undefined" && "captureStream" in HTMLCanvasElement.prototype;
+    setIsRecordingSupported(
+      !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && canvasOk && !!pickMimeType() && !isMobileDevice(),
+    );
 
     const getWebcamPreview = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 960 }, height: { ideal: 540 }, frameRate: { ideal: 15, max: 30 }, facingMode: "user" },
+          audio: false,
+        });
         webcamStreamRef.current = stream;
         setWebcamStream(stream);
       } catch (err) {
         console.warn("Webcam stream error:", err);
-        // showError(t("add_question_page.error_webcam_stream")); // Don't show error if webcam is just not available
+        // Kamera bo'lmasa ham test o'tkaziladi (videoda "Kamera yo'q" belgisi bo'ladi)
       }
     };
     getWebcamPreview();
 
     return () => {
-      // Cleanup webcam stream on unmount
       if (webcamStreamRef.current) {
         webcamStreamRef.current.getTracks().forEach(track => track.stop());
       }
     };
-  }, []); // Empty dependency array to run once on mount
+  }, []);
+
+  /** Test holati o'zgarganda chaqiriladi — videoga chiziladigan savol/taymer/qism. */
+  const updateOverlay = useCallback((state: OverlayState) => {
+    overlayRef.current = state;
+    compositorRef.current?.setState(state);
+  }, []);
 
   const startRecording = useCallback(async (studentInfo?: StudentInfo): Promise<boolean> => {
     if (!isRecordingSupported) {
-      showError(t("add_question_page.error_recording_not_supported_mobile")); // New translation key
+      showError(t("add_question_page.error_recording_not_supported_mobile"));
+      return false;
+    }
+    const mimeType = pickMimeType();
+    if (!mimeType) {
+      showError(t("add_question_page.error_recording_format_not_supported", { mimeType: "webm/mp4" }));
       return false;
     }
 
     recordedChunksRef.current = [];
-    if (!MediaRecorder.isTypeSupported(MIME_TYPE)) {
-      showError(t("add_question_page.error_recording_format_not_supported", { mimeType: MIME_TYPE }));
-      return false;
-    }
+    const localId = uuidv4();
+    const startedIso = new Date().toISOString();
 
     try {
-      const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-      screenStreamRef.current = screenStream;
-      screenStream.addEventListener('ended', () => {
-        showError(t("add_question_page.error_screen_sharing_stopped"));
-        stopRecordingProcess();
+      // Mikrofon (kamera allaqachon ochiq; bo'lmasa kamerasiz davom etadi)
+      const micStream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      });
+      micStreamRef.current = micStream;
+      micStream.getAudioTracks()[0]?.addEventListener("ended", () => {
+        showError(t("add_question_page.error_mic_stopped"));
       });
 
-      const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      micStreamRef.current = micStream;
-
-      const audioContext = new AudioContext();
-      const destination = audioContext.createMediaStreamDestination();
-      if (screenStream.getAudioTracks().length > 0) {
-        audioContext.createMediaStreamSource(new MediaStream([screenStream.getAudioTracks()[0]])).connect(destination);
-      }
-      if (micStream.getAudioTracks().length > 0) {
-        audioContext.createMediaStreamSource(new MediaStream([micStream.getAudioTracks()[0]])).connect(destination);
-      }
+      // Kompozit sahna: kamera + savol + taymer
+      const compositor = new ExamCompositor({ width: 960, height: 540, fps: 15 });
+      compositor.attachCamera(webcamStreamRef.current, t("mock_test_page.no_camera"));
+      if (overlayRef.current) compositor.setState({ ...overlayRef.current, student: studentInfo ?? overlayRef.current.student });
+      compositorRef.current = compositor;
+      const canvasStream = compositor.start();
 
       const combinedStream = new MediaStream([
-        ...screenStream.getVideoTracks(),
-        ...destination.stream.getAudioTracks(),
+        ...canvasStream.getVideoTracks(),
+        ...micStream.getAudioTracks(),
       ]);
 
-      mediaRecorderRef.current = new MediaRecorder(combinedStream, { mimeType: MIME_TYPE });
+      // Oqim bilan yuklash: ro'yxatdagi o'quvchi yoki imtihon stansiyasi (tizimga kirgan bo'lsa)
+      const streamToCloud = ChunkUploader.available() && (!!studentInfo?.registration_id || isStationHost());
+      const uploader = streamToCloud ? new ChunkUploader(localId) : null;
+      uploaderRef.current = uploader;
 
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        if (event.data.size > 0) recordedChunksRef.current.push(event.data);
+      const recorder = new MediaRecorder(combinedStream, {
+        mimeType,
+        videoBitsPerSecond: VIDEO_BPS,
+        audioBitsPerSecond: AUDIO_BPS,
+      });
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+          uploader?.push(event.data);
+        }
       };
 
-      mediaRecorderRef.current.onstop = async () => {
+      recorder.onstop = async () => {
         clearRecordingTimeout();
         if (recordedChunksRef.current.length === 0) {
           showError(t("add_question_page.error_no_data_recorded"));
+          uploader?.abort();
           return;
         }
 
-        const blob = new Blob(recordedChunksRef.current, { type: MIME_TYPE });
-        const endTime = Date.now();
-        const duration = Math.round((endTime - startTimeRef.current) / 1000);
+        const blob = new Blob(recordedChunksRef.current, { type: mimeType.split(";")[0] });
+        const duration = Math.round((Date.now() - startTimeRef.current) / 1000);
 
         showSuccess(t("add_question_page.success_video_saving"));
 
+        let recordingId: string | null = null;
         try {
-          const recordingId = await addLocalRecording({
+          recordingId = await addLocalRecording({
+            id: localId,
+            timestamp: startedIso,
             duration,
             student_id: studentInfo?.id,
             student_name: studentInfo?.name,
@@ -146,14 +198,22 @@ export const useRecorder = () => {
             videoBlob: blob,
           });
           showSuccess(t("add_question_page.success_video_saved"));
-
-          // Ro'yxatdagi o'quvchi bilan topshirilgan bo'lsa (yoki imtihon stansiyasida — har doim) videoni fonda serverga yuklaymiz
-          if ((studentInfo?.registration_id || isStationHost()) && auth.model) {
-            void autoUploadRecording(recordingId);
-          }
-
         } catch (dbError: any) {
           showError(`${t("add_question_page.error_saving_record_data")} ${dbError.message}`);
+        }
+
+        // Serverga: avval oqim bilan kelgan bo'laklarni yakunlash; bo'lmasa — to'liq faylni yuklash
+        if (uploader && auth.model) {
+          void finalizeStreamedUpload(uploader, {
+            timestamp: startedIso,
+            duration,
+            student_id: studentInfo?.id,
+            student_name: studentInfo?.name,
+            student_phone: studentInfo?.phone,
+            registration_id: studentInfo?.registration_id,
+            attempt: studentInfo?.attempt,
+            mime: mimeType.split(";")[0],
+          }, recordingId);
         }
 
         recordedChunksRef.current = [];
@@ -161,12 +221,12 @@ export const useRecorder = () => {
         stopRecordingProcess();
       };
 
-      mediaRecorderRef.current.onerror = (event: Event) => {
+      recorder.onerror = (event: Event) => {
         showError(`${t("add_question_page.error_recording_failed")} ${((event as any).error?.message || "Noma'lum xato")}`);
         stopRecordingProcess();
       };
 
-      mediaRecorderRef.current.start(1000);
+      recorder.start(TIMESLICE_MS);
       startTimeRef.current = Date.now();
       setIsRecording(true);
       showSuccess(t("add_question_page.success_recording_started"));
@@ -178,7 +238,7 @@ export const useRecorder = () => {
 
       return true;
     } catch (err) {
-      console.error("Error during recording setup:", err); // Log the actual error
+      console.error("Error during recording setup:", err);
       showError(t("add_question_page.error_recording_failed"));
       setIsRecording(false);
       stopRecordingProcess();
@@ -194,5 +254,41 @@ export const useRecorder = () => {
     };
   }, [clearRecordingTimeout, stopAllStreams]);
 
-  return { isRecording, startRecording, stopRecording: stopRecordingProcess, stopAllStreams, webcamStream, isRecordingSupported };
+  return { isRecording, startRecording, stopRecording: stopRecordingProcess, stopAllStreams, webcamStream, isRecordingSupported, updateOverlay };
 };
+
+/**
+ * Oqim bilan yuborilgan bo'laklarni serverda yakunlaydi (toast bilan). Bo'laklar yetib bormagan
+ * bo'lsa — lokal nusxadan to'liq faylni yuklaydi (eski, ishonchli yo'l).
+ */
+async function finalizeStreamedUpload(uploader: ChunkUploader, meta: Parameters<ChunkUploader["finalize"]>[0], recordingId: string | null) {
+  const { toast } = await import("sonner");
+  const { setProgress, removeProgress } = await import("@/utils/uploadProgress");
+  const toastId = toast.loading(i18n.t("records_page.auto_upload_started"));
+  if (recordingId) setProgress(recordingId, 0);
+  uploader.onProgress = (sent, total) => {
+    const pct = total ? Math.round((sent / total) * 100) : 0;
+    if (recordingId) setProgress(recordingId, pct);
+    toast.loading(i18n.t("records_page.auto_upload_progress", { percent: pct }), { id: toastId });
+  };
+  try {
+    const drained = await uploader.drain(90_000);
+    if (!drained) throw new Error("chunks-missing");
+    const rec = await uploader.finalize(meta);
+    const url = rec?.video_url ? api.fileUrl(rec.video_url) : "";
+    if (recordingId && url) await updateLocalRecordingCloudUrl(recordingId, url);
+    if (recordingId) setProgress(recordingId, 100);
+    toast.success(i18n.t("records_page.auto_upload_done"), { id: toastId, duration: 6000 });
+  } catch (e: any) {
+    uploader.abort();
+    toast.dismiss(toastId);
+    if (recordingId) {
+      // Zaxira yo'li: to'liq faylni bir martada yuklash
+      await autoUploadRecording(recordingId);
+    } else {
+      toast.error(i18n.t("records_page.auto_upload_failed", { message: e?.message || String(e) }), { duration: 8000 });
+    }
+  } finally {
+    if (recordingId) removeProgress(recordingId);
+  }
+}

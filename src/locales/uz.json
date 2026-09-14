@@ -287,7 +287,7 @@
     "success_video_saving": "Video saqlanmoqda, iltimos kuting...",
     "success_video_saved": "Yozib olingan video muvaffaqiyatli saqlandi!",
     "error_saving_record_data": "Yozuv ma'lumotlarini saqlashda xatolik:",
-    "error_recording_failed": "Yozuvni boshlashda xatolik. Ruxsatlarni tekshiring.",
+    "error_recording_failed": "Yozuvni boshlashda xatolik. Kamera va mikrofon ruxsatlarini tekshiring.",
     "success_recording_started": "Yozuv boshlandi!",
     "success_recording_max_time": "Maksimal vaqtga yetilgani uchun yozuv to'xtatildi.",
     "error_webcam_stream": "Veb-kamera oqimini olishda xatolik.",
@@ -315,12 +315,13 @@
     "question": "Savol",
     "speak_text": "Iltimos, gapiring",
     "error_duplicate_question": "Bu savol tizimda allaqachon mavjud.",
-    "error_recording_not_supported_mobile": "Ekran yozuvi mobil qurilmalarda qo'llab-quvvatlanmaydi. Iltimos, kompyuter brauzeridan foydalaning.",
+    "error_recording_not_supported_mobile": "Yozib olish bu qurilmada qo'llab-quvvatlanmaydi. Iltimos, kompyuter brauzeridan foydalaning.",
     "added": "Qo'shilgan",
     "last_used_full": "Oxirgi ishlatilgan",
     "guest_mode_add_question_warning": "Mehmon rejimida savol qo'shish va tahrirlash o'chirilgan. Bu imkoniyatdan foydalanish uchun tizimga kiring.",
     "web_speech_api_not_supported": "Bu brauzerda nutq sintezi qo'llab-quvvatlanmaydi.",
-    "info_cooldown_auto_reset": "Yangi savollar tugadi — barcha savollar kutish vaqti avtomatik tiklandi."
+    "info_cooldown_auto_reset": "Yangi savollar tugadi — barcha savollar kutish vaqti avtomatik tiklandi.",
+    "error_mic_stopped": "Mikrofon uzildi — ovoz yozilmayapti. Mikrofonni tekshiring."
   },
   "mock_test_page": {
     "mock_speaking_test": "Sinov Speaking testi",
@@ -336,7 +337,7 @@
     "student_name_placeholder": "Talaba ismi",
     "student_phone_placeholder": "Telefon raqami",
     "start_test": "Testni boshlash",
-    "recording_not_supported_mobile_info": "Ekran yozuvi mobil qurilmalarda qo'llab-quvvatlanmaydi. Testni yozib olish uchun kompyuter brauzeridan foydalaning.",
+    "recording_not_supported_mobile_info": "Yozib olish mobil qurilmalarda qo'llab-quvvatlanmaydi. Testni kompyuter brauzeridan (Chrome/Edge) o'tkazing.",
     "search_registered": "Ro'yxatdan qidirish",
     "search_registered_placeholder": "Ism yoki telefon (kamida 2 harf)…",
     "search_no_results": "Topilmadi — tasdiqlangan o'quvchilar orasida yo'q",
@@ -369,7 +370,8 @@
     "end_test_confirm_title": "Testni tugatasizmi?",
     "end_test_confirm_desc": "Test yakunlanadi va shu paytgacha yozilgan javoblar saqlanadi. Davom ettirib bo'lmaydi.",
     "end_test_confirm_yes": "Ha, tugatish",
-    "end_test_confirm_no": "Bekor qilish"
+    "end_test_confirm_no": "Bekor qilish",
+    "no_camera": "Kamera yo'q"
   },
   "records_page": {
     "your_recordings": "Sizning yozuvlaringiz",

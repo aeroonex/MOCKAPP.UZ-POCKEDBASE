@@ -272,7 +272,7 @@
     "success_video_saving": "جار حفظ الفيديو، يرجى الانتظار...",
     "success_video_saved": "تم حفظ الفيديو المسجل بنجاح!",
     "error_saving_record_data": "خطأ في حفظ بيانات التسجيل:",
-    "error_recording_failed": "خطأ في بدء التسجيل. تحقق من الأذونات.",
+    "error_recording_failed": "تعذر بدء التسجيل. تحقق من أذونات الكاميرا والميكروفون.",
     "success_recording_started": "بدأ التسجيل!",
     "success_recording_max_time": "تم إيقاف التسجيل لأن الوقت الأقصى قد وصل.",
     "error_webcam_stream": "خطأ في الحصول على بث كاميرا الويب.",
@@ -300,11 +300,12 @@
     "question": "سؤال",
     "speak_text": "الرجاء التحدث",
     "error_duplicate_question": "هذا السؤال موجود بالفعل في النظام.",
-    "error_recording_not_supported_mobile": "تسجيل الشاشة غير مدعوم على الأجهزة المحمولة. يرجى استخدام متصفح سطح المكتب.",
+    "error_recording_not_supported_mobile": "التسجيل غير مدعوم على هذا الجهاز. يرجى استخدام متصفح سطح المكتب.",
     "added": "أضيف",
     "last_used_full": "آخر استخدام",
     "guest_mode_add_question_warning": "إضافة وتعديل الأسئلة معطل في وضع الضيف. يرجى تسجيل الدخول لاستخدام هذه الميزة.",
-    "web_speech_api_not_supported": "تركيب الكلام غير مدعوم في هذا المتصفح."
+    "web_speech_api_not_supported": "تركيب الكلام غير مدعوم في هذا المتصفح.",
+    "error_mic_stopped": "انقطع الميكروفون — لا يتم تسجيل الصوت. تحقق من الميكروفون."
   },
   "mock_test_page": {
     "mock_speaking_test": "اختبار التحدث التجريبي",
@@ -320,7 +321,7 @@
     "student_name_placeholder": "اسم الطالب",
     "student_phone_placeholder": "رقم الهاتف",
     "start_test": "ابدأ الاختبار",
-    "recording_not_supported_mobile_info": "تسجيل الشاشة غير مدعوم على الأجهزة المحمولة. يرجى استخدام متصفح سطح المكتب لتسجيل الاختبار.",
+    "recording_not_supported_mobile_info": "التسجيل غير مدعوم على الأجهزة المحمولة. يرجى إجراء الاختبار في متصفح سطح المكتب (Chrome/Edge).",
     "lobby_kicker": "CEFR Speaking",
     "lobby_desc": "بصيغة الاختبار الحقيقي: 4 أجزاء، مؤقت تلقائي وأسئلة صوتية.",
     "part_1_1_desc": "3 أسئلة",
@@ -338,7 +339,8 @@
     "end_test_confirm_title": "إنهاء الاختبار؟",
     "end_test_confirm_desc": "سينتهي الاختبار وستُحفظ الإجابات المسجلة حتى الآن. لا يمكن المتابعة بعد ذلك.",
     "end_test_confirm_yes": "نعم، إنهاء",
-    "end_test_confirm_no": "إلغاء"
+    "end_test_confirm_no": "إلغاء",
+    "no_camera": "لا توجد كاميرا"
   },
   "records_page": {
     "your_recordings": "تسجيلاتك",

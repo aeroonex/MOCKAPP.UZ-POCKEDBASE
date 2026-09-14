@@ -273,7 +273,7 @@
     "success_video_saving": "Video kaydediliyor, lütfen bekleyin...",
     "success_video_saved": "Kaydedilen video başarıyla kaydedildi!",
     "error_saving_record_data": "Kayıt verileri kaydedilirken hata oluştu:",
-    "error_recording_failed": "Kayıt başlatılırken hata oluştu. İzinleri kontrol edin.",
+    "error_recording_failed": "Kayıt başlatılamadı. Kamera ve mikrofon izinlerini kontrol edin.",
     "success_recording_started": "Kayıt başlatıldı!",
     "success_recording_max_time": "Maksimum süreye ulaşıldığı için kayıt durduruldu.",
     "error_webcam_stream": "Webcam akışı alınırken hata oluştu.",
@@ -301,11 +301,12 @@
     "question": "Soru",
     "speak_text": "Lütfen konuşun",
     "error_duplicate_question": "Bu soru sistemde zaten mevcut.",
-    "error_recording_not_supported_mobile": "Ekran kaydı mobil cihazlarda desteklenmiyor. Lütfen masaüstü tarayıcı kullanın.",
+    "error_recording_not_supported_mobile": "Kayıt bu cihazda desteklenmiyor. Lütfen masaüstü tarayıcı kullanın.",
     "added": "Eklendi",
     "last_used_full": "Son Kullanım",
     "guest_mode_add_question_warning": "Misafir modunda soru ekleme ve düzenleme devre dışıdır. Bu özelliği kullanmak için lütfen giriş yapın.",
-    "web_speech_api_not_supported": "Bu tarayıcıda konuşma sentezi desteklenmiyor."
+    "web_speech_api_not_supported": "Bu tarayıcıda konuşma sentezi desteklenmiyor.",
+    "error_mic_stopped": "Mikrofon bağlantısı kesildi — ses kaydedilmiyor. Mikrofonu kontrol edin."
   },
   "mock_test_page": {
     "mock_speaking_test": "Deneme Konuşma Sınavı",
@@ -321,7 +322,7 @@
     "student_name_placeholder": "Öğrenci adı",
     "student_phone_placeholder": "Telefon numarası",
     "start_test": "Testi Başlat",
-    "recording_not_supported_mobile_info": "Ekran kaydı mobil cihazlarda desteklenmiyor. Testi kaydetmek için lütfen masaüstü tarayıcı kullanın.",
+    "recording_not_supported_mobile_info": "Kayıt mobil cihazlarda desteklenmiyor. Testi masaüstü tarayıcıda (Chrome/Edge) yapın.",
     "lobby_kicker": "CEFR Speaking",
     "lobby_desc": "Gerçek sınav formatı: 4 bölüm, otomatik zamanlayıcı ve sesli sorular.",
     "part_1_1_desc": "3 soru",
@@ -339,7 +340,8 @@
     "end_test_confirm_title": "Test bitirilsin mi?",
     "end_test_confirm_desc": "Test sona erecek ve şimdiye kadar kaydedilen cevaplar saklanacak. Devam ettirilemez.",
     "end_test_confirm_yes": "Evet, bitir",
-    "end_test_confirm_no": "İptal"
+    "end_test_confirm_no": "İptal",
+    "no_camera": "Kamera yok"
   },
   "records_page": {
     "your_recordings": "Kayıtlarınız",

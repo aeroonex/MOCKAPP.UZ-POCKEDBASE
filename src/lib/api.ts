@@ -116,6 +116,9 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   let payload: BodyInit | undefined;
   if (body instanceof FormData) {
     payload = body;
+  } else if (body instanceof Blob) {
+    headers["Content-Type"] = "application/octet-stream";
+    payload = body;
   } else if (body !== undefined) {
     headers["Content-Type"] = "application/json";
     payload = JSON.stringify(body);
@@ -150,6 +153,8 @@ export const api = {
   patch: <T>(path: string, body?: unknown) => request<T>("PATCH", path, body),
   put: <T>(path: string, body?: unknown) => request<T>("PUT", path, body),
   delete: <T = void>(path: string) => request<T>("DELETE", path),
+  /** Xom ikkilik tana (video bo'lagi) — application/octet-stream. */
+  putBlob: <T = unknown>(path: string, blob: Blob) => request<T>("PUT", path, blob),
 
   /** Yuklash jarayonini ko'rsatish uchun XHR asosidagi multipart yuklash. */
   upload<T>(path: string, form: FormData, onProgress?: (loaded: number, total: number) => void): Promise<T> {

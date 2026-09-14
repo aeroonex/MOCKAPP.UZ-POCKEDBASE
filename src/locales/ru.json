@@ -287,7 +287,7 @@
     "success_video_saving": "Видео сохраняется, пожалуйста, подождите...",
     "success_video_saved": "Записанное видео успешно сохранено!",
     "error_saving_record_data": "Ошибка сохранения данных записи:",
-    "error_recording_failed": "Ошибка при запуске записи. Проверьте разрешения.",
+    "error_recording_failed": "Не удалось начать запись. Проверьте разрешения камеры и микрофона.",
     "success_recording_started": "Запись началась!",
     "success_recording_max_time": "Запись остановлена, так как достигнуто максимальное время.",
     "error_webcam_stream": "Ошибка получения потока с веб-камеры.",
@@ -315,12 +315,13 @@
     "question": "Вопрос",
     "speak_text": "Говорите",
     "error_duplicate_question": "Такой вопрос уже есть в системе.",
-    "error_recording_not_supported_mobile": "Запись экрана не поддерживается на мобильных устройствах. Используйте браузер на компьютере.",
+    "error_recording_not_supported_mobile": "Запись не поддерживается на этом устройстве. Используйте браузер на компьютере.",
     "added": "Добавлено",
     "last_used_full": "Последнее использование",
     "guest_mode_add_question_warning": "В гостевом режиме добавление и редактирование вопросов недоступно. Войдите, чтобы использовать эту функцию.",
     "web_speech_api_not_supported": "Синтез речи не поддерживается в этом браузере.",
-    "info_cooldown_auto_reset": "Новые вопросы закончились — время ожидания всех вопросов сброшено автоматически."
+    "info_cooldown_auto_reset": "Новые вопросы закончились — время ожидания всех вопросов сброшено автоматически.",
+    "error_mic_stopped": "Микрофон отключился — звук не записывается. Проверьте микрофон."
   },
   "mock_test_page": {
     "mock_speaking_test": "Пробный тест Speaking",
@@ -336,7 +337,7 @@
     "student_name_placeholder": "Имя студента",
     "student_phone_placeholder": "Номер телефона",
     "start_test": "Начать тест",
-    "recording_not_supported_mobile_info": "Запись экрана не поддерживается на мобильных устройствах. Для записи теста используйте браузер на компьютере.",
+    "recording_not_supported_mobile_info": "Запись не поддерживается на мобильных устройствах. Проведите тест в браузере на компьютере (Chrome/Edge).",
     "search_registered": "Поиск по списку",
     "search_registered_placeholder": "Имя или телефон (от 2 букв)…",
     "search_no_results": "Не найдено среди подтверждённых студентов",
@@ -369,7 +370,8 @@
     "end_test_confirm_title": "Завершить тест?",
     "end_test_confirm_desc": "Тест завершится, записанные ответы будут сохранены. Продолжить будет нельзя.",
     "end_test_confirm_yes": "Да, завершить",
-    "end_test_confirm_no": "Отмена"
+    "end_test_confirm_no": "Отмена",
+    "no_camera": "Нет камеры"
   },
   "records_page": {
     "your_recordings": "Ваши записи",

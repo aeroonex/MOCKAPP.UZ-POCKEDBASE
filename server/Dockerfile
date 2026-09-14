@@ -12,6 +12,8 @@ RUN pnpm build && cp -r src/migrations dist/migrations
 FROM node:22-alpine
 WORKDIR /app
 ENV NODE_ENV=production
+# ffmpeg: yozuv tugagach WebM'ga davomiylik/cues yozish uchun (qayta kodlashsiz remux)
+RUN apk add --no-cache ffmpeg
 RUN corepack enable && corepack prepare pnpm@10.15.1 --activate
 COPY package.json pnpm-lock.yaml* ./
 RUN pnpm install --frozen-lockfile --prod && pnpm store prune

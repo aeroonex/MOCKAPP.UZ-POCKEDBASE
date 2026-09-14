@@ -19,7 +19,7 @@ import { motion, useReducedMotion } from "framer-motion";
 const ease = [0.22, 0.61, 0.36, 1] as const;
 
 const MockTest: React.FC = () => {
-  const { isRecording, startRecording, stopAllStreams, webcamStream, isRecordingSupported } = useRecorder();
+  const { isRecording, startRecording, stopAllStreams, webcamStream, isRecordingSupported, updateOverlay } = useRecorder();
   const webcamVideoRef = useRef<HTMLVideoElement>(null);
   const { t } = useTranslation();
   const isMobile = useIsMobile();
@@ -48,6 +48,61 @@ const MockTest: React.FC = () => {
   const currentQ = getCurrentQuestion();
   const isIdle = !isTestStarted && currentPhase === "idle";
   const isRunning = isTestStarted && currentPhase !== "finished";
+
+  // Videoga chiziladigan holat (savol, rasm, bosqich, taymer) — har o'zgarishda kompozitorga beriladi
+  React.useEffect(() => {
+    if (!isTestStarted) return;
+    const strip = (v: string) => v.replace(/[:：]\s*$/, "");
+    let phaseLabel = "";
+    let question = "";
+    let images: string[] = [];
+    let questionLabel = "";
+    switch (currentPhase) {
+      case "pre_test_countdown":
+        phaseLabel = strip(t("add_question_page.please_prepare_yourself"));
+        question = t("add_question_page.test_starts_in", { countdown });
+        break;
+      case "part_finished_announcement":
+        phaseLabel = strip(t("add_question_page.part_finished"));
+        break;
+      case "next_part_announcement":
+        phaseLabel = strip(t("add_question_page.prepare_for_next_part"));
+        break;
+      case "reading_question":
+        phaseLabel = strip(t("add_question_page.reading"));
+        break;
+      case "preparation":
+        phaseLabel = strip(t("add_question_page.preparation"));
+        break;
+      case "speaking":
+        phaseLabel = strip(t("add_question_page.answer"));
+        break;
+      default:
+        phaseLabel = "";
+    }
+    if (currentQ && (currentPhase === "reading_question" || currentPhase === "preparation" || currentPhase === "speaking")) {
+      if (currentQ.type === "Part 1.1" || currentQ.type === "Part 1.2") {
+        question = currentQ.sub_questions?.[currentSubQuestionIndex] ?? "";
+      } else {
+        question = (currentQ as { question_text?: string }).question_text ?? "";
+      }
+      images = currentQ.type === "Part 1.1" ? [] : ((currentQ as { image_urls?: string[] }).image_urls ?? []);
+      const kind = currentQ.type === "Part 1.2" ? t("add_question_page.image") : t("add_question_page.question");
+      questionLabel = `${kind} ${currentQuestionIndex + 1}`;
+    }
+    updateOverlay({
+      part: currentPartName,
+      partIndex: currentPartIndex,
+      phase: currentPhase,
+      phaseLabel,
+      questionLabel,
+      question,
+      images,
+      countdown,
+      initialCountdown,
+      student: studentInfo ? { id: studentInfo.id, name: studentInfo.name, phone: studentInfo.phone } : null,
+    });
+  }, [isTestStarted, currentPhase, currentQ, currentPartName, currentPartIndex, currentQuestionIndex, currentSubQuestionIndex, countdown, initialCountdown, studentInfo, t, updateOverlay]);
 
   React.useEffect(() => {
     if (webcamVideoRef.current) {
