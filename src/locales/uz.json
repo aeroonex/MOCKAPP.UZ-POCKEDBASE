@@ -877,6 +877,18 @@
     "checking": "Kamera tekshirilmoqda…",
     "done": "Kamera tekshirildi"
   },
+  "live": {
+    "camera_on": "Kamera yoniq",
+    "watch_btn": "Jonli ko'rish",
+    "watching": "Jonli: {{name}}",
+    "starting": "Ulanmoqda…",
+    "connecting": "Kamera yoqilmoqda…",
+    "offline": "Foydalanuvchi hozir jonli emas (sayt ochiq emas yoki kamera yo'q)",
+    "error": "Ulanib bo'lmadi",
+    "oneway_hint": "Faqat siz ko'rasiz va eshitasiz — foydalanuvchi sizni ko'rmaydi",
+    "mute": "Ovozsiz",
+    "unmute": "Ovozli"
+  },
   "monitoring": {
     "tab": "Nazorat",
     "online_now": "Hozir onlayn",

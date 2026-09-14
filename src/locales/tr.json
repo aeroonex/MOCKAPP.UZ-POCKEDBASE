@@ -516,6 +516,18 @@
     "checking": "Kamera kontrol ediliyor…",
     "done": "Kamera kontrol edildi"
   },
+  "live": {
+    "camera_on": "Kamera açık",
+    "watch_btn": "Canlı izle",
+    "watching": "Canlı: {{name}}",
+    "starting": "Bağlanıyor…",
+    "connecting": "Kamera açılıyor…",
+    "offline": "Kullanıcı şu an canlı değil (uygulama kapalı veya kamera yok)",
+    "error": "Bağlanılamadı",
+    "oneway_hint": "Yalnızca siz görür ve duyarsınız — kullanıcı sizi görmez",
+    "mute": "Sessiz",
+    "unmute": "Sesli"
+  },
   "monitoring": {
     "tab": "İzleme",
     "online_now": "Şu an çevrimiçi",

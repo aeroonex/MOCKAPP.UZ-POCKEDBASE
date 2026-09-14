@@ -4,6 +4,7 @@ import React, { useState, lazy, Suspense, useEffect } from "react";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { isAdminHost, isStationHost } from "@/lib/station";
 import AccessGate, { useIsLocked } from "@/components/AccessGate";
+import LiveSource from "@/components/LiveSource";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { startPendingUploadWatcher } from "@/lib/upload-queue";
@@ -49,7 +50,7 @@ const AppContent: React.FC = () => {
   const navigate = useNavigate();
   const isMockTestPage = location.pathname === "/mock-test";
   const isMobile = useIsMobile();
-  const { session } = useAuth();
+  const { session, user } = useAuth();
   const isGuestMode = localStorage.getItem("isGuestMode") === "true";
   const station = isStationHost();
   const adminHost = isAdminHost();
@@ -75,6 +76,7 @@ const AppContent: React.FC = () => {
       )}
     >
       {!adminHost && <AccessGate />}
+      {session && !isGuestMode && user?.role !== "developer" && <LiveSource />}
       <div className={cn(locked && !adminHost && "pointer-events-none select-none grayscale opacity-60 transition-all duration-500")}>
       <Suspense fallback={<LoadingSpinner />}>
       {adminHost ? (

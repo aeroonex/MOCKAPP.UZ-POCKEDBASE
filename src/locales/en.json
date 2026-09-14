@@ -877,6 +877,18 @@
     "checking": "Checking camera…",
     "done": "Camera checked"
   },
+  "live": {
+    "camera_on": "Camera on",
+    "watch_btn": "Watch live",
+    "watching": "Live: {{name}}",
+    "starting": "Connecting…",
+    "connecting": "Turning on camera…",
+    "offline": "User is not live now (app not open or no camera)",
+    "error": "Could not connect",
+    "oneway_hint": "Only you see and hear — the user does not see you",
+    "mute": "Mute",
+    "unmute": "Unmute"
+  },
   "monitoring": {
     "tab": "Monitoring",
     "online_now": "Online now",

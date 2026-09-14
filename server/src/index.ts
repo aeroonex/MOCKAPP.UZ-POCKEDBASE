@@ -21,6 +21,7 @@ import { netRoutes } from "./routes/net.js";
 import { touchSession } from "./sessions.js";
 import { ttsRoutes } from "./routes/tts.js";
 import { startTtsWorker } from "./tts.js";
+import { rtcRoutes } from "./routes/rtc.js";
 import type { JwtPayload } from "./auth.js";
 import { startAllBots, startVideoCleanupJob, stopAllBots } from "./bot.js";
 
@@ -119,6 +120,7 @@ async function main() {
   await app.register(statsRoutes);
   await app.register(netRoutes);
   await app.register(ttsRoutes);
+  await app.register(rtcRoutes);
   startTtsWorker();
 
   app.setErrorHandler((err: Error & { statusCode?: number }, _req, reply) => {

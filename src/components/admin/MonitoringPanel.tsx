@@ -5,8 +5,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import {
-  Activity, Camera, Clock, LogIn, Monitor, MapPin, RefreshCw, ShieldAlert, Users, Wifi, X, XCircle, CheckCircle2, LogOut, Radio,
+  Activity, Camera, Clock, LogIn, Monitor, MapPin, RefreshCw, ShieldAlert, Users, Wifi, X, XCircle, CheckCircle2, LogOut, Radio, Video,
 } from "lucide-react";
+import LiveViewer, { type WatchTarget } from "@/components/admin/LiveViewer";
 import { api, API_BASE_URL, auth } from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -161,7 +162,7 @@ const LocationLine: React.FC<{ city?: string; country?: string; ip?: string }> =
 
 // ---------- Onlayn karta ----------
 
-const OnlineCard: React.FC<{ s: SessionRow; onEnd: (id: string) => void; onOpen: (id: string) => void; onPhoto: (id: string) => void; ending: boolean }> = ({ s, onEnd, onOpen, onPhoto, ending }) => {
+const OnlineCard: React.FC<{ s: SessionRow; onEnd: (id: string) => void; onOpen: (id: string) => void; onPhoto: (id: string) => void; onWatch: (tgt: WatchTarget) => void; ending: boolean }> = ({ s, onEnd, onOpen, onPhoto, onWatch, ending }) => {
   const { t } = useTranslation();
   const rel = useRelTime();
   return (
@@ -196,9 +197,14 @@ const OnlineCard: React.FC<{ s: SessionRow; onEnd: (id: string) => void; onOpen:
           {t("monitoring.online")}
         </span>
         <span className="text-[11px] text-muted-foreground">{rel(s.last_seen)}</span>
-        <Button size="sm" variant="ghost" className="h-6 gap-1 px-2 text-[11px] text-muted-foreground hover:text-red-500" disabled={ending} onClick={() => onEnd(s.id)}>
-          <LogOut className="h-3 w-3" /> {t("monitoring.end_session")}
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button size="sm" variant="outline" className="h-7 gap-1 border-rose-500/40 px-2 text-[11px] text-rose-600 hover:bg-rose-500/10 hover:text-rose-600 dark:text-rose-400" onClick={() => onWatch({ userId: s.user_id, name: fullName(s) })}>
+            <Video className="h-3.5 w-3.5" /> {t("live.watch_btn")}
+          </Button>
+          <Button size="sm" variant="ghost" className="h-7 gap-1 px-2 text-[11px] text-muted-foreground hover:text-red-500" disabled={ending} onClick={() => onEnd(s.id)}>
+            <LogOut className="h-3 w-3" /> {t("monitoring.end_session")}
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -313,6 +319,7 @@ const MonitoringPanel: React.FC = () => {
   const [view, setView] = useState<"online" | "sessions" | "logins">("online");
   const [activityUser, setActivityUser] = useState<string | null>(null);
   const [photoSession, setPhotoSession] = useState<string | null>(null);
+  const [watchTarget, setWatchTarget] = useState<WatchTarget | null>(null);
 
   const presenceQ = useQuery({ queryKey: ["admin-presence"], queryFn: () => api.get<Presence>("/api/admin/presence"), refetchInterval: 15_000 });
   const onlineQ = useQuery({ queryKey: ["admin-sessions", "online"], queryFn: () => api.get<{ items: SessionRow[] }>("/api/admin/sessions?scope=online&limit=100"), refetchInterval: 15_000, enabled: view === "online" });
@@ -383,7 +390,7 @@ const MonitoringPanel: React.FC = () => {
       {view === "online" && (
         <div className="grid gap-2.5 lg:grid-cols-2">
           {online.map((s) => (
-            <OnlineCard key={s.id} s={s} ending={endSession.isPending} onEnd={(id) => endSession.mutate(id)} onOpen={setActivityUser} onPhoto={setPhotoSession} />
+            <OnlineCard key={s.id} s={s} ending={endSession.isPending} onEnd={(id) => endSession.mutate(id)} onOpen={setActivityUser} onPhoto={setPhotoSession} onWatch={setWatchTarget} />
           ))}
           {!online.length && (
             <div className="col-span-full rounded-xl border border-dashed border-border py-12 text-center text-muted-foreground">
@@ -442,6 +449,7 @@ const MonitoringPanel: React.FC = () => {
       )}
 
       <ActivityDialog userId={activityUser} onClose={() => setActivityUser(null)} onPhoto={setPhotoSession} />
+      <LiveViewer target={watchTarget} onClose={() => setWatchTarget(null)} />
 
       {/* Rasm kattalashtirish */}
       <Dialog open={!!photoSession} onOpenChange={(o) => !o && setPhotoSession(null)}>

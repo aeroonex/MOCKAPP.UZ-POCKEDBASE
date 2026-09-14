@@ -32,6 +32,23 @@ server {
         return 200 "ok";
     }
 
+    # ---- Jonli kuzatuv signalizatsiyasi (SSE) — buferlashsiz, uzun yashaydigan ----
+    location /api/rtc/stream {
+        proxy_pass         http://${API_UPSTREAM};
+        proxy_http_version 1.1;
+        proxy_set_header   Host              $host;
+        proxy_set_header   X-Real-IP         $remote_addr;
+        proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto $scheme;
+        proxy_set_header   CF-Connecting-IP  $http_cf_connecting_ip;
+        proxy_set_header   CF-IPCountry      $http_cf_ipcountry;
+        proxy_set_header   Connection        "";
+        proxy_buffering    off;
+        proxy_cache        off;
+        proxy_read_timeout 3600s;
+        chunked_transfer_encoding off;
+    }
+
     # ---- API (Fastify) ----
     location /api/ {
         proxy_pass         http://${API_UPSTREAM};
