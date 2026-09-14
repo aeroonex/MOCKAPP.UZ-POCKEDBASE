@@ -80,11 +80,11 @@ const CountdownBar: React.FC<{ label?: string; phase: TestPhase; countdown: numb
 const QuestionCard: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => (
   <div
     className={cn(
-      "flex min-h-[140px] items-center justify-center rounded-xl border border-border bg-muted/40 p-6 text-center sm:min-h-[160px] sm:p-8",
+      "flex items-center justify-center rounded-xl border border-border bg-muted/40 px-5 py-4 text-center sm:px-6 sm:py-5",
       className,
     )}
   >
-    <p className="text-2xl font-semibold leading-snug text-foreground sm:text-3xl">{children}</p>
+    <p className="text-xl font-semibold leading-snug text-foreground sm:text-2xl">{children}</p>
   </div>
 );
 
