@@ -40,6 +40,8 @@ export interface JwtPayload {
   role: "user" | "developer";
   /** Imtihon stansiyasi (cefr.*) tokeni — faqat mock test / yozuvlar / o'quvchi qidiruvi */
   station?: boolean;
+  /** Kirish sessiyasi id (auth_sessions) — nazorat paneli uchun */
+  sid?: string;
 }
 
 export interface AuthUserRow {

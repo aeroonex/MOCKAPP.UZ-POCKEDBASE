@@ -40,6 +40,9 @@ server {
         proxy_set_header   X-Real-IP         $remote_addr;
         proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
         proxy_set_header   X-Forwarded-Proto $scheme;
+        # Cloudflare: haqiqiy IP va davlat (nazorat paneli uchun)
+        proxy_set_header   CF-Connecting-IP  $http_cf_connecting_ip;
+        proxy_set_header   CF-IPCountry      $http_cf_ipcountry;
 
         # Katta video yuklash: 2 GB, buferlashsiz oqim
         client_max_body_size     2100m;

@@ -1,7 +1,9 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { one, query } from "../db.js";
-import { hashPassword, publicUser, requireAdmin, USER_COLUMNS, type AuthUserRow } from "../auth.js";
+import { hashPassword, publicUser, requireAdmin, userId, USER_COLUMNS, type AuthUserRow } from "../auth.js";
+import { createReadStream, existsSync } from "node:fs";
+import { loginPhotoAbs } from "../sessions.js";
 
 const updateUserSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(254).optional(),
@@ -89,5 +91,94 @@ export async function adminRoutes(app: FastifyInstance) {
       recordings: recordings?.n ?? 0,
       storage_used_bytes: Number(recordings?.bytes ?? 0),
     };
+  });
+
+  // ---------- Nazorat: sessiyalar, onlayn holati, kirish tarixi ----------
+
+  // "Onlayn" — oxirgi faollik shu davr ichida bo'lsa (soniya)
+  const ONLINE_WINDOW = "5 minutes";
+
+  const SESSION_SELECT = `
+    SELECT s.id, s.user_id, s.panel, s.ip, s.device, s.country, s.city,
+           s.login_at, s.last_seen, s.ended_at, s.requests, (s.photo_path <> '') AS has_photo,
+           u.email, u.username, u.first_name, u.last_name, u.role, u.blocked,
+           (s.ended_at IS NULL AND s.last_seen > now() - interval '${ONLINE_WINDOW}') AS online
+    FROM auth_sessions s JOIN users u ON u.id = s.user_id`;
+
+  // Umumiy holat: hozir onlayn, bugun kirganlar, panellar bo'yicha
+  app.get("/api/admin/presence", { preHandler: requireAdmin }, async () => {
+    const online = await one<{ n: number }>(
+      `SELECT COUNT(DISTINCT user_id)::int AS n FROM auth_sessions WHERE ended_at IS NULL AND last_seen > now() - interval '${ONLINE_WINDOW}'`,
+    );
+    const byPanel = await query<{ panel: string; n: number }>(
+      `SELECT panel, COUNT(DISTINCT user_id)::int AS n FROM auth_sessions WHERE ended_at IS NULL AND last_seen > now() - interval '${ONLINE_WINDOW}' GROUP BY panel`,
+    );
+    const today = await one<{ n: number }>("SELECT COUNT(*)::int AS n FROM login_events WHERE success AND created > date_trunc('day', now())");
+    const failed = await one<{ n: number }>("SELECT COUNT(*)::int AS n FROM login_events WHERE NOT success AND created > now() - interval '24 hours'");
+    return {
+      online: online?.n ?? 0,
+      by_panel: Object.fromEntries(byPanel.map((r) => [r.panel, r.n])),
+      logins_today: today?.n ?? 0,
+      failed_24h: failed?.n ?? 0,
+    };
+  });
+
+  // Sessiyalar ro'yxati: onlaynlar tepada, keyin oxirgilar
+  app.get("/api/admin/sessions", { preHandler: requireAdmin }, async (req) => {
+    const q = req.query as { scope?: string; limit?: string };
+    const limit = Math.min(200, Math.max(1, Number(q.limit) || 80));
+    const onlyOnline = q.scope === "online";
+    const where = onlyOnline ? `WHERE s.ended_at IS NULL AND s.last_seen > now() - interval '${ONLINE_WINDOW}'` : "";
+    const rows = await query(`${SESSION_SELECT} ${where} ORDER BY online DESC, s.last_seen DESC LIMIT $1`, [limit]);
+    return { items: rows };
+  });
+
+  // Bitta foydalanuvchining to'liq faolligi: profil, sessiyalar, kirish tarixi
+  app.get("/api/admin/users/:id/activity", { preHandler: requireAdmin }, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const user = await one(
+      `SELECT ${USER_COLUMNS}, last_login_at, last_seen_at, last_login_ip, login_count FROM users WHERE id = $1`,
+      [id],
+    );
+    if (!user) return reply.code(404).send({ code: 404, message: "Not found" });
+    const sessions = await query(`${SESSION_SELECT} WHERE s.user_id = $1 ORDER BY s.last_seen DESC LIMIT 50`, [id]);
+    const logins = await query(
+      `SELECT id, success, reason, panel, ip, device, country, city, created, (photo_path <> '') AS has_photo
+       FROM login_events WHERE user_id = $1 ORDER BY created DESC LIMIT 50`,
+      [id],
+    );
+    return { user, sessions, logins };
+  });
+
+  // So'nggi kirish urinishlari (muvaffaqiyatsizlar ham) — xavfsizlik jurnali
+  app.get("/api/admin/login-events", { preHandler: requireAdmin }, async (req) => {
+    const q = req.query as { scope?: string; limit?: string };
+    const limit = Math.min(200, Math.max(1, Number(q.limit) || 60));
+    const where = q.scope === "failed" ? "WHERE NOT e.success" : "";
+    const rows = await query(
+      `SELECT e.id, e.user_id, e.identity, e.success, e.reason, e.panel, e.ip, e.device, e.country, e.city, e.created,
+              (e.photo_path <> '') AS has_photo, u.email, u.username, u.first_name, u.last_name
+       FROM login_events e LEFT JOIN users u ON u.id = e.user_id ${where}
+       ORDER BY e.created DESC LIMIT $1`,
+      [limit],
+    );
+    return { items: rows };
+  });
+
+  // Kirishda olingan kamera kadri (sessiya id bo'yicha) — faqat admin
+  app.get("/api/admin/sessions/:id/photo", { preHandler: requireAdmin }, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const row = await one<{ photo_path: string }>("SELECT photo_path FROM auth_sessions WHERE id = $1", [id]);
+    if (!row?.photo_path) return reply.code(404).send({ code: 404, message: "No photo" });
+    const abs = loginPhotoAbs(row.photo_path);
+    if (!existsSync(abs)) return reply.code(404).send({ code: 404, message: "No file" });
+    return reply.header("Content-Type", "image/jpeg").header("Cache-Control", "private, max-age=3600").send(createReadStream(abs));
+  });
+
+  // Sessiyani majburan yopish (chiqarib yuborish emas — belgilash; token muddati bilan tugaydi)
+  app.post("/api/admin/sessions/:id/end", { preHandler: requireAdmin }, async (req) => {
+    const { id } = req.params as { id: string };
+    await query("UPDATE auth_sessions SET ended_at = now() WHERE id = $1", [id]);
+    return { ok: true };
   });
 }

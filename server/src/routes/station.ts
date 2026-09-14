@@ -3,6 +3,7 @@ import { z } from "zod";
 import { one, query } from "../db.js";
 import { publicUser, verifyPassword, USER_COLUMNS, type AuthUserRow, type JwtPayload } from "../auth.js";
 import { config } from "../config.js";
+import { recordLogin, recordFailedLogin } from "../sessions.js";
 
 const loginSchema = z.object({ password: z.string().min(1).max(200) });
 
@@ -26,14 +27,18 @@ export async function stationRoutes(app: FastifyInstance) {
         break;
       }
     }
-    if (!match) return reply.code(400).send({ code: 400, message: "Invalid password" });
+    if (!match) {
+      await recordFailedLogin(req, "stansiya", "station", "wrong_password");
+      return reply.code(400).send({ code: 400, message: "Invalid password" });
+    }
 
     const user = await one<AuthUserRow>(`SELECT ${USER_COLUMNS} FROM users WHERE id = $1`, [match.user_id]);
     if (!user || user.blocked) return reply.code(403).send({ code: 403, message: "Account is blocked" });
 
-    const token = await reply.jwtSign({ sub: user.id, role: "user", station: true } satisfies JwtPayload, {
+    const sessionId = await recordLogin(req, user.id, "station");
+    const token = await reply.jwtSign({ sub: user.id, role: "user", station: true, sid: sessionId } satisfies JwtPayload, {
       expiresIn: config.stationTokenExpiresIn,
     });
-    return { token, record: publicUser(user), station: { center_name: match.center_name } };
+    return { token, record: publicUser(user), station: { center_name: match.center_name }, sessionId };
   });
 }

@@ -18,6 +18,7 @@ import { stationRoutes } from "./routes/station.js";
 import { billingRoutes } from "./routes/billing.js";
 import { statsRoutes } from "./routes/stats.js";
 import { netRoutes } from "./routes/net.js";
+import { touchSession } from "./sessions.js";
 import { ttsRoutes } from "./routes/tts.js";
 import { startTtsWorker } from "./tts.js";
 import type { JwtPayload } from "./auth.js";
@@ -74,6 +75,7 @@ async function main() {
     } catch {
       return; // yaroqsiz token — marshrutning o'zi 401 qaytaradi
     }
+    touchSession(payload.sub);
     if (payload.role === "developer") return;
     const u = await one<{ blocked: boolean; paid_until: Date | null; role: string }>("SELECT blocked, paid_until, role FROM users WHERE id = $1", [payload.sub]);
     if (!u || u.role === "developer") return;

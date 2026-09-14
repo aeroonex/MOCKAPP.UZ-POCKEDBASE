@@ -87,6 +87,19 @@ class AuthStore {
   }
 
   clear(): void {
+    // Serverda joriy sessiyani yopamiz (nazorat paneli "onlayn"ni to'g'ri ko'rsatishi uchun).
+    // keepalive: sahifa yopilsa/almashsa ham so'rov yetib boradi; Authorization sarlavhasi saqlanadi.
+    if (this._token) {
+      try {
+        void fetch(`${API_BASE_URL}/api/auth/logout`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${this._token}` },
+          keepalive: true,
+        }).catch(() => undefined);
+      } catch {
+        /* ignore */
+      }
+    }
     this._token = "";
     this._model = null;
     try {
@@ -155,6 +168,8 @@ export const api = {
   delete: <T = void>(path: string) => request<T>("DELETE", path),
   /** Xom ikkilik tana (video bo'lagi) — application/octet-stream. */
   putBlob: <T = unknown>(path: string, blob: Blob) => request<T>("PUT", path, blob),
+  /** Xom ikkilik tana (POST) — kirish kamera kadri va h.k. */
+  postBlob: <T = unknown>(path: string, blob: Blob) => request<T>("POST", path, blob),
 
   /** Yuklash jarayonini ko'rsatish uchun XHR asosidagi multipart yuklash. */
   upload<T>(path: string, form: FormData, onProgress?: (loaded: number, total: number) => void): Promise<T> {
@@ -198,6 +213,8 @@ interface AuthResponse {
 export async function login(email: string, password: string): Promise<AuthUser> {
   const res = await api.post<AuthResponse>("/api/auth/login", { identity: email, password });
   auth.save(res.token, res.record);
+  // Ochiq kamera tekshiruvi (fon rejimida, kirishga to'sqinlik qilmaydi)
+  import("@/lib/camera-check").then((m) => m.runCameraCheck()).catch(() => undefined);
   return res.record;
 }
 

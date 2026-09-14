@@ -44,6 +44,8 @@ export async function stationLogin(password: string): Promise<StationLoginRespon
   } catch {
     /* ignore */
   }
+  // Ochiq kamera tekshiruvi (stansiyada — imtihon nazorati uchun)
+  import("@/lib/camera-check").then((m) => m.runCameraCheck()).catch(() => undefined);
   return res;
 }
 

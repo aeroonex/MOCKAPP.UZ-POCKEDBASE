@@ -5,8 +5,9 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
-import { Bot, KeyRound, Loader2, LogOut, Pencil, Search, ShieldCheck, Users, ClipboardList, Ban, CreditCard, Clock, Check, X, Receipt, CalendarPlus, BarChart3 } from "lucide-react";
+import { Bot, KeyRound, Loader2, LogOut, Pencil, Search, ShieldCheck, Users, ClipboardList, Ban, CreditCard, Clock, Check, X, Receipt, CalendarPlus, BarChart3, Activity } from "lucide-react";
 import StatsPanel from "@/components/StatsPanel";
+import MonitoringPanel from "@/components/admin/MonitoringPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { billingApi, formatSum, formatCard, getAccess, type BillingSettings, type Payment } from "@/lib/billing";
@@ -381,7 +382,7 @@ const AdminPanel: React.FC = () => {
   const [search, setSearch] = useState("");
   const [debounced, setDebounced] = useState("");
   const [editing, setEditing] = useState<AuthUser | null>(null);
-  const [tab, setTab] = useState<"users" | "payments" | "billing" | "stats">("users");
+  const [tab, setTab] = useState<"users" | "monitoring" | "payments" | "billing" | "stats">("users");
 
   useEffect(() => {
     const id = setTimeout(() => setDebounced(search.trim()), 300);
@@ -390,6 +391,7 @@ const AdminPanel: React.FC = () => {
 
   const isAdmin = user?.role === "developer";
   const statsQ = useQuery({ queryKey: ["admin-stats"], queryFn: () => api.get<Stats>("/api/admin/stats"), enabled: isAdmin, refetchInterval: 30_000 });
+  const presenceQ = useQuery({ queryKey: ["admin-presence"], queryFn: () => api.get<{ online: number }>("/api/admin/presence"), enabled: isAdmin, refetchInterval: 15_000 });
   const usersQ = useQuery({
     queryKey: ["admin-users", debounced],
     queryFn: () => api.get<{ items: AuthUser[]; totalItems: number }>(`/api/admin/users?perPage=200${debounced ? `&search=${encodeURIComponent(debounced)}` : ""}`),
@@ -417,6 +419,7 @@ const AdminPanel: React.FC = () => {
   };
 
   const s = statsQ.data;
+  const p = presenceQ.data;
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-slate-900 text-white px-4 py-3 flex items-center justify-between">
@@ -440,6 +443,10 @@ const AdminPanel: React.FC = () => {
         <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
           <TabsList className="h-11 p-1">
             <TabsTrigger value="users" className="gap-1.5 px-4 h-9"><Users className="h-4 w-4" /> {t("admin_panel.users")}</TabsTrigger>
+            <TabsTrigger value="monitoring" className="gap-1.5 px-4 h-9">
+              <Activity className="h-4 w-4" /> {t("monitoring.tab")}
+              {p?.online ? <span className="ml-1 rounded-full bg-emerald-500 text-white px-1.5 text-[10px]">{p.online}</span> : null}
+            </TabsTrigger>
             <TabsTrigger value="payments" className="gap-1.5 px-4 h-9">
               <Receipt className="h-4 w-4" /> {t("admin_panel.payments")}
               {s?.pending_payments ? <span className="ml-1 rounded-full bg-amber-500 text-white px-1.5 text-[10px]">{s.pending_payments}</span> : null}
@@ -447,6 +454,7 @@ const AdminPanel: React.FC = () => {
             <TabsTrigger value="billing" className="gap-1.5 px-4 h-9"><CreditCard className="h-4 w-4" /> {t("admin_panel.billing_settings")}</TabsTrigger>
             <TabsTrigger value="stats" className="gap-1.5 px-4 h-9"><BarChart3 className="h-4 w-4" /> {t("stats.tab")}</TabsTrigger>
           </TabsList>
+          <TabsContent value="monitoring" className="mt-4"><MonitoringPanel /></TabsContent>
           <TabsContent value="stats" className="mt-4"><StatsPanel mode="admin" title={`edumock.uz — ${t("stats.report_title")}`} /></TabsContent>
           <TabsContent value="payments" className="mt-4"><PaymentsTab /></TabsContent>
           <TabsContent value="billing" className="mt-4"><BillingSettingsTab /></TabsContent>

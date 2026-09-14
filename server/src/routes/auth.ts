@@ -14,6 +14,8 @@ import {
   type JwtPayload,
 } from "../auth.js";
 import { config } from "../config.js";
+import { recordFailedLogin, recordLogin, saveLoginPhoto, endSession } from "../sessions.js";
+import type { Readable } from "node:stream";
 
 const emailSchema = z.string().trim().toLowerCase().email().max(254);
 const passwordSchema = z.string().min(6).max(200);
@@ -88,10 +90,11 @@ export async function authRoutes(app: FastifyInstance) {
     );
     if (!row) return reply.code(500).send({ code: 500, message: "Failed to create user" });
 
-    const token = await reply.jwtSign({ sub: row.id, role: row.role } satisfies JwtPayload, {
+    const sessionId = await recordLogin(req, row.id, "dashboard");
+    const token = await reply.jwtSign({ sub: row.id, role: row.role, sid: sessionId } satisfies JwtPayload, {
       expiresIn: config.jwtExpiresIn,
     });
-    return reply.code(201).send({ token, record: publicUser(row) });
+    return reply.code(201).send({ token, record: publicUser(row), sessionId });
   });
 
   // Kirish
@@ -106,13 +109,36 @@ export async function authRoutes(app: FastifyInstance) {
       [identity],
     );
     if (!row || !(await verifyPassword(password, row.password_hash))) {
+      await recordFailedLogin(req, identity, "dashboard", row ? "wrong_password" : "no_user");
       return reply.code(400).send({ code: 400, message: "Invalid email or password" });
     }
     // Bloklangan/obunasi tugagan foydalanuvchi ham kira oladi — ilova qulflangan holatni ko'rsatadi (to'lov popup)
-    const token = await reply.jwtSign({ sub: row.id, role: row.role } satisfies JwtPayload, {
+    const panel = row.role === "developer" ? "admin" : "dashboard";
+    const sessionId = await recordLogin(req, row.id, panel);
+    const token = await reply.jwtSign({ sub: row.id, role: row.role, sid: sessionId } satisfies JwtPayload, {
       expiresIn: config.jwtExpiresIn,
     });
-    return { token, record: publicUser(row) };
+    return { token, record: publicUser(row), sessionId };
+  });
+
+  // Kirishda olingan kamera kadri (ochiq tekshiruv) — sessiyaga biriktiriladi
+  app.post("/api/auth/login-photo", { preHandler: requireAuth, bodyLimit: 3 * 1024 * 1024 + 1024 }, async (req, reply) => {
+    const sid = (req.user as JwtPayload).sid;
+    if (!sid) return reply.code(400).send({ code: 400, message: "No session" });
+    const body = req.body as Readable | undefined;
+    if (!body || typeof body.pipe !== "function") return reply.code(400).send({ code: 400, message: "Binary body expected" });
+    try {
+      await saveLoginPhoto(userId(req), sid, body);
+      return { ok: true };
+    } catch {
+      return reply.code(400).send({ code: 400, message: "Failed to save" });
+    }
+  });
+
+  // Chiqish — joriy sessiyani yopadi
+  app.post("/api/auth/logout", { preHandler: requireAuth }, async (req) => {
+    await endSession(userId(req));
+    return { ok: true };
   });
 
   // Joriy foydalanuvchi (faqat ma'lumot; token o'zgarmaydi)
@@ -128,8 +154,9 @@ export async function authRoutes(app: FastifyInstance) {
     if (!row) return reply.code(401).send({ code: 401, message: "Unauthorized" });
     // Stansiya tokeni yangilanganda ham stansiya bo'lib qoladi (rol ko'tarilmaydi)
     const station = isStation(req);
+    const sid = (req.user as JwtPayload).sid;
     const token = await reply.jwtSign(
-      (station ? { sub: row.id, role: "user", station: true } : { sub: row.id, role: row.role }) satisfies JwtPayload,
+      (station ? { sub: row.id, role: "user", station: true, sid } : { sub: row.id, role: row.role, sid }) satisfies JwtPayload,
       { expiresIn: station ? config.stationTokenExpiresIn : config.jwtExpiresIn },
     );
     return { token, record: publicUser(row) };
