@@ -1,9 +1,17 @@
-import { Bot, InputFile } from "grammy";
+import { Bot, InlineKeyboard, InputFile } from "grammy";
 import { randomBytes } from "node:crypto";
 import fs from "node:fs";
 import { config } from "./config.js";
 import { one, query } from "./db.js";
 import { loginPhotoAbs } from "./sessions.js";
+import { reviewPayment } from "./routes/billing.js";
+
+const fmtSum = (n: number) => `${new Intl.NumberFormat("uz-UZ").format(n)} so'm`;
+const fmtDate = (d: Date | null | undefined) => {
+  if (!d) return "—";
+  const t = new Date(new Date(d).getTime() + 5 * 60 * 60 * 1000);
+  return `${String(t.getUTCDate()).padStart(2, "0")}.${String(t.getUTCMonth() + 1).padStart(2, "0")}.${t.getUTCFullYear()}`;
+};
 
 /**
  * Superadmin bildirishnoma boti: kim kirdi/chiqdi, kim yangi savol qo'shdi — login rasmlari bilan.
@@ -21,19 +29,22 @@ async function boundChats(): Promise<number[]> {
   return rows.map((r) => Number(r.chat_id));
 }
 
-/** Ulangan barcha admin chatlarga matn (ixtiyoriy rasm bilan) yuboradi. */
-export async function notifyAdmins(text: string, photoAbsPath?: string | null): Promise<void> {
+/** Ulangan barcha admin chatlarga matn (ixtiyoriy rasm/tugmalar bilan) yuboradi. */
+export async function notifyAdmins(
+  text: string,
+  opts?: { photoAbsPath?: string | null; docAbsPath?: string | null; keyboard?: InlineKeyboard },
+): Promise<void> {
   if (!bot) return;
   const chats = await boundChats();
   if (!chats.length) return;
-  const hasPhoto = photoAbsPath && fs.existsSync(photoAbsPath);
+  const photo = opts?.photoAbsPath && fs.existsSync(opts.photoAbsPath) ? opts.photoAbsPath : null;
+  const doc = opts?.docAbsPath && fs.existsSync(opts.docAbsPath) ? opts.docAbsPath : null;
   for (const chatId of chats) {
     try {
-      if (hasPhoto) {
-        await bot.api.sendPhoto(chatId, new InputFile(photoAbsPath!), { caption: text, parse_mode: "HTML" });
-      } else {
-        await bot.api.sendMessage(chatId, text, { parse_mode: "HTML", link_preview_options: { is_disabled: true } });
-      }
+      const extra = { parse_mode: "HTML" as const, reply_markup: opts?.keyboard };
+      if (photo) await bot.api.sendPhoto(chatId, new InputFile(photo), { caption: text, ...extra });
+      else if (doc) await bot.api.sendDocument(chatId, new InputFile(doc), { caption: text, ...extra });
+      else await bot.api.sendMessage(chatId, text, { ...extra, link_preview_options: { is_disabled: true } });
     } catch (e) {
       console.error("[admin-bot] yuborish xato:", e instanceof Error ? e.message : e);
     }
@@ -121,6 +132,30 @@ export async function startAdminBot(): Promise<void> {
       await ctx.reply(`<b>Hozir onlayn (${rows.length}):</b>\n\n${lines.join("\n")}`, { parse_mode: "HTML" });
     });
 
+    // To'lov tugmalari: Tasdiqlash / Rad etish
+    bot.on("callback_query:data", async (ctx) => {
+      const data = ctx.callbackQuery.data;
+      const m = /^pay:(a|r):(.+)$/.exec(data);
+      if (!m) return void ctx.answerCallbackQuery().catch(() => undefined);
+      const chatId = ctx.chat?.id;
+      if (!chatId || !(await one("SELECT 1 FROM admin_bot_chats WHERE chat_id = $1", [chatId]))) {
+        return void ctx.answerCallbackQuery({ text: "Ruxsat yo'q", show_alert: true }).catch(() => undefined);
+      }
+      const status = m[1] === "a" ? "approved" : "rejected";
+      const res = await reviewPayment(m[2], status, m[1] === "a" ? "Telegram orqali" : "Telegram orqali rad etildi", null).catch(() => ({ ok: false as const, reason: "not_found" as const }));
+      let note: string;
+      if (!res.ok) note = res.reason === "already" ? "⚠️ Bu to'lov allaqachon ko'rilgan." : "❌ Topilmadi.";
+      else if (status === "approved") note = `✅ <b>Tasdiqlandi</b> — obuna ${fmtDate(res.paidUntil)} gacha uzaytirildi.`;
+      else note = "❌ <b>Rad etildi.</b>";
+      await ctx.answerCallbackQuery({ text: res.ok ? "Bajarildi" : "Amalga oshmadi" }).catch(() => undefined);
+      // Xabar ostiga natijani qo'shamiz va tugmalarni olib tashlaymiz
+      const cap = ctx.callbackQuery.message && "caption" in ctx.callbackQuery.message ? ctx.callbackQuery.message.caption || "" : "";
+      await ctx.editMessageCaption({ caption: `${cap}\n\n${note}`, parse_mode: "HTML" }).catch(async () => {
+        await ctx.editMessageReplyMarkup({ reply_markup: undefined }).catch(() => undefined);
+        await ctx.reply(note, { parse_mode: "HTML" }).catch(() => undefined);
+      });
+    });
+
     bot.catch((err) => console.error("[admin-bot] xato:", err.error instanceof Error ? err.error.message : err.error));
     void bot.start({ onStart: () => console.log(`[admin-bot] ishga tushdi: @${botUsername}`) });
   } catch (e) {
@@ -154,7 +189,29 @@ async function sendLoginNotice(sessionId: string): Promise<void> {
     `🖥 ${esc(PANEL_UZ[s.panel] || s.panel)}\n` +
     `📍 ${esc(loc)}\n` +
     `💻 ${esc(s.device)}${s.ip ? ` · <code>${esc(s.ip)}</code>` : ""}`;
-  await notifyAdmins(text, s.photo_path ? loginPhotoAbs(s.photo_path) : null);
+  await notifyAdmins(text, { photoAbsPath: s.photo_path ? loginPhotoAbs(s.photo_path) : null });
+}
+
+/** Yangi to'lov keldi — chek (rasm/PDF) + Tasdiqlash/Rad etish tugmalari. */
+export function notifyNewPayment(info: {
+  paymentId: string;
+  userName: string;
+  email: string;
+  amount: number;
+  note: string;
+  receiptAbsPath: string;
+  isPdf: boolean;
+}): void {
+  if (!config.adminBotToken) return;
+  const text =
+    `💳 <b>Yangi to'lov</b>\n` +
+    `👤 ${esc(info.userName)}${info.email ? ` · ${esc(info.email)}` : ""}\n` +
+    `💰 <b>${esc(fmtSum(info.amount))}</b>` +
+    (info.note ? `\n📝 ${esc(info.note.slice(0, 200))}` : "");
+  const kb = new InlineKeyboard()
+    .text("✅ Tasdiqlash", `pay:a:${info.paymentId}`)
+    .text("❌ Rad etish", `pay:r:${info.paymentId}`);
+  void notifyAdmins(text, info.isPdf ? { docAbsPath: info.receiptAbsPath, keyboard: kb } : { photoAbsPath: info.receiptAbsPath, keyboard: kb }).catch(() => undefined);
 }
 
 /** Chiqish bildirishnomasi. */

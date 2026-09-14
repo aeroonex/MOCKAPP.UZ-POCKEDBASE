@@ -3,7 +3,8 @@ import { z } from "zod";
 import { one, query } from "../db.js";
 import { requireAdmin, requireAuth, requireFullAuth, userId, publicUser, USER_COLUMNS, type AuthUserRow } from "../auth.js";
 import { config } from "../config.js";
-import { FileTooLargeError, publicUrl, relPath, removeFile, streamToFile } from "../storage.js";
+import { FileTooLargeError, absPath, publicUrl, relPath, removeFile, streamToFile } from "../storage.js";
+import { notifyNewPayment } from "../admin-bot.js";
 
 export interface BillingSettingsRow {
   amount: number;
@@ -29,6 +30,35 @@ interface PaymentRow {
 }
 
 const PAY_COLS = "id, user_id, amount, receipt_path, note, status, admin_note, reviewed_at, paid_until_after, created";
+
+/**
+ * To'lovni tasdiqlash/rad etish (HTTP handler ham, Telegram bot ham ishlatadi).
+ * Tasdiqlashда paid_until = max(hozir, joriy) + period_days ga uzayadi.
+ */
+export async function reviewPayment(
+  id: string,
+  status: "approved" | "rejected",
+  adminNote: string,
+  reviewedBy: string | null,
+): Promise<{ ok: boolean; reason?: "not_found" | "already"; paidUntil?: Date | null; userId?: string }> {
+  const p = await one<PaymentRow>(`SELECT ${PAY_COLS} FROM payments WHERE id = $1`, [id]);
+  if (!p) return { ok: false, reason: "not_found" };
+  if (p.status !== "pending") return { ok: false, reason: "already" };
+  const st = await getBillingSettings();
+  let paidUntilAfter: Date | null = null;
+  if (status === "approved") {
+    const u = await one<{ paid_until: Date | null }>(
+      `UPDATE users SET paid_until = GREATEST(COALESCE(paid_until, now()), now()) + make_interval(days => $2) WHERE id = $1 RETURNING paid_until`,
+      [p.user_id, Number(st.period_days)],
+    );
+    paidUntilAfter = u?.paid_until ?? null;
+  }
+  await query(
+    `UPDATE payments SET status = $2, admin_note = $3, reviewed_at = now(), reviewed_by = $4, paid_until_after = $5 WHERE id = $1`,
+    [id, status, adminNote, reviewedBy, paidUntilAfter],
+  );
+  return { ok: true, paidUntil: paidUntilAfter, userId: p.user_id };
+}
 
 export async function getBillingSettings(): Promise<BillingSettingsRow> {
   const row = await one<BillingSettingsRow>("SELECT amount, card_number, card_holder, period_days, remind_days, note, updated FROM billing_settings WHERE id = 1");
@@ -128,6 +158,22 @@ export async function billingRoutes(app: FastifyInstance) {
       `INSERT INTO payments (user_id, amount, receipt_path, note) VALUES ($1, $2, $3, $4) RETURNING ${PAY_COLS}`,
       [uid, Number(st.amount), rel, (fields.note || "").slice(0, 500)],
     );
+    // Superadmin botiga chek + Tasdiqlash/Rad etish tugmalari bilan
+    void (async () => {
+      const u = await one<{ name: string; email: string; username: string }>(
+        "SELECT COALESCE(NULLIF(TRIM(first_name || ' ' || last_name), ''), username) AS name, email, username FROM users WHERE id = $1",
+        [uid],
+      ).catch(() => null);
+      notifyNewPayment({
+        paymentId: row!.id,
+        userName: u?.name || u?.username || "—",
+        email: u?.email || "",
+        amount: Number(row!.amount),
+        note: row!.note,
+        receiptAbsPath: absPath(rel!),
+        isPdf: rel!.endsWith(".pdf"),
+      });
+    })();
     return reply.code(201).send(paymentToClient(row!));
   });
 
@@ -170,22 +216,12 @@ export async function billingRoutes(app: FastifyInstance) {
     const { id } = req.params as { id: string };
     const parsed = reviewSchema.safeParse(req.body ?? {});
     if (!parsed.success) return reply.code(400).send({ code: 400, message: "Invalid input" });
-    const p = await one<PaymentRow>(`SELECT ${PAY_COLS} FROM payments WHERE id = $1`, [id]);
-    if (!p) return reply.code(404).send({ code: 404, message: "Not found" });
-    if (p.status !== "pending") return reply.code(409).send({ code: 409, message: "Already reviewed" });
-    const st = await getBillingSettings();
-    let paidUntilAfter: Date | null = null;
-    if (parsed.data.status === "approved") {
-      const u = await one<{ paid_until: Date | null }>(
-        `UPDATE users SET paid_until = GREATEST(COALESCE(paid_until, now()), now()) + make_interval(days => $2) WHERE id = $1 RETURNING paid_until`,
-        [p.user_id, Number(st.period_days)],
-      );
-      paidUntilAfter = u?.paid_until ?? null;
+    const res = await reviewPayment(id, parsed.data.status, parsed.data.admin_note, userId(req));
+    if (!res.ok) {
+      if (res.reason === "not_found") return reply.code(404).send({ code: 404, message: "Not found" });
+      return reply.code(409).send({ code: 409, message: "Already reviewed" });
     }
-    const row = await one<PaymentRow>(
-      `UPDATE payments SET status = $2, admin_note = $3, reviewed_at = now(), reviewed_by = $4, paid_until_after = $5 WHERE id = $1 RETURNING ${PAY_COLS}`,
-      [id, parsed.data.status, parsed.data.admin_note, userId(req), paidUntilAfter],
-    );
+    const row = await one<PaymentRow>(`SELECT ${PAY_COLS} FROM payments WHERE id = $1`, [id]);
     return paymentToClient(row!);
   });
 
