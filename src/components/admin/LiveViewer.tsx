@@ -74,14 +74,17 @@ const LiveViewer: React.FC<{ target: WatchTarget | null; onClose: () => void }> 
               v.srcObject = ev.streams[0];
               v.muted = true; // ijro kafolati uchun ovozsiz boshlanadi
               v.play().catch(() => undefined);
-              setState("live");
             }
           };
           pc.onicecandidate = (ev) => {
             if (ev.candidate && sourceConnId) void rtcSignal(sourceConnId, callId, "ice", ev.candidate.toJSON());
           };
-          pc.onconnectionstatechange = () => {
-            if (pc && ["failed", "disconnected", "closed"].includes(pc.connectionState) && !closed) setState("error");
+          // "LIVE" faqat media yo'li HAQIQATAN ulanganda ko'rsatiladi (aks holda qora ekran chalg'itmasin)
+          pc.oniceconnectionstatechange = () => {
+            if (!pc || closed) return;
+            const st = pc.iceConnectionState;
+            if (st === "connected" || st === "completed") setState("live");
+            else if (st === "failed") setState("error");
           };
           await pc.setRemoteDescription(e.data.data as RTCSessionDescriptionInit);
           const answer = await pc.createAnswer();

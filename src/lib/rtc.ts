@@ -8,12 +8,13 @@ import { API_BASE_URL, api, auth } from "@/lib/api";
 export const ICE_SERVERS: RTCIceServer[] = [
   { urls: "stun:stun.l.google.com:19302" },
   { urls: "stun:stun1.l.google.com:19302" },
-  { urls: "stun:stun2.l.google.com:19302" },
-  // Bepul ochiq TURN (relay) — turli tarmoqlar orasida P2P o'rnatilmasa media shu orqali o'tadi.
-  // Ishonchlilik uchun keyin o'z coturn serverimizni qo'yish mumkin.
-  { urls: "turn:openrelay.metered.ca:80", username: "openrelayproject", credential: "openrelayproject" },
-  { urls: "turn:openrelay.metered.ca:443", username: "openrelayproject", credential: "openrelayproject" },
-  { urls: "turn:openrelay.metered.ca:443?transport=tcp", username: "openrelayproject", credential: "openrelayproject" },
+  // O'z TURN (relay) serverimiz (coturn, 37.60.249.121:3478) — turli tarmoqlar orasida
+  // to'g'ridan-to'g'ri P2P o'rnatilmasa, media shu relay orqali o'tadi (qora ekran bo'lmasligi uchun).
+  {
+    urls: ["turn:37.60.249.121:3478?transport=udp", "turn:37.60.249.121:3478?transport=tcp"],
+    username: "edumock",
+    credential: "eduturn7x2p9qKmA3",
+  },
 ];
 
 export type RtcRole = "source" | "watcher";
