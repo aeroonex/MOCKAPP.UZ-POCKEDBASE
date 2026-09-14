@@ -134,7 +134,7 @@ async function synthesize(text: string, hash: string): Promise<string> {
   try {
     await run(config.piperBin, ["--model", modelPath(), "--output_file", wav, "--sentence_silence", "0.35"], `${text}\n`);
     await fsp.mkdir(path.dirname(abs), { recursive: true });
-    await run("ffmpeg", ["-y", "-loglevel", "error", "-i", wav, "-codec:a", "libmp3lame", "-b:a", "64k", "-ar", "22050", "-ac", "1", `${abs}.part`]);
+    await run("ffmpeg", ["-y", "-loglevel", "error", "-i", wav, "-codec:a", "libmp3lame", "-b:a", "64k", "-ar", "22050", "-ac", "1", "-f", "mp3", `${abs}.part`]);
     await fsp.rename(`${abs}.part`, abs);
     await query(
       `INSERT INTO tts_audio (hash, voice, text, path) VALUES ($1, $2, $3, $4)
