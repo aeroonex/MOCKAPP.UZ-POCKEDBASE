@@ -46,6 +46,10 @@ export const config = {
   // Imtihon stansiyasi manzili (parol bilan kiriladigan qisqartirilgan interfeys)
   stationBaseUrl: (env.STATION_BASE_URL?.trim() || "https://cefr.edumock.uz").replace(/[/]+$/, ""),
   stationTokenExpiresIn: env.STATION_TOKEN_EXPIRES_IN?.trim() || "12h",
+  /** Piper TTS ("imtihonchi ovozi"): binar va ovoz modeli; topilmasa mijoz brauzer TTS'iga qaytadi */
+  piperBin: env.PIPER_BIN?.trim() || "/opt/piper/piper",
+  piperVoiceDir: env.PIPER_VOICE_DIR?.trim() || "/opt/piper/voices",
+  piperVoice: env.PIPER_VOICE?.trim() || "en_US-lessac-medium",
 } as const;
 
 if (config.jwtSecret.length < 32) {

@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { showSuccess, showError } from "@/utils/toast";
-import { speakText } from "@/utils/audioUtils";
+import { speakText, stopSpeaking, preloadAudio } from "@/utils/audioUtils";
+import { api } from "@/lib/api";
 import {
   SpeakingQuestion,
   SpeakingPart,
@@ -70,6 +71,9 @@ export const useMockTestLogic = ({
 
   const countdownIntervalRef = useRef<number | null>(null);
   const activeCountdownPhaseRef = useRef<TestPhase | null>(null);
+  // Serverda tayyorlangan doimiy iboralar ("Part two is finished." va h.k.) — kalit -> URL
+  const phrasesRef = useRef<Record<string, string | null>>({});
+  const phraseUrl = (key: string) => phrasesRef.current[key] ?? null;
   const { t } = useTranslation();
   const { user } = useAuth(); // useAuth hookidan user olindi
 
@@ -207,7 +211,7 @@ export const useMockTestLogic = ({
         }
       };
     } else if (currentPhase === "part_finished_announcement") {
-      speakText(`${allSpeakingParts[currentPartIndex]} ${t("add_question_page.part_finished")}`, 'en-US');
+      speakText(`${allSpeakingParts[currentPartIndex]} ${t("add_question_page.part_finished")}`, 'en-US', phraseUrl(`finished:${allSpeakingParts[currentPartIndex]}`));
       duration = TIMINGS.ANNOUNCEMENT_DELAY;
       nextAction = () => {
         setCurrentPartIndex(prev => prev + 1);
@@ -218,7 +222,7 @@ export const useMockTestLogic = ({
     } else if (currentPhase === "next_part_announcement") {
       const nextPartName = allSpeakingParts[currentPartIndex];
       if (nextPartName) {
-        speakText(nextPartName, 'en-US');
+        speakText(nextPartName, 'en-US', phraseUrl(`part:${nextPartName}`));
         duration = TIMINGS.ANNOUNCEMENT_SPEAK_DURATION;
         nextAction = () => {
           if (questions[nextPartName]?.length > 0) {
@@ -293,11 +297,11 @@ export const useMockTestLogic = ({
 
     if (currentPhase === "reading_question" && (currentQ.type === "Part 1.1" || currentQ.type === "Part 1.2")) {
       const textToSpeak = (currentQ as Part1_1Question | Part1_2Question).sub_questions[currentSubQuestionIndex];
-      if (textToSpeak) speakText(textToSpeak, 'en-US');
+      if (textToSpeak) speakText(textToSpeak, 'en-US', currentQ.tts?.sub_questions?.[currentSubQuestionIndex] ?? null);
     } else if (currentPhase === "preparation" && (currentQ.type === "Part 2" || currentQ.type === "Part 3")) {
-      speakText((currentQ as Part2Question | Part3Question).question_text, 'en-US');
+      speakText((currentQ as Part2Question | Part3Question).question_text, 'en-US', currentQ.tts?.question_text ?? null);
     } else if (currentPhase === "speaking" && currentQ.type === "Part 2") {
-      speakText(t("add_question_page.speak_text"), 'en-US');
+      speakText(t("add_question_page.speak_text"), 'en-US', phraseUrl("speak"));
     }
   }, [isTestStarted, currentPhase, currentSubQuestionIndex, getCurrentQuestion, t]);
 
@@ -346,11 +350,16 @@ export const useMockTestLogic = ({
           missingParts.push(`${part} (kerak: ${minQuestions[part]}, mavjud: ${allPart1_1SubQuestions.length})`);
         } else {
           const selectedSubQuestions = getRandomElements(allPart1_1SubQuestions, minQuestions[part]);
-          const finalPart1_1Questions: Part1_1Question[] = selectedSubQuestions.map(item => ({
-            ...item.originalQuestion,
-            id: item.questionId,
-            sub_questions: [item.subQuestion],
-          }));
+          const finalPart1_1Questions: Part1_1Question[] = selectedSubQuestions.map(item => {
+            const idx = item.originalQuestion.sub_questions.indexOf(item.subQuestion);
+            const ttsUrl = item.originalQuestion.tts?.sub_questions?.[idx] ?? null;
+            return {
+              ...item.originalQuestion,
+              id: item.questionId,
+              sub_questions: [item.subQuestion],
+              tts: { ...item.originalQuestion.tts, sub_questions: [ttsUrl] },
+            };
+          });
           selectedQuestionsForTest[part] = finalPart1_1Questions;
         }
       } else if (eligibleQuestions.length < minQuestions[part]) {
@@ -396,6 +405,20 @@ export const useMockTestLogic = ({
       }
     }
 
+    // Imtihonchi ovozi: doimiy iboralar va tanlangan savollarning MP3'larini oldindan yuklaymiz
+    try {
+      const res = await api.get<{ phrases: Record<string, string | null> }>("/api/tts/phrases");
+      phrasesRef.current = res?.phrases ?? {};
+    } catch {
+      phrasesRef.current = {};
+    }
+    const urls: Array<string | null | undefined> = Object.values(phrasesRef.current);
+    for (const q of Object.values(selectedQuestionsForTest).flat()) {
+      // Part 1.1 da tanlangan bitta sub-savol uchun asl indeks saqlanmaydi — barcha ovozlar yuklanadi
+      urls.push(...(q.tts?.sub_questions ?? []), q.tts?.question_text);
+    }
+    preloadAudio(urls);
+
     setQuestions(selectedQuestionsForTest);
     setIsStudentInfoFormOpen(true);
   };
@@ -435,6 +458,7 @@ export const useMockTestLogic = ({
   };
 
   const handleEndTest = () => {
+    stopSpeaking();
     stopAllStreams();
     setIsTestStarted(false);
     setCurrentPhase("finished");
@@ -448,6 +472,7 @@ export const useMockTestLogic = ({
   };
 
   const handleResetTest = () => {
+    stopSpeaking();
     setIsTestStarted(false);
     setCurrentPhase("idle");
     setStudentInfo(null);

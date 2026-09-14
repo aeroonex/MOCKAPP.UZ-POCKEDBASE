@@ -9,6 +9,8 @@ export interface BaseSpeakingQuestion {
   last_used?: string; // ISO string
   type: SpeakingPart;
   isSimilar?: boolean; // Yangi: Savolning o'xshashligini belgilash uchun
+  /** Serverda oldindan tayyorlangan ovozlar (Piper); null — hali yo'q, brauzer TTS ishlatiladi */
+  tts?: { sub_questions?: (string | null)[]; question_text?: string | null };
 }
 
 export interface Part1_1Question extends BaseSpeakingQuestion {

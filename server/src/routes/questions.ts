@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { one, query } from "../db.js";
 import { requireAuth, requireFullAuth, userId, type JwtPayload } from "../auth.js";
+import { enqueueTts, ttsForQuestion } from "../tts.js";
 
 const PARTS = ["Part 1.1", "Part 1.2", "Part 2", "Part 3"] as const;
 
@@ -34,6 +35,8 @@ function toClient(q: QuestionRow) {
     image_urls: q.image_urls ?? [],
     date: q.date,
     last_used: q.last_used,
+    // Oldindan sintez qilingan ovozlar (Piper); null — hali tayyor emas, mijoz brauzer TTS'iga qaytadi
+    tts: ttsForQuestion(q),
   };
 }
 
@@ -97,6 +100,7 @@ export async function questionRoutes(app: FastifyInstance) {
        VALUES ($1, $2, $3::jsonb, $4, $5::jsonb) RETURNING ${COLS}`,
       [userId(req), b.type, JSON.stringify(b.sub_questions), b.question_text, JSON.stringify(b.image_urls)],
     );
+    enqueueTts([...b.sub_questions, b.question_text]);
     return reply.code(201).send(toClient(row!));
   });
 
@@ -125,6 +129,7 @@ export async function questionRoutes(app: FastifyInstance) {
       `UPDATE questions SET ${sets.join(", ")} WHERE id = $1 AND user_id = $2 RETURNING ${COLS}`,
       params,
     );
+    if (row) enqueueTts([...(row.sub_questions ?? []), row.question_text]);
     return row ? toClient(row) : reply.code(404).send({ code: 404, message: "Not found" });
   });
 

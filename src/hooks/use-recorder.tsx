@@ -47,6 +47,7 @@ export const useRecorder = () => {
   const micStreamRef = useRef<MediaStream | null>(null);
   const webcamStreamRef = useRef<MediaStream | null>(null);
   const compositorRef = useRef<ExamCompositor | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
   const uploaderRef = useRef<ChunkUploader | null>(null);
   const overlayRef = useRef<OverlayState | null>(null);
   const startTimeRef = useRef<number>(0);
@@ -69,6 +70,9 @@ export const useRecorder = () => {
     micStreamRef.current = null;
     compositorRef.current?.stop();
     compositorRef.current = null;
+    recorderState.audioMix = null;
+    audioCtxRef.current?.close().catch(() => undefined);
+    audioCtxRef.current = null;
     recorderState.isRecording = false;
     setIsRecording(false);
   }, [clearRecordingTimeout]);
@@ -148,9 +152,17 @@ export const useRecorder = () => {
       compositorRef.current = compositor;
       const canvasStream = compositor.start();
 
+      // Audio aralashmasi: mikrofon + (savol ovozi, speakText orqali) -> bitta trek
+      const audioCtx = new AudioContext();
+      await audioCtx.resume().catch(() => undefined);
+      const sink = audioCtx.createMediaStreamDestination();
+      audioCtx.createMediaStreamSource(micStream).connect(sink);
+      recorderState.audioMix = { ctx: audioCtx, sink };
+      audioCtxRef.current = audioCtx;
+
       const combinedStream = new MediaStream([
         ...canvasStream.getVideoTracks(),
-        ...micStream.getAudioTracks(),
+        ...sink.stream.getAudioTracks(),
       ]);
 
       // Oqim bilan yuklash: tizimga kirgan har qanday hisobda — ro'yxatdagi ham, qo'lda kiritilgan o'quvchi ham

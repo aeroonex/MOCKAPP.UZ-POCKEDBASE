@@ -18,6 +18,8 @@ import { stationRoutes } from "./routes/station.js";
 import { billingRoutes } from "./routes/billing.js";
 import { statsRoutes } from "./routes/stats.js";
 import { netRoutes } from "./routes/net.js";
+import { ttsRoutes } from "./routes/tts.js";
+import { startTtsWorker } from "./tts.js";
 import type { JwtPayload } from "./auth.js";
 import { startAllBots, startVideoCleanupJob, stopAllBots } from "./bot.js";
 
@@ -61,7 +63,7 @@ async function main() {
 
   // Obuna tekshiruvi: bloklangan yoki muddati tugagan foydalanuvchi (developer emas) uchun
   // faqat kirish/billing/sozlamalar endpointlari ochiq, qolganlari 402 (Payment Required).
-  const OPEN_PREFIXES = ["/api/auth/", "/api/billing", "/api/health", "/api/net/", "/api/station/", "/api/registrations/settings", "/files/"];
+  const OPEN_PREFIXES = ["/api/auth/", "/api/billing", "/api/health", "/api/net/", "/api/tts/phrases", "/api/tts/status", "/api/station/", "/api/registrations/settings", "/files/"];
   app.addHook("preHandler", async (req, reply) => {
     const url = req.url.split("?")[0];
     if (!url.startsWith("/api/") || OPEN_PREFIXES.some((p) => url.startsWith(p))) return;
@@ -114,6 +116,8 @@ async function main() {
   await app.register(billingRoutes);
   await app.register(statsRoutes);
   await app.register(netRoutes);
+  await app.register(ttsRoutes);
+  startTtsWorker();
 
   app.setErrorHandler((err: Error & { statusCode?: number }, _req, reply) => {
     const status = err.statusCode ?? 500;
