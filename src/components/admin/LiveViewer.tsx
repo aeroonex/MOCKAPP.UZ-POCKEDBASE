@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Loader2, Mic, MicOff, VideoOff } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { startWatch, type WatchState } from "@/lib/rtc-watcher";
 import { cn } from "@/lib/utils";
@@ -59,6 +59,7 @@ const LiveViewer: React.FC<{ target: WatchTarget | null; onClose: () => void }> 
             </span>
             {t("live.watching", { name: target?.name ?? "" })}
           </DialogTitle>
+          <DialogDescription className="sr-only">{t("live.oneway_hint")}</DialogDescription>
         </DialogHeader>
 
         <div className="relative overflow-hidden rounded-xl bg-black" style={{ aspectRatio: "4 / 3" }}>
