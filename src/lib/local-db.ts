@@ -405,6 +405,18 @@ export const syncCloudStorageUsage = async (
   }
 };
 
+/** Joriy foydalanuvchining serverga yuklanmagan lokal yozuvlari (eng eskisi birinchi). */
+export const getPendingLocalRecordings = async (): Promise<{ id: string; timestamp: string; size: number }[]> => {
+  const userId = await getUserId();
+  if (!userId) return [];
+  const db = await initDB();
+  const all: StoredRecording[] = await db.getAll(STORE_RECORDINGS);
+  return all
+    .filter((r) => r.user_id === userId && !r.cloud_url && r.videoBlob && r.videoBlob.size > 0)
+    .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+    .map((r) => ({ id: r.id, timestamp: r.timestamp, size: r.videoBlob.size }));
+};
+
 export const getRecordingBlob = async (id: string): Promise<Blob | undefined> => {
   const db = await initDB();
   const recording = await db.get(STORE_RECORDINGS, id);

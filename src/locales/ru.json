@@ -371,7 +371,22 @@
     "end_test_confirm_desc": "Тест завершится, записанные ответы будут сохранены. Продолжить будет нельзя.",
     "end_test_confirm_yes": "Да, завершить",
     "end_test_confirm_no": "Отмена",
-    "no_camera": "Нет камеры"
+    "no_camera": "Нет камеры",
+    "device_check_title": "Проверка устройства",
+    "recheck": "Проверить снова",
+    "check_camera": "Камера",
+    "check_mic": "Микрофон",
+    "check_net": "Интернет",
+    "camera_ok": "Работает",
+    "camera_missing": "Не найдена — тест запишется без камеры",
+    "camera_waiting": "Ожидание разрешения…",
+    "mic_speak": "Скажите что-нибудь…",
+    "mic_ok": "Работает",
+    "mic_missing": "Не найден — разрешите в браузере",
+    "net_testing": "Измерение…",
+    "net_ok": "Хорошо · {{ping}} мс",
+    "net_slow": "Медленно — загрузка может задерживаться",
+    "net_offline": "Нет соединения"
   },
   "records_page": {
     "your_recordings": "Ваши записи",
@@ -419,7 +434,11 @@
     "auto_upload_started": "Видео загружается на сервер…",
     "auto_upload_progress": "Загрузка видео: {{percent}}%",
     "auto_upload_done": "Видео загружено на сервер ✅",
-    "auto_upload_failed": "Не удалось загрузить: {{message}}. Повторите со страницы «Записи»."
+    "auto_upload_failed": "Не удалось загрузить: {{message}}. Повторите со страницы «Записи».",
+    "pending_upload_started": "Найдено неотправленных видео: {{n}} — загружаются в фоне…",
+    "pending_upload_progress": "Загрузка видео {{i}}/{{n}}: {{percent}}%",
+    "pending_upload_done": "Загружено видео на сервер: {{n}} ✅",
+    "pending_upload_failed": "Загружено {{ok}}/{{n}} — остальные будут повторены позже"
   },
   "mood_journal_page": {
     "mood_journal_tracker": "Дневник настроения",

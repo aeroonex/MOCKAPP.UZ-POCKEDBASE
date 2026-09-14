@@ -263,9 +263,6 @@ export async function recordingRoutes(app: FastifyInstance) {
   );
 
   // ---------- Oqim bilan yuklash: test davomida 5 soniyalik bo'laklar keladi ----------
-  // Xom ikkilik tana (application/octet-stream) — oqim sifatida diskka yoziladi
-  app.addContentTypeParser("application/octet-stream", (_req, payload, done) => done(null, payload));
-
   const localIdOk = (v: string) => /^[A-Za-z0-9_-]{1,64}$/.test(v);
 
   app.put(

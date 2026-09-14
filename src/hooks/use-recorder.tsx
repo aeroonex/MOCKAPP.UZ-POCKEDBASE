@@ -7,6 +7,7 @@ import { addLocalRecording, autoUploadRecording, updateLocalRecordingCloudUrl } 
 import { api, auth } from "@/lib/api";
 import { ExamCompositor, type OverlayState } from "@/lib/exam-compositor";
 import { ChunkUploader } from "@/lib/chunk-uploader";
+import { recorderState } from "@/lib/recorder-state";
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import i18n from "@/i18n";
@@ -68,6 +69,7 @@ export const useRecorder = () => {
     micStreamRef.current = null;
     compositorRef.current?.stop();
     compositorRef.current = null;
+    recorderState.isRecording = false;
     setIsRecording(false);
   }, [clearRecordingTimeout]);
 
@@ -228,6 +230,7 @@ export const useRecorder = () => {
 
       recorder.start(TIMESLICE_MS);
       startTimeRef.current = Date.now();
+      recorderState.isRecording = true;
       setIsRecording(true);
       showSuccess(t("add_question_page.success_recording_started"));
 

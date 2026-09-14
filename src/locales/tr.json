@@ -341,7 +341,22 @@
     "end_test_confirm_desc": "Test sona erecek ve şimdiye kadar kaydedilen cevaplar saklanacak. Devam ettirilemez.",
     "end_test_confirm_yes": "Evet, bitir",
     "end_test_confirm_no": "İptal",
-    "no_camera": "Kamera yok"
+    "no_camera": "Kamera yok",
+    "device_check_title": "Cihaz kontrolü",
+    "recheck": "Yeniden kontrol et",
+    "check_camera": "Kamera",
+    "check_mic": "Mikrofon",
+    "check_net": "İnternet",
+    "camera_ok": "Çalışıyor",
+    "camera_missing": "Bulunamadı — test kamerasız kaydedilir",
+    "camera_waiting": "İzin bekleniyor…",
+    "mic_speak": "Bir şey söyleyin…",
+    "mic_ok": "Çalışıyor",
+    "mic_missing": "Bulunamadı — tarayıcıda izin verin",
+    "net_testing": "Ölçülüyor…",
+    "net_ok": "İyi · {{ping}} ms",
+    "net_slow": "Yavaş — yükleme gecikebilir",
+    "net_offline": "Bağlantı yok"
   },
   "records_page": {
     "your_recordings": "Kayıtlarınız",
@@ -382,7 +397,11 @@
     "used_percentage": "Kullanılan: {{percentage}}%",
     "error_storage_limit_exceeded": "Yükleme başarısız oldu: Yetersiz EduCloud depolama alanı. Lütfen yer açmak için eski kayıtları silin.",
     "guest_storage_description": "Kayıtlarınızı EduCloud'a yüklemek ve herhangi bir cihazdan erişmek için bir tarife planına abone olun.",
-    "view_plans": "Planları Görüntüle"
+    "view_plans": "Planları Görüntüle",
+    "pending_upload_started": "{{n}} gönderilmemiş video bulundu — arka planda yükleniyor…",
+    "pending_upload_progress": "Video {{i}}/{{n}} yükleniyor: %{{percent}}",
+    "pending_upload_done": "{{n}} video sunucuya yüklendi ✅",
+    "pending_upload_failed": "{{ok}}/{{n}} yüklendi — kalanlar daha sonra tekrar denenecek"
   },
   "mood_journal_page": {
     "mood_journal_tracker": "Ruh Hali Günlüğü ve Takipçisi",

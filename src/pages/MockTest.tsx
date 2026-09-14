@@ -9,6 +9,7 @@ import { useMockTestLogic } from "@/hooks/use-mock-test-logic";
 import TestQuestionDisplay from "@/components/TestQuestionDisplay";
 import TestControls from "@/components/TestControls";
 import ExamLobby from "@/components/ExamLobby";
+import DeviceCheck from "@/components/DeviceCheck";
 import { useTranslation } from 'react-i18next';
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -119,7 +120,7 @@ const MockTest: React.FC = () => {
       {!isTestStarted && <Navbar />}
       <main className="exam-page relative flex w-full flex-grow items-start justify-center px-3 py-5 sm:items-center sm:px-6 sm:py-10">
         {/* Veb-kamera (rasm ichida rasm) va talaba ma'lumotlari */}
-        {(webcamStream || (isTestStarted && studentInfo)) && (
+        {isTestStarted && (webcamStream || studentInfo) && (
           <div
             className={cn(
               "fixed z-20 rounded-xl border border-border bg-card/95 p-1.5 shadow-lg",
@@ -223,8 +224,9 @@ const MockTest: React.FC = () => {
               )}
 
               {isIdle && (
-                <div className="mb-8">
+                <div className="mb-8 space-y-7">
                   <ExamLobby />
+                  <DeviceCheck webcamStream={webcamStream} />
                 </div>
               )}
 

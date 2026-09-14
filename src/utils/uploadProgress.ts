@@ -27,6 +27,9 @@ export const removeProgress = (id: string) => {
   listeners.forEach(listener => listener());
 };
 
+/** Shu yozuv hozir yuklanyaptimi (fon yuklovchi va qo'lda yuklash to'qnashmasligi uchun). */
+export const hasProgress = (id: string) => progressMap.has(id);
+
 /**
  * Yuklash/Yuklab olish jarayonining holatini kuzatish uchun React hook.
  * @returns Map<string, number> holatlar

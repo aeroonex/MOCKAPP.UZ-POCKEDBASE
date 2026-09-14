@@ -371,7 +371,22 @@
     "end_test_confirm_desc": "Test yakunlanadi va shu paytgacha yozilgan javoblar saqlanadi. Davom ettirib bo'lmaydi.",
     "end_test_confirm_yes": "Ha, tugatish",
     "end_test_confirm_no": "Bekor qilish",
-    "no_camera": "Kamera yo'q"
+    "no_camera": "Kamera yo'q",
+    "device_check_title": "Qurilma tekshiruvi",
+    "recheck": "Qayta tekshirish",
+    "check_camera": "Kamera",
+    "check_mic": "Mikrofon",
+    "check_net": "Internet",
+    "camera_ok": "Ishlayapti",
+    "camera_missing": "Topilmadi — test kamerasiz yoziladi",
+    "camera_waiting": "Ruxsat kutilmoqda…",
+    "mic_speak": "Gapiring…",
+    "mic_ok": "Ishlayapti",
+    "mic_missing": "Topilmadi — brauzerda ruxsat bering",
+    "net_testing": "O'lchanmoqda…",
+    "net_ok": "Yaxshi · {{ping}} ms",
+    "net_slow": "Sekin — yuklash kechikishi mumkin",
+    "net_offline": "Ulanish yo'q"
   },
   "records_page": {
     "your_recordings": "Sizning yozuvlaringiz",
@@ -419,7 +434,11 @@
     "auto_upload_started": "Video serverga yuklanmoqda…",
     "auto_upload_progress": "Video yuklanmoqda: {{percent}}%",
     "auto_upload_done": "Video serverga yuklandi ✅",
-    "auto_upload_failed": "Videoni yuklab bo'lmadi: {{message}}. Yozuvlar sahifasidan qayta yuklang."
+    "auto_upload_failed": "Videoni yuklab bo'lmadi: {{message}}. Yozuvlar sahifasidan qayta yuklang.",
+    "pending_upload_started": "Yuklanmagan video topildi ({{n}}) — fonda yuklanmoqda…",
+    "pending_upload_progress": "Video {{i}}/{{n}} yuklanmoqda: {{percent}}%",
+    "pending_upload_done": "{{n}} ta video serverga yuklandi ✅",
+    "pending_upload_failed": "{{ok}}/{{n}} yuklandi — qolgani keyinroq qayta uriniladi"
   },
   "mood_journal_page": {
     "mood_journal_tracker": "Kayfiyat kundaligi va kuzatuvchi",

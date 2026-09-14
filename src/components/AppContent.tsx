@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, lazy, Suspense } from "react";
+import React, { useState, lazy, Suspense, useEffect } from "react";
 import { Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { isAdminHost, isStationHost } from "@/lib/station";
 import AccessGate, { useIsLocked } from "@/components/AccessGate";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { startPendingUploadWatcher } from "@/lib/upload-queue";
 import { useTranslation } from "react-i18next";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/context/AuthProvider";
@@ -38,6 +39,10 @@ const EduAiAssistant = lazy(() => import("@/components/EduAiAssistant"));
 
 const AppContent: React.FC = () => {
   const [isEduAiAssistantOpen, setIsEduAiAssistantOpen] = useState(false);
+  // Yuklanmay qolgan yozuvlarni fonda avtomatik yuklash (internet qaytganda / kirganda)
+  useEffect(() => {
+    startPendingUploadWatcher();
+  }, []);
   const [isGuideDialogOpen, setIsGuideDialogOpen] = useState(false);
   const { t } = useTranslation();
   const location = useLocation();
