@@ -308,7 +308,7 @@
   },
   "mock_test_page": {
     "mock_speaking_test": "اختبار التحدث التجريبي",
-    "start_test_with_recording": "ابدأ الاختبار (مع التسجيل)",
+    "start_test_with_recording": "ابدأ الاختبار",
     "next_question_auto": "السؤال التالي (تلقائي)",
     "end_test": "إنهاء الاختبار",
     "student_info_title": "أدخل معلومات الطالب",
@@ -320,7 +320,21 @@
     "student_name_placeholder": "اسم الطالب",
     "student_phone_placeholder": "رقم الهاتف",
     "start_test": "ابدأ الاختبار",
-    "recording_not_supported_mobile_info": "تسجيل الشاشة غير مدعوم على الأجهزة المحمولة. يرجى استخدام متصفح سطح المكتب لتسجيل الاختبار."
+    "recording_not_supported_mobile_info": "تسجيل الشاشة غير مدعوم على الأجهزة المحمولة. يرجى استخدام متصفح سطح المكتب لتسجيل الاختبار.",
+    "lobby_kicker": "CEFR Speaking",
+    "lobby_desc": "بصيغة الاختبار الحقيقي: 4 أجزاء، مؤقت تلقائي وأسئلة صوتية.",
+    "part_1_1_desc": "3 أسئلة",
+    "part_1_1_meta": "30 ثانية / إجابة",
+    "part_1_2_desc": "حول صورة",
+    "part_1_2_meta": "45 + 30 ثانية",
+    "part_2_desc": "حديث",
+    "part_2_meta": "1 + 2 دقيقة",
+    "part_3_desc": "نقاش",
+    "part_3_meta": "1 + 2 دقيقة",
+    "duration_hint": "حوالي 10 دقائق",
+    "no_pause_hint": "بدون إيقاف مؤقت",
+    "live": "مباشر",
+    "current_part": "الجزء الحالي"
   },
   "records_page": {
     "your_recordings": "تسجيلاتك",

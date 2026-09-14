@@ -324,7 +324,7 @@
   },
   "mock_test_page": {
     "mock_speaking_test": "Пробный тест Speaking",
-    "start_test_with_recording": "Начать тест (с записью)",
+    "start_test_with_recording": "Начать тест",
     "next_question_auto": "Следующий вопрос (автоматически)",
     "end_test": "Завершить тест",
     "student_info_title": "Данные студента",
@@ -351,7 +351,21 @@
     "attempt_retry_toast": "⚠️ Пересдача: попытка {{n}}/{{limit}}",
     "finished_thanks": "Спасибо! Тест завершён",
     "finished_desc": "Ваши ответы записаны и отправлены на проверку. Результаты придут в Telegram.",
-    "finished_next": "Следующий студент →"
+    "finished_next": "Следующий студент →",
+    "lobby_kicker": "CEFR Speaking",
+    "lobby_desc": "Формат настоящего экзамена: 4 части, автоматический таймер и озвученные вопросы.",
+    "part_1_1_desc": "3 вопроса",
+    "part_1_1_meta": "30 сек / ответ",
+    "part_1_2_desc": "По картинке",
+    "part_1_2_meta": "45 + 30 сек",
+    "part_2_desc": "Монолог",
+    "part_2_meta": "1 + 2 мин",
+    "part_3_desc": "Обсуждение",
+    "part_3_meta": "1 + 2 мин",
+    "duration_hint": "Около 10 минут",
+    "no_pause_hint": "Без паузы",
+    "live": "В эфире",
+    "current_part": "Текущая часть"
   },
   "records_page": {
     "your_recordings": "Ваши записи",

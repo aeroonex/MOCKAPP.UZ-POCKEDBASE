@@ -309,7 +309,7 @@
   },
   "mock_test_page": {
     "mock_speaking_test": "Deneme Konuşma Sınavı",
-    "start_test_with_recording": "Testi Başlat (kayıt ile)",
+    "start_test_with_recording": "Testi Başlat",
     "next_question_auto": "Sonraki Soru (Otomatik)",
     "end_test": "Testi Bitir",
     "student_info_title": "Öğrenci bilgilerini girin",
@@ -321,7 +321,21 @@
     "student_name_placeholder": "Öğrenci adı",
     "student_phone_placeholder": "Telefon numarası",
     "start_test": "Testi Başlat",
-    "recording_not_supported_mobile_info": "Ekran kaydı mobil cihazlarda desteklenmiyor. Testi kaydetmek için lütfen masaüstü tarayıcı kullanın."
+    "recording_not_supported_mobile_info": "Ekran kaydı mobil cihazlarda desteklenmiyor. Testi kaydetmek için lütfen masaüstü tarayıcı kullanın.",
+    "lobby_kicker": "CEFR Speaking",
+    "lobby_desc": "Gerçek sınav formatı: 4 bölüm, otomatik zamanlayıcı ve sesli sorular.",
+    "part_1_1_desc": "3 soru",
+    "part_1_1_meta": "30 sn / cevap",
+    "part_1_2_desc": "Resim",
+    "part_1_2_meta": "45 + 30 sn",
+    "part_2_desc": "Monolog",
+    "part_2_meta": "1 + 2 dk",
+    "part_3_desc": "Tartışma",
+    "part_3_meta": "1 + 2 dk",
+    "duration_hint": "Yaklaşık 10 dakika",
+    "no_pause_hint": "Duraklatma yok",
+    "live": "Canlı",
+    "current_part": "Mevcut bölüm"
   },
   "records_page": {
     "your_recordings": "Kayıtlarınız",

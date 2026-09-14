@@ -54,7 +54,7 @@ const LandingHeader: React.FC<LandingHeaderProps> = ({ onOpenLogin, onTryGuest }
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-[var(--l-blue)] text-sm font-black text-white shadow-[0_8px_20px_-8px_rgba(37,99,235,0.8)] transition-transform duration-300 group-hover:-rotate-6">
             E
           </span>
-          <span className="text-[17px] font-black tracking-tight text-[var(--l-ink)]">
+          <span className="text-[15px] font-black tracking-tight text-[var(--l-ink)] sm:text-[17px]">
             Edumock<span className="text-[var(--l-blue)]">.uz</span>
           </span>
         </a>
@@ -74,10 +74,10 @@ const LandingHeader: React.FC<LandingHeaderProps> = ({ onOpenLogin, onTryGuest }
 
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
-          <button type="button" onClick={onOpenLogin} className="btn-ghost h-9 px-4 text-sm">
+          <button type="button" onClick={onOpenLogin} className="btn-ghost h-9 px-3 text-sm sm:px-4">
             {t("common.login")}
           </button>
-          <button type="button" onClick={onTryGuest} className="btn-cta hidden h-9 px-4 text-sm sm:inline-flex">
+          <button type="button" onClick={onTryGuest} className="btn-cta !hidden h-9 px-4 text-sm sm:!inline-flex">
             {t("landing_page.cta_free_short")}
           </button>
         </div>

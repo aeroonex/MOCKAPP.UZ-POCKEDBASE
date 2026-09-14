@@ -324,7 +324,7 @@
   },
   "mock_test_page": {
     "mock_speaking_test": "Mock Speaking Test",
-    "start_test_with_recording": "Start Test (with recording)",
+    "start_test_with_recording": "Start Test",
     "next_question_auto": "Next Question (Automatic)",
     "end_test": "End Test",
     "student_info_title": "Enter student information",
@@ -351,7 +351,21 @@
     "attempt_retry_toast": "⚠️ Retake: attempt {{n}}/{{limit}}",
     "finished_thanks": "Thank you! The test is complete",
     "finished_desc": "Your answers were recorded and sent for review. Results will be announced via Telegram.",
-    "finished_next": "Next student →"
+    "finished_next": "Next student →",
+    "lobby_kicker": "CEFR Speaking",
+    "lobby_desc": "Real exam format: 4 parts, automatic timer and spoken questions.",
+    "part_1_1_desc": "3 questions",
+    "part_1_1_meta": "30 sec / answer",
+    "part_1_2_desc": "Picture",
+    "part_1_2_meta": "45 + 30 sec",
+    "part_2_desc": "Monologue",
+    "part_2_meta": "1 + 2 min",
+    "part_3_desc": "Discussion",
+    "part_3_meta": "1 + 2 min",
+    "duration_hint": "About 10 minutes",
+    "no_pause_hint": "No pause",
+    "live": "Live",
+    "current_part": "Current part"
   },
   "records_page": {
     "your_recordings": "Your Recordings",

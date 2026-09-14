@@ -920,3 +920,29 @@
 /* ===== Kinetik matn (fon bezagi) ===== */
 .outline-text { color: transparent; -webkit-text-stroke: 1.5px rgba(15, 23, 42, 0.16); }
 .outline-text-light { color: transparent; -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.22); }
+
+/* ===== Sinov testi (/mock-test) sahifasi ===== */
+.exam-page {
+  background:
+    radial-gradient(720px 360px at 50% -80px, hsl(var(--primary) / 0.16), transparent 70%),
+    linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--secondary) / 0.35) 100%);
+}
+.exam-cta {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 0.6rem;
+  height: 3.5rem; padding: 0 2.1rem; border-radius: 1rem;
+  background: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+  font-weight: 800; font-size: 1.05rem; letter-spacing: -0.01em; white-space: nowrap;
+  box-shadow: 0 12px 30px -10px hsl(var(--primary) / 0.7);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+.dark .exam-cta { color: #06111f; }
+.exam-cta:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 18px 36px -12px hsl(var(--primary) / 0.8); filter: brightness(1.05); }
+.exam-cta:active:not(:disabled) { transform: translateY(0); }
+.exam-cta:focus-visible { outline: none; box-shadow: 0 0 0 4px hsl(var(--primary) / 0.35); }
+.exam-cta:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+.exam-time-low { animation: exam-time-low 1s ease-in-out infinite; }
+@keyframes exam-time-low { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+@media (prefers-reduced-motion: reduce) {
+  .exam-time-low { animation: none; }
+}

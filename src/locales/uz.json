@@ -324,7 +324,7 @@
   },
   "mock_test_page": {
     "mock_speaking_test": "Sinov Speaking testi",
-    "start_test_with_recording": "Testni boshlash (yozuv bilan)",
+    "start_test_with_recording": "Testni boshlash",
     "next_question_auto": "Keyingi savol (Avtomatik)",
     "end_test": "Testni tugatish",
     "student_info_title": "Talaba ma'lumotlarini kiriting",
@@ -351,7 +351,21 @@
     "attempt_retry_toast": "⚠️ Qayta topshirish: urinish {{n}}/{{limit}}",
     "finished_thanks": "Rahmat! Test yakunlandi",
     "finished_desc": "Javoblaringiz yozib olindi va tekshiruvga yuborildi. Natijalar Telegram orqali xabar qilinadi.",
-    "finished_next": "Keyingi o'quvchi →"
+    "finished_next": "Keyingi o'quvchi →",
+    "lobby_kicker": "CEFR Speaking",
+    "lobby_desc": "Haqiqiy imtihon formatida: 4 qism, avtomatik taymer va ovozli savollar.",
+    "part_1_1_desc": "3 ta savol",
+    "part_1_1_meta": "30 soniya / javob",
+    "part_1_2_desc": "Rasm bo'yicha",
+    "part_1_2_meta": "45 + 30 soniya",
+    "part_2_desc": "Monolog",
+    "part_2_meta": "1 + 2 daqiqa",
+    "part_3_desc": "Muhokama",
+    "part_3_meta": "1 + 2 daqiqa",
+    "duration_hint": "Taxminan 10 daqiqa",
+    "no_pause_hint": "Pauza yo'q",
+    "live": "Jonli",
+    "current_part": "Joriy qism"
   },
   "records_page": {
     "your_recordings": "Sizning yozuvlaringiz",

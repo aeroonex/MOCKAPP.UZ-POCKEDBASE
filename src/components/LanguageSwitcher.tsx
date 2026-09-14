@@ -37,11 +37,10 @@ const LanguageSwitcher: React.FC = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="flex items-center gap-1.5 rounded-full px-3 py-2 group">
+        <Button variant="ghost" size="sm" className="flex items-center gap-1.5 rounded-full px-2.5 py-2 group sm:px-3">
           <Globe aria-hidden="true" className="h-4 w-4 text-muted-foreground transition-transform duration-300 group-hover:rotate-12" />
-          <span className="text-sm font-semibold text-foreground">
-            {currentLangInfo.name}
-          </span>
+          <span className="hidden text-sm font-semibold text-foreground sm:inline">{currentLangInfo.name}</span>
+          <span className="text-xs font-bold text-foreground sm:hidden">{currentLangInfo.code}</span>
           <span className="sr-only">Change language</span>
         </Button>
       </DropdownMenuTrigger>

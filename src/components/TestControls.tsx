@@ -4,6 +4,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { TestPhase } from "@/hooks/use-mock-test-logic";
 import { useTranslation } from 'react-i18next';
+import { ArrowRight, Check, Loader2, MonitorSmartphone, Play, Square } from "lucide-react";
 
 interface TestControlsProps {
   isTestStarted: boolean;
@@ -25,55 +26,46 @@ const TestControls: React.FC<TestControlsProps> = ({
   const { t } = useTranslation();
 
   return (
-    <div className="space-y-6 flex flex-col items-center"> {/* <-- Bu yerga o'zgartirish kiritildi */}
+    <div className="flex flex-col items-center gap-5">
       {!isTestStarted && currentPhase === "idle" && (
         <>
           {!isRecordingSupported && (
-            <p className="text-red-500 text-sm mb-4">
-              {t("mock_test_page.recording_not_supported_mobile_info")}
-            </p>
-          )}
-          {/* Custom button design from Uiverse.io */}
-          <div className="relative inline-flex items-center justify-center group">
             <div
-              className="absolute inset-0 duration-1000 opacity-60 transition-all bg-gradient-to-r from-indigo-500 via-pink-500 to-yellow-400 rounded-xl blur-lg filter group-hover:opacity-100 group-hover:duration-200"
-            ></div>
+              role="alert"
+              className="flex w-full items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200"
+            >
+              <MonitorSmartphone className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{t("mock_test_page.recording_not_supported_mobile_info")}</span>
+            </div>
+          )}
+
+          <div className="mt-1">
             <button
-              role="button"
+              type="button"
               onClick={handleStartTestClick}
               disabled={!isRecordingSupported}
-              className="group relative inline-flex items-center justify-center text-base rounded-xl bg-gray-900 px-8 py-4 font-semibold text-white transition-all duration-200 hover:bg-gray-800 hover:shadow-lg hover:-translate-y-0.5 hover:shadow-gray-600/30 disabled:opacity-50 disabled:cursor-not-allowed animate-beckon-pulse"
-              title={t("mock_test_page.start_test_with_recording")}
+              className="exam-cta group"
             >
-              {t("mock_test_page.start_test_with_recording")}
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 10 10"
-                height="10"
-                width="10"
-                fill="none"
-                className="mt-0.5 ml-2 -mr-1 stroke-white stroke-2"
-              >
-                <path
-                  d="M0 5h7"
-                  className="transition opacity-0 group-hover:opacity-100"
-                ></path>
-                <path
-                  d="M1 1l4 4-4 4"
-                  className="transition group-hover:translate-x-[3px]"
-                ></path>
-              </svg>
+              <Play className="h-5 w-5 fill-current" />
+              {t("mock_test_page.start_test")}
+              <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
             </button>
           </div>
+
+          <p className="text-xs text-muted-foreground">
+            {t("mock_test_page.duration_hint")} · {t("mock_test_page.no_pause_hint")}
+          </p>
         </>
       )}
 
       {isTestStarted && currentPhase !== "finished" && (
-        <div className="flex gap-2 mt-4 w-full max-w-sm"> {/* Tugmalarni markazga joylashtirish uchun kenglik qo'shildi */}
-          <Button className="flex-grow" disabled={true}>
+        <div className="mt-2 flex w-full max-w-md flex-col gap-2 sm:flex-row">
+          <Button variant="secondary" className="flex-1 gap-2" disabled>
+            <Loader2 className="h-4 w-4 animate-spin" />
             {t("mock_test_page.next_question_auto")}
           </Button>
-          <Button onClick={handleEndTest} variant="destructive" className="flex-grow">
+          <Button onClick={handleEndTest} variant="outline" className="flex-1 gap-2 border-red-500/50 text-red-500 hover:bg-red-500/10 hover:text-red-500">
+            <Square className="h-3.5 w-3.5 fill-current" />
             {t("mock_test_page.end_test")}
           </Button>
         </div>
@@ -81,14 +73,14 @@ const TestControls: React.FC<TestControlsProps> = ({
 
       {currentPhase === "finished" && (
         // Test yakunlandi: o'quvchiga faqat minnatdorchilik — qayta topshirish tugmasi yo'q (urinishlar cheklangan)
-        <div className="space-y-4 text-center w-full max-w-md py-6">
-          <div className="mx-auto h-20 w-20 rounded-full bg-gradient-to-br from-emerald-400 to-green-600 text-white flex items-center justify-center text-4xl shadow-lg shadow-emerald-500/30">
-            ✓
+        <div className="w-full max-w-md space-y-4 py-4 text-center">
+          <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-emerald-500/15 text-emerald-500 ring-8 ring-emerald-500/10">
+            <Check className="h-10 w-10" strokeWidth={3} />
           </div>
-          <h3 className="text-3xl font-extrabold text-green-600 dark:text-green-400">{t("mock_test_page.finished_thanks")}</h3>
+          <h3 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">{t("mock_test_page.finished_thanks")}</h3>
           <p className="text-muted-foreground">{t("mock_test_page.finished_desc")}</p>
           <p className="text-xs text-muted-foreground">{t("add_question_page.last_session_available_in_records")}</p>
-          <Button onClick={handleResetTest} variant="ghost" size="sm" className="text-muted-foreground mt-4">
+          <Button onClick={handleResetTest} variant="outline" size="sm" className="mt-2">
             {t("mock_test_page.finished_next")}
           </Button>
         </div>
