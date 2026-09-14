@@ -16,9 +16,9 @@ type Status = "checking" | "ok" | "warn" | "fail";
 /** Yuklash uchun yetarli tezlik (Mbit/s): video ~0.6 Mbit/s, zaxira bilan */
 const MIN_UPLOAD_MBPS = 1.5;
 const TEST_BYTES = 1.5 * 1024 * 1024;
-/** Mikrofon "ishlayapti" deyish uchun kerakli daraja va davomiylik */
-const MIC_LEVEL_THRESHOLD = 0.06;
-const MIC_HOLD_MS = 300;
+/** Mikrofon "ishlayapti" deyish uchun silliqlangan daraja (EMA) chegarasi va davomiyligi */
+const MIC_LEVEL_THRESHOLD = 0.03;
+const MIC_HOLD_MS = 250;
 
 const StatusIcon: React.FC<{ status: Status }> = ({ status }) => {
   if (status === "ok") return <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />;
@@ -79,6 +79,8 @@ const DeviceCheck: React.FC<DeviceCheckProps> = ({ webcamStream }) => {
   // Brauzer foydalanuvchi bosmaguncha AudioContext'ni "suspended" qiladi — shunda daraja o'lchanmaydi
   const [needsGesture, setNeedsGesture] = useState(false);
   const ctxRef = useRef<AudioContext | null>(null);
+  // Chrome ulanmagan (destination'ga bormaydigan) tugunlarni GC qilib yuborishi mumkin — kuchli havolalar
+  const nodesRef = useRef<{ src: MediaStreamAudioSourceNode; analyser: AnalyserNode } | null>(null);
   const resumeAudio = useCallback(() => {
     const ctx = ctxRef.current;
     if (ctx && ctx.state !== "running") ctx.resume().catch(() => undefined);
@@ -95,7 +97,9 @@ const DeviceCheck: React.FC<DeviceCheckProps> = ({ webcamStream }) => {
 
     (async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+        });
         if (cancelled) {
           stream.getTracks().forEach((tr) => tr.stop());
           return;
@@ -111,19 +115,20 @@ const DeviceCheck: React.FC<DeviceCheckProps> = ({ webcamStream }) => {
         window.addEventListener("keydown", onGesture, { capture: true });
         const src = ctx.createMediaStreamSource(stream);
         const analyser = ctx.createAnalyser();
-        analyser.fftSize = 512;
+        analyser.fftSize = 1024;
         src.connect(analyser);
-        const buf = new Uint8Array(analyser.fftSize);
+        nodesRef.current = { src, analyser };
+        const buf = new Float32Array(analyser.fftSize);
+        let smooth = 0;
         const tick = (now: number) => {
           if (cancelled) return;
-          analyser.getByteTimeDomainData(buf);
+          analyser.getFloatTimeDomainData(buf);
           let sum = 0;
-          for (let i = 0; i < buf.length; i++) {
-            const v = (buf[i] - 128) / 128;
-            sum += v * v;
-          }
+          for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
           const rms = Math.sqrt(sum / buf.length);
-          if (rms > MIC_LEVEL_THRESHOLD) {
+          // Silliqlash: bo'g'inlar orasidagi pauzalar hisobni nolga tushirmasin
+          smooth = smooth * 0.75 + rms * 0.25;
+          if (smooth > MIC_LEVEL_THRESHOLD) {
             if (!heardSince) heardSince = now;
             if (!detected && now - heardSince >= MIC_HOLD_MS) {
               detected = true;
@@ -134,7 +139,7 @@ const DeviceCheck: React.FC<DeviceCheckProps> = ({ webcamStream }) => {
           }
           if (now - lastPaint > 66) {
             lastPaint = now;
-            setLevel(Math.min(1, rms * 4));
+            setLevel(Math.min(1, rms * 6));
           }
           raf = requestAnimationFrame(tick);
         };
@@ -150,6 +155,7 @@ const DeviceCheck: React.FC<DeviceCheckProps> = ({ webcamStream }) => {
       window.removeEventListener("pointerdown", onGesture, { capture: true });
       window.removeEventListener("keydown", onGesture, { capture: true });
       stream?.getTracks().forEach((tr) => tr.stop());
+      nodesRef.current = null;
       ctxRef.current = null;
       ctx?.close().catch(() => undefined);
     };
