@@ -1,8 +1,8 @@
 import { api } from "@/lib/api";
 
 /**
- * Writing AI tekshiruv — tiplar va so'rov. Hozir mijozда namunaviy javob (mock),
- * backend tayyor bo'lganda faqat `evaluateWriting` ichидаги chaqiruv real endpointга almashtiriladi.
+ * Writing AI tekshiruv — tiplar va so'rov. Hozir mijozda namunaviy javob (mock),
+ * backend tayyor bo'lganda faqat `evaluateWriting` ichidagi chaqiruv real endpointga almashtiriladi.
  */
 
 export type CriterionKey = "task" | "coherence" | "vocabulary" | "grammar";
@@ -28,7 +28,7 @@ export interface WritingUsage {
 }
 
 export interface WritingAnalysis {
-  extracted_text: string; // AI rasmдан/matnдан o'qigan matn (tekshirish uchun)
+  extracted_text: string; // AI rasmdan/matndan o'qigan matn (tekshirish uchun)
   word_count: number;
   overall: number; // 0..75 (CEFR Multilevel)
   level: string; // A2/B1/B2/C1
@@ -86,7 +86,7 @@ export async function getWritingBalance(): Promise<{ balance_som: number }> {
 
 /**
  * Writing'ni AI bilan baholaydi. HOZIR: namunaviy natija (backend tayyor emas).
- * Backend tayyor bo'lganда pastdagi mock o'rniga:  return api.post("/api/writing/evaluate", input);
+ * Backend tayyor bo'lganda pastdagi mock o'rniga:  return api.post("/api/writing/evaluate", input);
  */
 export async function evaluateWriting(input: EvaluateInput): Promise<WritingAnalysis> {
   // --- MOCK (backend keyin ulanadi) ---
@@ -112,11 +112,11 @@ export async function evaluateWriting(input: EvaluateInput): Promise<WritingAnal
       { key: "grammar", score: 14, max: 15, reason: "Grammatika asosan to'g'ri; artikl va zamon xatolari bor." },
     ],
     summary:
-      "Yozma ish B2 darajasining quyi qismiga to'g'ri keladi. Fikr aniq bayon etilgan va tuzilma bор, biroq vazifaning ikkinchi qismi to'liq yoritilmagani va lug'atдаги takrorlar bahoni pasaytirdi. Grammatik xatolar kam, lekin aniqlik uchun artikl va zamonlarга e'tibor kerak.",
+      "Yozma ish B2 darajasining quyi qismiga to'g'ri keladi. Fikr aniq bayon etilgan va tuzilma bor, biroq vazifaning ikkinchi qismi to'liq yoritilmagani va lug'atdagi takrorlar bahoni pasaytirdi. Grammatik xatolar kam, lekin aniqlik uchun artikl va zamonlarga e'tibor kerak.",
     suggestions: [
-      "Vazifaning har ikki qismini teng yoriting va har biriга aniq misol keltiring.",
+      "Vazifaning har ikki qismini teng yoriting va har biriga aniq misol keltiring.",
       "Takroriy so'zlarni sinonimlar bilan almashtiring (technology → digital tools, devices).",
-      "Kirish va xulosани kuchaytiring; fikringizni bitta jumlada aniq bildiring.",
+      "Kirish va xulosani kuchaytiring; fikringizni bitta jumlada aniq bildiring.",
     ],
     corrections: [
       { wrong: "it makes life easier", right: "it makes life easier", note: "to'g'ri" },

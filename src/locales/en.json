@@ -879,6 +879,8 @@
   },
   "writing": {
     "title": "Writing AI Check",
+    "demo_badge": "Demo",
+    "demo_note": "Note: the AI is not connected yet — the score, feedback and token price shown are SAMPLE data. Do not use for real grading.",
     "subtitle": "AI reads your essay photo or text and grades it by the rubric",
     "home_subtitle": "AI essay grading",
     "balance": "Balance",

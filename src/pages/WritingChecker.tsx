@@ -130,7 +130,12 @@ const WritingChecker: React.FC = () => {
               <PenLine className="h-6 w-6" />
             </span>
             <div>
-              <h1 className="text-xl font-extrabold tracking-tight text-foreground sm:text-2xl">{t("writing.title")}</h1>
+              <h1 className="flex flex-wrap items-center gap-2 text-xl font-extrabold tracking-tight text-foreground sm:text-2xl">
+                {t("writing.title")}
+                <Badge variant="outline" className="border-amber-500/50 bg-amber-500/10 text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                  {t("writing.demo_badge")}
+                </Badge>
+              </h1>
               <p className="text-sm text-muted-foreground">{t("writing.subtitle")}</p>
             </div>
           </div>
@@ -141,6 +146,12 @@ const WritingChecker: React.FC = () => {
               <div className="text-sm font-black tabular-nums text-foreground">{fmtSom(balance)}</div>
             </div>
           </div>
+        </div>
+
+        {/* Ogohlantirish: AI hali ulanmagan — natijalar namunaviy */}
+        <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+          <p className="text-sm leading-relaxed text-amber-900 dark:text-amber-200">{t("writing.demo_note")}</p>
         </div>
 
         <div className="grid gap-5 lg:grid-cols-2">

@@ -33,7 +33,7 @@ const PAY_COLS = "id, user_id, amount, receipt_path, note, status, admin_note, r
 
 /**
  * To'lovni tasdiqlash/rad etish (HTTP handler ham, Telegram bot ham ishlatadi).
- * Tasdiqlashда paid_until = max(hozir, joriy) + period_days ga uzayadi.
+ * Tasdiqlashda paid_until = max(hozir, joriy) + period_days ga uzayadi.
  */
 export async function reviewPayment(
   id: string,

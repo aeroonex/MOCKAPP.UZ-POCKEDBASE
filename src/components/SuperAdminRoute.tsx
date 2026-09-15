@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/context/AuthProvider";
 import { useProfile } from "@/hooks/use-profile";
@@ -13,6 +13,11 @@ const SuperAdminRoute: React.FC = () => {
   const { t } = useTranslation();
 
   const loading = authLoading || profileLoading;
+  const denied = !loading && !!session && profile?.role !== "developer";
+  // Toast render ichida emas — effektda (aks holda ikki marta ko'rinadi)
+  useEffect(() => {
+    if (denied) showError(t("common.admin_only"));
+  }, [denied, t]);
 
   if (loading) {
     return (
@@ -32,13 +37,9 @@ const SuperAdminRoute: React.FC = () => {
 
   if (isSuperAdmin) {
     return <Outlet />;
-  } else {
-    // Agar tizimga kirgan, lekin Super Admin bo'lmasa, xato xabari bilan home sahifasiga yuborish
-    // Xato xabarini faqat bir marta ko'rsatish uchun session storage dan foydalanishimiz mumkin,
-    // lekin hozircha shunday qoldiramiz.
-    showError(t("common.admin_only"));
-    return <Navigate to="/home" replace />;
   }
+  // Tizimga kirgan, lekin superadmin emas — bosh sahifaga (ogohlantirish yuqoridagi effektda)
+  return <Navigate to="/home" replace />;
 };
 
 export default SuperAdminRoute;

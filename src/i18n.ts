@@ -35,4 +35,15 @@ i18n
     },
   });
 
+/** <html lang> va yozuv yo'nalishi (arabcha — o'ngdan chapga) tanlangan tilga moslanadi. */
+const RTL_LANGUAGES = new Set(["ar"]);
+const applyDocumentLanguage = (lng: string) => {
+  if (typeof document === "undefined") return;
+  const lang = (lng || "uz").split("-")[0];
+  document.documentElement.lang = lang;
+  document.documentElement.dir = RTL_LANGUAGES.has(lang) ? "rtl" : "ltr";
+};
+applyDocumentLanguage(i18n.language);
+i18n.on("languageChanged", applyDocumentLanguage);
+
 export default i18n;

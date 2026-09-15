@@ -81,7 +81,7 @@ export default function Home({ setIsGuideDialogOpen, handleLogout, isGuideDialog
     },
     {
       icon: <PenLine className="w-8 h-8 sm:w-10 sm:h-10" />,
-      title: t("writing.title"),
+      title: `${t("writing.title")} · ${t("writing.demo_badge")}`,
       subtitle: t("writing.home_subtitle"),
       path: "/writing",
       accent: "from-violet-500/30 to-violet-500/0 text-violet-300 hover:border-violet-400/60 hover:shadow-violet-500/30",
