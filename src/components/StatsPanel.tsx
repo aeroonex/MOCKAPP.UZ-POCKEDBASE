@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { showError, showSuccess } from "@/utils/toast";
-import { downloadStatsPdf, fmtSum, presetRange, statsApi, type GroupRow, type RangePreset, type Stats } from "@/lib/stats";
+import { downloadStatsPdf, fmtSum, levelOf, presetRange, statsApi, type GroupRow, type RangePreset, type Stats, type StudentsFilter } from "@/lib/stats";
 import { cn } from "@/lib/utils";
 
 const LEVEL_COLORS: Record<string, string> = { C1: "#10b981", B2: "#0ea5e9", B1: "#f59e0b", A2: "#f43f5e" };
@@ -32,29 +32,119 @@ const Kpi: React.FC<{ icon: React.ElementType; label: string; value: React.React
   </Card>
 );
 
+const skillCell = (v: number | null, skipped: boolean) => (skipped ? "👤✗" : v === null ? "—" : String(v));
+
+/**
+ * Markaz yoki ustozning O'QUVCHILARI — qator ochilganda serverdan olinadi.
+ * Ballar (L/R/W/S), Overall, daraja, holat va Speaking videosi bor-yo'qligi.
+ */
+const StudentsPanel: React.FC<{
+  mode: "organizer" | "admin";
+  filter: StudentsFilter;
+  enabled: boolean;
+}> = ({ mode, filter, enabled }) => {
+  const { t } = useTranslation();
+  const q = useQuery({
+    queryKey: ["stats-students", mode, filter],
+    queryFn: () => statsApi.students(mode, filter),
+    enabled,
+    staleTime: 60_000,
+  });
+  if (q.isLoading) {
+    return (
+      <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+        <Loader2 className="h-4 w-4 animate-spin" /> {t("common.loading")}
+      </div>
+    );
+  }
+  const items = q.data?.items ?? [];
+  if (!items.length) return <p className="py-4 text-sm text-muted-foreground">{t("stats.empty")}</p>;
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <Users className="h-3.5 w-3.5 text-muted-foreground" />
+        <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+          {t("stats.students")} · {items.length}
+        </span>
+      </div>
+      <div className="max-h-80 overflow-auto rounded-md border">
+        <Table>
+          <TableHeader className="sticky top-0 z-10 bg-muted">
+            <TableRow>
+              <TableHead className="whitespace-nowrap">#</TableHead>
+              <TableHead className="whitespace-nowrap">{t("registrations_page.col_student")}</TableHead>
+              <TableHead className="whitespace-nowrap">{t("stats.teacher")}</TableHead>
+              <TableHead className="text-center whitespace-nowrap">L / R / W / S</TableHead>
+              <TableHead className="text-right whitespace-nowrap">{t("registrations_page.col_overall")}</TableHead>
+              <TableHead className="text-center whitespace-nowrap">{t("stats.level")}</TableHead>
+              <TableHead className="text-center whitespace-nowrap">{t("registrations_page.col_speaking")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {items.map((s) => {
+              const lvl = levelOf(s.overall);
+              return (
+                <TableRow key={s.id} className="text-sm">
+                  <TableCell className="tabular-nums text-muted-foreground">{s.seq}</TableCell>
+                  <TableCell>
+                    <div className="font-semibold">{s.full_name}</div>
+                    <div className="text-[11px] text-muted-foreground">{s.phone}</div>
+                  </TableCell>
+                  <TableCell className="text-xs">{s.teacher_name || "—"}</TableCell>
+                  <TableCell className="text-center text-xs tabular-nums whitespace-nowrap">
+                    {skillCell(s.listening, s.skip_listening)} / {skillCell(s.reading, s.skip_reading)} /{" "}
+                    {skillCell(s.writing, s.skip_writing)} / {skillCell(s.speaking, s.skip_speaking)}
+                  </TableCell>
+                  <TableCell className="text-right font-bold tabular-nums">{s.overall ?? "—"}</TableCell>
+                  <TableCell className="text-center">
+                    {lvl ? (
+                      <Badge variant="outline" style={{ borderColor: LEVEL_COLORS[lvl], color: LEVEL_COLORS[lvl] }} className="text-[10px]">
+                        {lvl}
+                      </Badge>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-center">{s.has_speaking ? "🎥" : "—"}</TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+      {q.data && items.length >= q.data.limit && (
+        <p className="text-[11px] text-muted-foreground">{t("stats.students_limited", { n: q.data.limit })}</p>
+      )}
+    </div>
+  );
+};
+
 /**
  * Guruh jadvali (markazlar / ustozlar).
- * `subRows` berilsa qator bosilganda ichki ro'yxat ochiladi — masalan markaz ustiga
- * bosilsa shu markazning ustozlari va ularning o'quvchilari ko'rinadi.
+ * Qator ustiga bosilsa ochiladi: markazda — ustozlari, keyin O'QUVCHILAR ro'yxati;
+ * ustozda — to'g'ridan-to'g'ri o'sha ustozning o'quvchilari.
  */
 const GroupTable: React.FC<{
   title: string;
   icon: React.ElementType;
   rows: GroupRow[];
   nameLabel: string;
+  /** Qaysi maydon bo'yicha guruhlangan — o'quvchilarni filtrlash uchun */
+  kind: "center" | "teacher";
+  mode: "organizer" | "admin";
+  range: { from?: string; to?: string };
   subRows?: (name: string) => GroupRow[];
   subLabel?: string;
-}> = ({ title, icon: Icon, rows, nameLabel, subRows, subLabel }) => {
+}> = ({ title, icon: Icon, rows, nameLabel, kind, mode, range, subRows, subLabel }) => {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [sort, setSort] = useState<keyof GroupRow>("total");
   const [open, setOpen] = useState<string | null>(null);
   const sorted = useMemo(() => [...rows].sort((a, b) => Number(b[sort] ?? -1) - Number(a[sort] ?? -1)), [rows, sort]);
   const kids = (name: string) => (subRows ? subRows(name) : []);
-  const toggle = (name: string) => {
-    if (!subRows) return;
-    setOpen((prev) => (prev === name ? null : name));
-  };
+  const toggle = (name: string) => setOpen((prev) => (prev === name ? null : name));
+  const filterFor = (name: string): StudentsFilter =>
+    kind === "center" ? { ...range, center: name } : { ...range, teacher: name };
   const maxTotal = Math.max(1, ...rows.map((r) => r.total));
   const th = (key: keyof GroupRow, label: string, cls = "") => (
     <TableHead className={cn("cursor-pointer select-none whitespace-nowrap hover:text-primary", cls, sort === key && "text-primary font-bold")} onClick={() => setSort(key)}>
@@ -75,14 +165,9 @@ const GroupTable: React.FC<{
           <div className="space-y-2">
             {sorted.map((r) => (
               <div key={r.name} className="rounded-lg border p-3 space-y-1">
-                <div
-                  className={cn("flex items-center justify-between gap-2", subRows && kids(r.name).length > 0 && "cursor-pointer")}
-                  onClick={() => toggle(r.name)}
-                >
+                <div className="flex cursor-pointer items-center justify-between gap-2" onClick={() => toggle(r.name)}>
                   <span className="font-semibold truncate">
-                    {subRows && kids(r.name).length > 0 && (
-                      <ChevronRight className={cn("inline h-3.5 w-3.5 mr-1 transition-transform", open === r.name && "rotate-90")} />
-                    )}
+                    <ChevronRight className={cn("inline h-3.5 w-3.5 mr-1 transition-transform", open === r.name && "rotate-90")} />
                     {r.name}
                   </span>
                   <span className="text-sm font-bold">{r.total}</span>
@@ -91,17 +176,22 @@ const GroupTable: React.FC<{
                 <div className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
                   <span>✅ {r.approved}</span><span>🎥 {r.with_speaking}</span><span>📣 {r.published}</span><span>📊 {r.avg_overall ?? "—"}</span><span>💰 {fmtSum(r.revenue)}</span>
                 </div>
-                {open === r.name && kids(r.name).length > 0 && (
-                  <div className="mt-2 space-y-1 border-t pt-2">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{subLabel}</p>
-                    {kids(r.name).map((k) => (
-                      <div key={k.name} className="flex items-center justify-between gap-2 text-xs">
-                        <span className="truncate">{k.name}</span>
-                        <span className="shrink-0 tabular-nums text-muted-foreground">
-                          {k.total} · ✅ {k.approved} · 📊 {k.avg_overall ?? "—"}
-                        </span>
+                {open === r.name && (
+                  <div className="mt-2 space-y-3 border-t pt-2">
+                    {kids(r.name).length > 0 && (
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{subLabel}</p>
+                        {kids(r.name).map((k) => (
+                          <div key={k.name} className="flex items-center justify-between gap-2 text-xs">
+                            <span className="truncate">{k.name}</span>
+                            <span className="shrink-0 tabular-nums text-muted-foreground">
+                              {k.total} · ✅ {k.approved} · 📊 {k.avg_overall ?? "—"}
+                            </span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
+                    <StudentsPanel mode={mode} filter={filterFor(r.name)} enabled />
                   </div>
                 )}
               </div>
@@ -125,20 +215,17 @@ const GroupTable: React.FC<{
               <TableBody>
                 {sorted.map((r) => {
                   const children = kids(r.name);
-                  const expandable = !!subRows && children.length > 0;
                   return (
                     <React.Fragment key={r.name}>
                       <TableRow
-                        className={cn(expandable && "cursor-pointer hover:bg-muted/50", open === r.name && "bg-muted/40")}
+                        className={cn("cursor-pointer hover:bg-muted/50", open === r.name && "bg-muted/40")}
                         onClick={() => toggle(r.name)}
                       >
                         <TableCell className="font-semibold">
                           <div className="flex items-center gap-1">
-                            {expandable && (
-                              <ChevronRight className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform", open === r.name && "rotate-90")} />
-                            )}
+                            <ChevronRight className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform", open === r.name && "rotate-90")} />
                             <span>{r.name}</span>
-                            {expandable && <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">{children.length}</Badge>}
+                            {children.length > 0 && <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">{children.length}</Badge>}
                           </div>
                           <div className="h-1 rounded-full bg-muted overflow-hidden mt-1 w-32"><div className="h-full bg-primary" style={{ width: `${(r.total / maxTotal) * 100}%` }} /></div>
                         </TableCell>
@@ -152,25 +239,34 @@ const GroupTable: React.FC<{
                         </TableCell>
                         <TableCell className="text-right tabular-nums whitespace-nowrap">{fmtSum(r.revenue)}</TableCell>
                       </TableRow>
-                      {open === r.name &&
-                        children.map((k) => (
-                          <TableRow key={`${r.name}//${k.name}`} className="bg-muted/20 text-sm">
-                            <TableCell className="pl-9">
-                              <span className="text-muted-foreground">↳ </span>
-                              <span className="font-medium">{k.name}</span>
-                              {subLabel && <span className="ml-2 text-[10px] uppercase tracking-wider text-muted-foreground">{subLabel}</span>}
+                      {open === r.name && (
+                        <>
+                          {children.map((k) => (
+                            <TableRow key={`${r.name}//${k.name}`} className="bg-muted/20 text-sm">
+                              <TableCell className="pl-9">
+                                <span className="text-muted-foreground">↳ </span>
+                                <span className="font-medium">{k.name}</span>
+                                {subLabel && <span className="ml-2 text-[10px] uppercase tracking-wider text-muted-foreground">{subLabel}</span>}
+                              </TableCell>
+                              <TableCell className="text-right font-semibold tabular-nums">{k.total}</TableCell>
+                              <TableCell className="text-right tabular-nums">{k.approved}</TableCell>
+                              <TableCell className="text-right tabular-nums">{k.with_speaking}</TableCell>
+                              <TableCell className="text-right tabular-nums">{k.published}</TableCell>
+                              <TableCell className="text-right tabular-nums">{k.avg_overall ?? "—"}</TableCell>
+                              <TableCell className="text-center text-xs tabular-nums">
+                                <span className="text-emerald-600">{k.c1}</span> / <span className="text-sky-600">{k.b2}</span> / <span className="text-amber-600">{k.b1}</span> / <span className="text-rose-600">{k.a2}</span>
+                              </TableCell>
+                              <TableCell className="text-right tabular-nums whitespace-nowrap">{fmtSum(k.revenue)}</TableCell>
+                            </TableRow>
+                          ))}
+                          {/* O'quvchilar ro'yxati — markaz/ustoz kesimida */}
+                          <TableRow className="bg-muted/10 hover:bg-muted/10">
+                            <TableCell colSpan={8} className="p-3">
+                              <StudentsPanel mode={mode} filter={filterFor(r.name)} enabled />
                             </TableCell>
-                            <TableCell className="text-right font-semibold tabular-nums">{k.total}</TableCell>
-                            <TableCell className="text-right tabular-nums">{k.approved}</TableCell>
-                            <TableCell className="text-right tabular-nums">{k.with_speaking}</TableCell>
-                            <TableCell className="text-right tabular-nums">{k.published}</TableCell>
-                            <TableCell className="text-right tabular-nums">{k.avg_overall ?? "—"}</TableCell>
-                            <TableCell className="text-center text-xs tabular-nums">
-                              <span className="text-emerald-600">{k.c1}</span> / <span className="text-sky-600">{k.b2}</span> / <span className="text-amber-600">{k.b1}</span> / <span className="text-rose-600">{k.a2}</span>
-                            </TableCell>
-                            <TableCell className="text-right tabular-nums whitespace-nowrap">{fmtSum(k.revenue)}</TableCell>
                           </TableRow>
-                        ))}
+                        </>
+                      )}
                     </React.Fragment>
                   );
                 })}
@@ -215,7 +311,9 @@ const StatsPanel: React.FC<{ mode: "organizer" | "admin"; title: string }> = ({ 
     if (!s) return;
     setPdfBusy(true);
     try {
-      await downloadStatsPdf(s, { title, labels });
+      // Hisobotga o'quvchilar ro'yxatini ham qo'shamiz (ilova sahifasi)
+      const st = await statsApi.students(mode, { ...range, limit: 500 }).catch(() => null);
+      await downloadStatsPdf(s, { title, labels }, st?.items);
       showSuccess(t("stats.pdf_done"));
     } catch (e) {
       showError(e instanceof Error ? e.message : t("common.error"));
@@ -383,10 +481,13 @@ const StatsPanel: React.FC<{ mode: "organizer" | "admin"; title: string }> = ({ 
             icon={Building2}
             rows={s!.by_center}
             nameLabel={t("stats.center")}
+            kind="center"
+            mode={mode}
+            range={range}
             subLabel={t("stats.teacher")}
             subRows={(center) => (s!.by_center_teacher ?? []).filter((r) => r.center === center)}
           />
-          <GroupTable title={t("stats.by_teacher")} icon={GraduationCap} rows={s!.by_teacher} nameLabel={t("stats.teacher")} />
+          <GroupTable title={t("stats.by_teacher")} icon={GraduationCap} rows={s!.by_teacher} nameLabel={t("stats.teacher")} kind="teacher" mode={mode} range={range} />
         </>
       )}
     </div>

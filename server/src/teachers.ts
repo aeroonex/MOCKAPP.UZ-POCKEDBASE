@@ -82,6 +82,11 @@ const ALIASES: Record<string, string> = {
   shodiyonamarifjonova: "Shodiyona",
   davlatbekxudoyorov: "Davlatbek",
   xudoyorovdavlatbek: "Davlatbek",
+  qosimovm: "Muhsinbek",
+  // Vegas Academy: bitta ustoz, ikki xil yozilgan (Ibrohim / Ibrohimjon)
+  ibrohimalijonov: "Alijonov Ibrohim",
+  alijonovibrohimjon: "Alijonov Ibrohim",
+  ibrohimjonalijonov: "Alijonov Ibrohim",
 };
 
 /** Ikki satr orasidagi tahrirlash masofasi (kichik xatolar uchun). */

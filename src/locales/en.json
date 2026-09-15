@@ -853,7 +853,13 @@
     "published_short": "Published",
     "avg_overall_short": "Avg overall",
     "total_short": "Total",
-    "approved_short": "Approved"
+    "approved_short": "Approved",
+    "students": "Students",
+    "level": "Level",
+    "students_limited": "Showing the first {{n}} only",
+    "skills_avg": "Skills (L/R/W/S)",
+    "student_list": "Student list",
+    "center_teachers": "Centers and teachers"
   },
   "integrity": {
     "video_fullscreen": "LEFT FULL SCREEN",

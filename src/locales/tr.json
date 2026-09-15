@@ -968,6 +968,12 @@
     "published_short": "Yayınlandı",
     "avg_overall_short": "Ort. overall",
     "total_short": "Toplam",
-    "approved_short": "Onaylandı"
+    "approved_short": "Onaylandı",
+    "students": "Öğrenciler",
+    "level": "Seviye",
+    "students_limited": "Yalnızca ilk {{n}} gösterildi",
+    "skills_avg": "Beceriler (L/R/W/S)",
+    "student_list": "Öğrenci listesi",
+    "center_teachers": "Merkezler ve öğretmenler"
   }
 }

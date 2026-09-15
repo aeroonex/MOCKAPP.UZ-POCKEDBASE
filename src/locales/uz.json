@@ -853,7 +853,13 @@
     "published_short": "E'lon",
     "avg_overall_short": "O'rt. overall",
     "total_short": "Jami",
-    "approved_short": "Tasdiq."
+    "approved_short": "Tasdiq.",
+    "students": "O'quvchilar",
+    "level": "Daraja",
+    "students_limited": "Faqat birinchi {{n}} ta ko'rsatildi",
+    "skills_avg": "Ko'nikmalar (L/R/W/S)",
+    "student_list": "O'quvchilar ro'yxati",
+    "center_teachers": "Markazlar va ustozlar"
   },
   "integrity": {
     "video_fullscreen": "TO'LIQ EKRANDAN CHIQILDI",

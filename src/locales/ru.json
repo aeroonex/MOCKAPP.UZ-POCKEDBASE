@@ -853,7 +853,13 @@
     "published_short": "Опубл.",
     "avg_overall_short": "Ср. overall",
     "total_short": "Всего",
-    "approved_short": "Подтв."
+    "approved_short": "Подтв.",
+    "students": "Ученики",
+    "level": "Уровень",
+    "students_limited": "Показаны только первые {{n}}",
+    "skills_avg": "Навыки (L/R/W/S)",
+    "student_list": "Список учеников",
+    "center_teachers": "Центры и преподаватели"
   },
   "integrity": {
     "video_fullscreen": "ВЫХОД ИЗ ПОЛНОГО ЭКРАНА",

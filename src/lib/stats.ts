@@ -11,11 +11,52 @@ export interface GroupRow {
   with_speaking: number;
   published: number;
   avg_overall: number | null;
+  /** Ko'nikmalar bo'yicha o'rtachalar (hisobot aniqroq bo'lishi uchun) */
+  avg_listening?: number | null;
+  avg_reading?: number | null;
+  avg_writing?: number | null;
+  avg_speaking?: number | null;
   revenue: number;
   c1: number;
   b2: number;
   b1: number;
   a2: number;
+}
+
+/** Statistikada markaz/ustoz ochilganda ko'rinadigan o'quvchi */
+export interface StudentRow {
+  id: string;
+  seq: number;
+  full_name: string;
+  phone: string;
+  center_name: string;
+  teacher_name: string;
+  status: "pending" | "approved" | "rejected";
+  listening: number | null;
+  reading: number | null;
+  writing: number | null;
+  speaking: number | null;
+  skip_listening: boolean;
+  skip_reading: boolean;
+  skip_writing: boolean;
+  skip_speaking: boolean;
+  overall: number | null;
+  has_speaking: boolean;
+  attempts: number;
+  attempt_limit: number;
+  amount: number;
+  archived: boolean;
+  published: boolean;
+  created: string;
+}
+
+/** CEFR Multilevel (75) darajasi */
+export function levelOf(overall: number | null | undefined): string | null {
+  if (overall === null || overall === undefined) return null;
+  if (overall >= 65) return "C1";
+  if (overall >= 51) return "B2";
+  if (overall >= 38) return "B1";
+  return "A2";
 }
 
 export interface StatsTotals {
@@ -79,9 +120,35 @@ const qs = (r: { from?: string; to?: string }) => {
   return s ? `?${s}` : "";
 };
 
+/** Markaz/ustoz kesimi uchun so'rov satri */
+const studentsQs = (f: { from?: string; to?: string; center?: string; teacher?: string; limit?: number }) => {
+  const p = new URLSearchParams();
+  if (f.from) p.set("from", f.from);
+  if (f.to) p.set("to", f.to);
+  if (f.center !== undefined) p.set("center", f.center);
+  if (f.teacher !== undefined) p.set("teacher", f.teacher);
+  if (f.limit) p.set("limit", String(f.limit));
+  const s = p.toString();
+  return s ? `?${s}` : "";
+};
+
+export interface StudentsFilter {
+  from?: string;
+  to?: string;
+  center?: string;
+  teacher?: string;
+  /** Eng ko'p nechta o'quvchi (server chegarasi 500) */
+  limit?: number;
+}
+
 export const statsApi = {
   organizer: (r: { from?: string; to?: string }) => api.get<Stats>(`/api/registrations/stats${qs(r)}`),
   admin: (r: { from?: string; to?: string }) => api.get<Stats>(`/api/admin/stats/report${qs(r)}`),
+  /** Markaz yoki ustozning o'quvchilari */
+  students: (mode: "organizer" | "admin", f: StudentsFilter) =>
+    api.get<{ items: StudentRow[]; limit: number }>(
+      `${mode === "admin" ? "/api/admin/stats/students" : "/api/registrations/stats/students"}${studentsQs(f)}`,
+    ),
 };
 
 export const fmtSum = (n: number) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
@@ -106,7 +173,7 @@ export interface ReportOptions {
  * Chiroyli A4 PDF hisobot: sarlavha bloki, KPI kartalar, kunlik grafik, daraja taqsimoti,
  * ko'nikma o'rtachalari, markazlar/ustozlar (yoki tashkilotchilar) jadvallari.
  */
-export async function downloadStatsPdf(stats: Stats, opts: ReportOptions): Promise<void> {
+export async function downloadStatsPdf(stats: Stats, opts: ReportOptions, students?: StudentRow[]): Promise<void> {
   const [{ jsPDF }, autoTableMod] = await Promise.all([import("jspdf"), import("jspdf-autotable")]);
   const autoTable = autoTableMod.default;
   const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
@@ -258,7 +325,14 @@ export async function downloadStatsPdf(stats: Stats, opts: ReportOptions): Promi
   }
 
   // ---- Jadvallar
-  const groupTable = (title: string, rows: GroupRow[], nameLabel: string) => {
+  const skillAvgs = (r: GroupRow) =>
+    [r.avg_listening, r.avg_reading, r.avg_writing, r.avg_speaking].map((v) => (v === null || v === undefined ? "—" : v)).join(" / ");
+
+  /**
+   * Guruh jadvali. `children` berilsa har bir guruh ostida ichki qatorlar chiqadi
+   * (markaz -> ustozlari) — hisobot aniqroq bo'ladi.
+   */
+  const groupTable = (title: string, rows: GroupRow[], nameLabel: string, children?: (name: string) => GroupRow[]) => {
     if (!rows.length) return;
     if (y > 240) {
       doc.addPage();
@@ -268,24 +342,42 @@ export async function downloadStatsPdf(stats: Stats, opts: ReportOptions): Promi
     doc.setFontSize(11);
     doc.setTextColor(30);
     doc.text(title, M, y + 4);
+    const body: (string | number)[][] = [];
+    const subIdx = new Set<number>();
+    for (const r of rows) {
+      body.push([r.name, r.total, r.approved, r.with_speaking, r.published, r.avg_overall ?? "—", skillAvgs(r), `${r.c1}/${r.b2}/${r.b1}/${r.a2}`, fmtSum(r.revenue)]);
+      for (const k of children?.(r.name) ?? []) {
+        subIdx.add(body.length);
+        body.push([`   ↳ ${k.name}`, k.total, k.approved, k.with_speaking, k.published, k.avg_overall ?? "—", skillAvgs(k), `${k.c1}/${k.b2}/${k.b1}/${k.a2}`, fmtSum(k.revenue)]);
+      }
+    }
     autoTable(doc, {
       startY: y + 7,
       margin: { left: M, right: M },
-      styles: { font: "DejaVu", fontSize: 8, cellPadding: 2, textColor: 30, halign: "center", valign: "middle" },
-      headStyles: { fillColor: [79, 70, 229], textColor: 255, fontStyle: "bold", fontSize: 7, halign: "center" },
+      styles: { font: "DejaVu", fontSize: 7.5, cellPadding: 1.8, textColor: 30, halign: "center", valign: "middle" },
+      headStyles: { fillColor: [79, 70, 229], textColor: 255, fontStyle: "bold", fontSize: 6.5, halign: "center" },
       alternateRowStyles: { fillColor: [248, 250, 252] },
-      head: [[nameLabel, L.total_short, L.approved_short, L.speaking_short, L.published_short, L.avg_overall_short, "C1", "B2", "B1", "A2", L.revenue]],
-      body: rows.map((r) => [r.name, r.total, r.approved, r.with_speaking, r.published, r.avg_overall ?? "—", r.c1, r.b2, r.b1, r.a2, fmtSum(r.revenue)]),
+      head: [[nameLabel, L.total_short, L.approved_short, L.speaking_short, L.published_short, L.avg_overall_short, L.skills_avg, "C1/B2/B1/A2", L.revenue]],
+      body,
+      didParseCell: (d) => {
+        if (d.section === "body" && subIdx.has(d.row.index)) {
+          d.cell.styles.fontSize = 6.8;
+          d.cell.styles.textColor = 90;
+          d.cell.styles.fillColor = [241, 245, 249];
+        }
+      },
       columnStyles: {
-        0: { cellWidth: 42, fontStyle: "bold", halign: "left" },
-        1: { cellWidth: 14 }, 2: { cellWidth: 20 }, 3: { cellWidth: 18 }, 4: { cellWidth: 20 }, 5: { cellWidth: 16 },
-        6: { cellWidth: 8 }, 7: { cellWidth: 8 }, 8: { cellWidth: 8 }, 9: { cellWidth: 8 },
-        10: { halign: "right" },
+        0: { cellWidth: 40, fontStyle: "bold", halign: "left" },
+        1: { cellWidth: 12 }, 2: { cellWidth: 16 }, 3: { cellWidth: 15 }, 4: { cellWidth: 16 }, 5: { cellWidth: 14 },
+        6: { cellWidth: 28 }, 7: { cellWidth: 22 },
+        8: { halign: "right" },
       },
     });
     y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;
   };
-  groupTable(L.by_center, stats.by_center, L.center);
+  groupTable(L.by_center, stats.by_center, L.center, (center) =>
+    (stats.by_center_teacher ?? []).filter((r) => r.center === center),
+  );
   groupTable(L.by_teacher, stats.by_teacher, L.teacher);
   if (stats.by_organizer?.length) {
     if (y > 240) {
@@ -307,6 +399,45 @@ export async function downloadStatsPdf(stats: Stats, opts: ReportOptions): Promi
         0: { cellWidth: 40, fontStyle: "bold", halign: "left" }, 1: { cellWidth: 44, halign: "left" },
         2: { cellWidth: 14 }, 3: { cellWidth: 20 }, 4: { cellWidth: 18 }, 5: { cellWidth: 20 }, 6: { cellWidth: 16 },
         7: { halign: "right" },
+      },
+    });
+  }
+
+  // ---- Ilova: o'quvchilar ro'yxati (ism, markaz, ustoz, ballar, daraja)
+  if (students?.length) {
+    doc.addPage();
+    y = 16;
+    doc.setFont("DejaVu", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(30);
+    doc.text(`${L.student_list} (${students.length})`, M, y + 4);
+    autoTable(doc, {
+      startY: y + 7,
+      margin: { left: M, right: M },
+      styles: { font: "DejaVu", fontSize: 7.5, cellPadding: 1.6, textColor: 30, halign: "center", valign: "middle" },
+      headStyles: { fillColor: [79, 70, 229], textColor: 255, fontStyle: "bold", fontSize: 6.5, halign: "center" },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      head: [["#", L.student, L.center, L.teacher, "L", "R", "W", "S", L.avg_overall_short, L.level]],
+      body: students.map((s) => [
+        s.seq,
+        s.full_name,
+        s.center_name || "—",
+        s.teacher_name || "—",
+        s.skip_listening ? "✗" : (s.listening ?? "—"),
+        s.skip_reading ? "✗" : (s.reading ?? "—"),
+        s.skip_writing ? "✗" : (s.writing ?? "—"),
+        s.skip_speaking ? "✗" : (s.speaking ?? "—"),
+        s.overall ?? "—",
+        levelOf(s.overall) ?? "—",
+      ]),
+      columnStyles: {
+        0: { cellWidth: 10 },
+        1: { cellWidth: 42, halign: "left", fontStyle: "bold" },
+        2: { cellWidth: 32, halign: "left" },
+        3: { cellWidth: 30, halign: "left" },
+        4: { cellWidth: 9 }, 5: { cellWidth: 9 }, 6: { cellWidth: 9 }, 7: { cellWidth: 9 },
+        8: { cellWidth: 14, fontStyle: "bold" },
+        9: { cellWidth: 12 },
       },
     });
   }
