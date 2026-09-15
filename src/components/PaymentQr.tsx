@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ExternalLink, Loader2, QrCode, ScanLine } from "lucide-react";
 import CopyButton from "@/components/CopyButton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { parsePaymentQr } from "@/lib/payment-qr";
 import { cn } from "@/lib/utils";
 
 /**
@@ -21,17 +22,20 @@ const PaymentQr: React.FC<{ url: string; className?: string }> = ({ url, classNa
   const [big, setBig] = useState(false);
   const [failed, setFailed] = useState(false);
 
+  // QR ichiga EMVCo to'lov kodi joylanadi (havola emas) — bank ilovalari faqat shuni o'qiydi
+  const { qrData, openUrl } = useMemo(() => parsePaymentQr(url), [url]);
+
   useEffect(() => {
     let cancelled = false;
     setPng(null);
     setFailed(false);
-    if (!url) return;
+    if (!qrData) return;
     void (async () => {
       try {
         const QRCode = (await import("qrcode")).default;
         // "M" darajasi — bank ilovalari uchun standart muvozanat: naqsh juda zich
         // bo'lib ketmaydi (H bo'lsa modul soni ~25% ko'payib, ekrandan o'qish qiyinlashadi)
-        const data = await QRCode.toDataURL(url, {
+        const data = await QRCode.toDataURL(qrData, {
           errorCorrectionLevel: "M",
           margin: 2,
           width: 720,
@@ -45,7 +49,7 @@ const PaymentQr: React.FC<{ url: string; className?: string }> = ({ url, classNa
     return () => {
       cancelled = true;
     };
-  }, [url]);
+  }, [qrData]);
 
   return (
     <div className={cn("rounded-2xl bg-white/12 p-4 backdrop-blur", className)}>
@@ -75,18 +79,20 @@ const PaymentQr: React.FC<{ url: string; className?: string }> = ({ url, classNa
           <p className="mt-1 text-xs text-white/75">{t("billing.qr_apps")}</p>
 
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
-            <a
-              href={url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-bold text-indigo-700 shadow transition-colors hover:bg-white/90"
-            >
-              <ExternalLink className="h-4 w-4" />
-              {t("billing.qr_open")}
-            </a>
-            <CopyButton text={url} label={t("billing.qr_copy")} copiedLabel={t("registrations_page.copied")} />
+            {openUrl && (
+              <a
+                href={openUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-2 text-sm font-bold text-indigo-700 shadow transition-colors hover:bg-white/90"
+              >
+                <ExternalLink className="h-4 w-4" />
+                {t("billing.qr_open")}
+              </a>
+            )}
+            <CopyButton text={openUrl || qrData} label={t("billing.qr_copy")} copiedLabel={t("registrations_page.copied")} />
           </div>
-          <p className="mt-2 text-[11px] text-white/70">{t("billing.qr_phone_hint")}</p>
+          {openUrl && <p className="mt-2 text-[11px] text-white/70">{t("billing.qr_phone_hint")}</p>}
         </div>
       </div>
 

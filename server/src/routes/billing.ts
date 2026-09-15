@@ -107,12 +107,16 @@ const settingsSchema = z.object({
   amount: z.coerce.number().int().min(0).max(1_000_000_000).optional(),
   card_number: z.string().trim().max(32).transform((v) => v.replace(/\s/g, "")).optional(),
   card_holder: z.string().trim().max(120).optional(),
-  // QR havolasi: faqat https:// (yoki bo'sh — o'chirish uchun)
+  // QR: https:// havola (Paynet "ulashish" havolasi) yoki to'g'ridan-to'g'ri
+  // EMVCo to'lov kodi (000201...). Bo'sh bo'lsa — karta raqami rejimi.
   qr_url: z
     .string()
     .trim()
     .max(2000)
-    .refine((v) => v === "" || /^https:\/\/[^\s]+$/i.test(v), "QR havolasi https:// bilan boshlanishi kerak")
+    .refine(
+      (v) => v === "" || /^https:\/\/[^\s]+$/i.test(v) || /^000201\S+$/.test(v),
+      "QR: https:// havola yoki 000201... to'lov kodi bo'lishi kerak",
+    )
     .optional(),
   period_days: z.coerce.number().int().min(1).max(3650).optional(),
   remind_days: z.coerce.number().int().min(0).max(365).optional(),
