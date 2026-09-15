@@ -87,11 +87,20 @@ const ALIASES: Record<string, string> = {
   yoq: SELF_STUDY,
 };
 
-/** Taqqoslash uchun soddalashtirish: kichik harf, faqat harf va raqamlar. */
-function norm(s: string): string {
+/** Kirill harflarni lotinga o'girish (o'quvchilar ba'zan kirillda yozadi). */
+const CYR: Record<string, string> = {
+  а: "a", б: "b", в: "v", г: "g", д: "d", е: "e", ё: "yo", ж: "j", з: "z", и: "i",
+  й: "y", к: "k", л: "l", м: "m", н: "n", о: "o", п: "p", р: "r", с: "s", т: "t",
+  у: "u", ф: "f", х: "x", ц: "ts", ч: "ch", ш: "sh", щ: "sh", ъ: "", ы: "i", ь: "",
+  э: "e", ю: "yu", я: "ya", ғ: "g", қ: "q", ҳ: "h", ў: "o", ҷ: "j",
+};
+
+/** Taqqoslash uchun soddalashtirish: kichik harf, kirill -> lotin, faqat harf va raqamlar. */
+export function norm(s: string): string {
   return s
     .toLowerCase()
     .replace(/['`’ʼ]/g, "")
+    .replace(/[Ѐ-ӿ]/g, (c) => CYR[c] ?? "")
     .replace(/[^a-z0-9]+/g, "");
 }
 

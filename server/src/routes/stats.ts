@@ -123,6 +123,26 @@ async function buildStats(ownerId: string | null, from?: string, to?: string) {
   const byCenter = await query<GroupRow>(groupSql("center_name"), params);
   const byTeacher = await query<GroupRow>(groupSql("teacher_name"), params);
 
+  // Markaz -> ustozlar: statistikada markaz ustiga bosilganda shu markazning
+  // ustozlari va ularning o'quvchilari ko'rinadi.
+  const byCenterTeacher = await query<GroupRow & { center: string }>(
+    `${cte}
+     SELECT COALESCE(NULLIF(TRIM(center_name), ''), '—') AS center,
+            COALESCE(NULLIF(TRIM(teacher_name), ''), '—') AS name,
+            COUNT(*)::int AS total,
+            COUNT(*) FILTER (WHERE status = 'approved')::int AS approved,
+            COUNT(*) FILTER (WHERE has_speaking)::int AS with_speaking,
+            COUNT(*) FILTER (WHERE results_published_at IS NOT NULL)::int AS published,
+            ROUND(AVG(overall), 1) AS avg_overall,
+            COALESCE(SUM(amount) FILTER (WHERE status = 'approved'), 0)::bigint AS revenue,
+            COUNT(*) FILTER (WHERE ${LEVEL_CASE} = 'C1')::int AS c1,
+            COUNT(*) FILTER (WHERE ${LEVEL_CASE} = 'B2')::int AS b2,
+            COUNT(*) FILTER (WHERE ${LEVEL_CASE} = 'B1')::int AS b1,
+            COUNT(*) FILTER (WHERE ${LEVEL_CASE} = 'A2')::int AS a2
+     FROM base GROUP BY 1, 2 ORDER BY center, total DESC, name`,
+    params,
+  );
+
   const num = (v: unknown) => (v === null || v === undefined ? null : Number(v));
   const grp = (g: GroupRow) => ({ ...g, avg_overall: num(g.avg_overall), revenue: Number(g.revenue) });
 
@@ -150,6 +170,7 @@ async function buildStats(ownerId: string | null, from?: string, to?: string) {
     daily,
     by_center: byCenter.map(grp),
     by_teacher: byTeacher.map(grp),
+    by_center_teacher: byCenterTeacher.map((g) => ({ ...grp(g), center: g.center })),
   };
 }
 

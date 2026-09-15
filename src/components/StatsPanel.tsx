@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from "recharts";
-import { BarChart3, Building2, CalendarRange, FileDown, GraduationCap, Loader2, Megaphone, Mic, TrendingUp, Users, Wallet } from "lucide-react";
+import { BarChart3, Building2, CalendarRange, ChevronRight, FileDown, GraduationCap, Loader2, Megaphone, Mic, TrendingUp, Users, Wallet } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,11 +32,29 @@ const Kpi: React.FC<{ icon: React.ElementType; label: string; value: React.React
   </Card>
 );
 
-const GroupTable: React.FC<{ title: string; icon: React.ElementType; rows: GroupRow[]; nameLabel: string }> = ({ title, icon: Icon, rows, nameLabel }) => {
+/**
+ * Guruh jadvali (markazlar / ustozlar).
+ * `subRows` berilsa qator bosilganda ichki ro'yxat ochiladi — masalan markaz ustiga
+ * bosilsa shu markazning ustozlari va ularning o'quvchilari ko'rinadi.
+ */
+const GroupTable: React.FC<{
+  title: string;
+  icon: React.ElementType;
+  rows: GroupRow[];
+  nameLabel: string;
+  subRows?: (name: string) => GroupRow[];
+  subLabel?: string;
+}> = ({ title, icon: Icon, rows, nameLabel, subRows, subLabel }) => {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const [sort, setSort] = useState<keyof GroupRow>("total");
+  const [open, setOpen] = useState<string | null>(null);
   const sorted = useMemo(() => [...rows].sort((a, b) => Number(b[sort] ?? -1) - Number(a[sort] ?? -1)), [rows, sort]);
+  const kids = (name: string) => (subRows ? subRows(name) : []);
+  const toggle = (name: string) => {
+    if (!subRows) return;
+    setOpen((prev) => (prev === name ? null : name));
+  };
   const maxTotal = Math.max(1, ...rows.map((r) => r.total));
   const th = (key: keyof GroupRow, label: string, cls = "") => (
     <TableHead className={cn("cursor-pointer select-none whitespace-nowrap hover:text-primary", cls, sort === key && "text-primary font-bold")} onClick={() => setSort(key)}>
@@ -57,14 +75,35 @@ const GroupTable: React.FC<{ title: string; icon: React.ElementType; rows: Group
           <div className="space-y-2">
             {sorted.map((r) => (
               <div key={r.name} className="rounded-lg border p-3 space-y-1">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-semibold truncate">{r.name}</span>
+                <div
+                  className={cn("flex items-center justify-between gap-2", subRows && kids(r.name).length > 0 && "cursor-pointer")}
+                  onClick={() => toggle(r.name)}
+                >
+                  <span className="font-semibold truncate">
+                    {subRows && kids(r.name).length > 0 && (
+                      <ChevronRight className={cn("inline h-3.5 w-3.5 mr-1 transition-transform", open === r.name && "rotate-90")} />
+                    )}
+                    {r.name}
+                  </span>
                   <span className="text-sm font-bold">{r.total}</span>
                 </div>
                 <div className="h-1.5 rounded-full bg-muted overflow-hidden"><div className="h-full bg-primary" style={{ width: `${(r.total / maxTotal) * 100}%` }} /></div>
                 <div className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
                   <span>✅ {r.approved}</span><span>🎥 {r.with_speaking}</span><span>📣 {r.published}</span><span>📊 {r.avg_overall ?? "—"}</span><span>💰 {fmtSum(r.revenue)}</span>
                 </div>
+                {open === r.name && kids(r.name).length > 0 && (
+                  <div className="mt-2 space-y-1 border-t pt-2">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{subLabel}</p>
+                    {kids(r.name).map((k) => (
+                      <div key={k.name} className="flex items-center justify-between gap-2 text-xs">
+                        <span className="truncate">{k.name}</span>
+                        <span className="shrink-0 tabular-nums text-muted-foreground">
+                          {k.total} · ✅ {k.approved} · 📊 {k.avg_overall ?? "—"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -84,23 +123,57 @@ const GroupTable: React.FC<{ title: string; icon: React.ElementType; rows: Group
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sorted.map((r) => (
-                  <TableRow key={r.name}>
-                    <TableCell className="font-semibold">
-                      <div>{r.name}</div>
-                      <div className="h-1 rounded-full bg-muted overflow-hidden mt-1 w-32"><div className="h-full bg-primary" style={{ width: `${(r.total / maxTotal) * 100}%` }} /></div>
-                    </TableCell>
-                    <TableCell className="text-right font-bold tabular-nums">{r.total}</TableCell>
-                    <TableCell className="text-right tabular-nums">{r.approved}</TableCell>
-                    <TableCell className="text-right tabular-nums">{r.with_speaking}</TableCell>
-                    <TableCell className="text-right tabular-nums">{r.published}</TableCell>
-                    <TableCell className="text-right tabular-nums">{r.avg_overall ?? "—"}</TableCell>
-                    <TableCell className="text-center text-xs tabular-nums">
-                      <span className="text-emerald-600">{r.c1}</span> / <span className="text-sky-600">{r.b2}</span> / <span className="text-amber-600">{r.b1}</span> / <span className="text-rose-600">{r.a2}</span>
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums whitespace-nowrap">{fmtSum(r.revenue)}</TableCell>
-                  </TableRow>
-                ))}
+                {sorted.map((r) => {
+                  const children = kids(r.name);
+                  const expandable = !!subRows && children.length > 0;
+                  return (
+                    <React.Fragment key={r.name}>
+                      <TableRow
+                        className={cn(expandable && "cursor-pointer hover:bg-muted/50", open === r.name && "bg-muted/40")}
+                        onClick={() => toggle(r.name)}
+                      >
+                        <TableCell className="font-semibold">
+                          <div className="flex items-center gap-1">
+                            {expandable && (
+                              <ChevronRight className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform", open === r.name && "rotate-90")} />
+                            )}
+                            <span>{r.name}</span>
+                            {expandable && <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">{children.length}</Badge>}
+                          </div>
+                          <div className="h-1 rounded-full bg-muted overflow-hidden mt-1 w-32"><div className="h-full bg-primary" style={{ width: `${(r.total / maxTotal) * 100}%` }} /></div>
+                        </TableCell>
+                        <TableCell className="text-right font-bold tabular-nums">{r.total}</TableCell>
+                        <TableCell className="text-right tabular-nums">{r.approved}</TableCell>
+                        <TableCell className="text-right tabular-nums">{r.with_speaking}</TableCell>
+                        <TableCell className="text-right tabular-nums">{r.published}</TableCell>
+                        <TableCell className="text-right tabular-nums">{r.avg_overall ?? "—"}</TableCell>
+                        <TableCell className="text-center text-xs tabular-nums">
+                          <span className="text-emerald-600">{r.c1}</span> / <span className="text-sky-600">{r.b2}</span> / <span className="text-amber-600">{r.b1}</span> / <span className="text-rose-600">{r.a2}</span>
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums whitespace-nowrap">{fmtSum(r.revenue)}</TableCell>
+                      </TableRow>
+                      {open === r.name &&
+                        children.map((k) => (
+                          <TableRow key={`${r.name}//${k.name}`} className="bg-muted/20 text-sm">
+                            <TableCell className="pl-9">
+                              <span className="text-muted-foreground">↳ </span>
+                              <span className="font-medium">{k.name}</span>
+                              {subLabel && <span className="ml-2 text-[10px] uppercase tracking-wider text-muted-foreground">{subLabel}</span>}
+                            </TableCell>
+                            <TableCell className="text-right font-semibold tabular-nums">{k.total}</TableCell>
+                            <TableCell className="text-right tabular-nums">{k.approved}</TableCell>
+                            <TableCell className="text-right tabular-nums">{k.with_speaking}</TableCell>
+                            <TableCell className="text-right tabular-nums">{k.published}</TableCell>
+                            <TableCell className="text-right tabular-nums">{k.avg_overall ?? "—"}</TableCell>
+                            <TableCell className="text-center text-xs tabular-nums">
+                              <span className="text-emerald-600">{k.c1}</span> / <span className="text-sky-600">{k.b2}</span> / <span className="text-amber-600">{k.b1}</span> / <span className="text-rose-600">{k.a2}</span>
+                            </TableCell>
+                            <TableCell className="text-right tabular-nums whitespace-nowrap">{fmtSum(k.revenue)}</TableCell>
+                          </TableRow>
+                        ))}
+                    </React.Fragment>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
@@ -305,7 +378,14 @@ const StatsPanel: React.FC<{ mode: "organizer" | "admin"; title: string }> = ({ 
               </CardContent>
             </Card>
           )}
-          <GroupTable title={t("stats.by_center")} icon={Building2} rows={s!.by_center} nameLabel={t("stats.center")} />
+          <GroupTable
+            title={t("stats.by_center")}
+            icon={Building2}
+            rows={s!.by_center}
+            nameLabel={t("stats.center")}
+            subLabel={t("stats.teacher")}
+            subRows={(center) => (s!.by_center_teacher ?? []).filter((r) => r.center === center)}
+          />
           <GroupTable title={t("stats.by_teacher")} icon={GraduationCap} rows={s!.by_teacher} nameLabel={t("stats.teacher")} />
         </>
       )}

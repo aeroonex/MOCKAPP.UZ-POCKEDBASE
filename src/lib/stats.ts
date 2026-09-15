@@ -44,6 +44,8 @@ export interface Stats {
   daily: { day: string; total: number; approved: number; speaking: number }[];
   by_center: GroupRow[];
   by_teacher: GroupRow[];
+  /** Markaz ichidagi ustozlar (markaz ustiga bosilganda ochiladi) */
+  by_center_teacher?: (GroupRow & { center: string })[];
   by_organizer?: (Omit<GroupRow, "c1" | "b2" | "b1" | "a2"> & { user_id: string; organizer: string; email: string })[];
 }
 
