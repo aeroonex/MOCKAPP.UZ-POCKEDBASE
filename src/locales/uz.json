@@ -772,7 +772,9 @@
     "st_payments": "Kutilayotgan to'lovlar",
     "st_expired": "Muddati tugaganlar",
     "acc_blocked": "Bloklangan",
-    "acc_expired": "Tugagan"
+    "acc_expired": "Tugagan",
+    "b_qr_url": "To'lov QR havolasi (Paynet/Click/Payme)",
+    "b_qr_hint": "To'ldirilsa foydalanuvchiga karta raqami emas, QR kod ko'rsatiladi (ism-familiya ko'rinmaydi). Bo'sh qoldirilsa — karta raqami."
   },
   "billing": {
     "title": "To'lov va obuna",
@@ -807,7 +809,14 @@
     "locked_blocked_title": "Hisob bloklangan",
     "locked_blocked_desc": "Hisobingiz administrator tomonidan vaqtincha bloklangan. Ma'lumot uchun administratorga murojaat qiling.",
     "locked_station_desc": "Tashkilotchining obunasi faol emas — imtihon stansiyasi vaqtincha ishlamaydi. Markaz administratoriga murojaat qiling.",
-    "contact_admin": "Administratorga murojaat"
+    "contact_admin": "Administratorga murojaat",
+    "qr_badge": "QR bilan to'lov",
+    "qr_hint": "To'lov uchun bank ilovasi kamerasini QR kodga qarating.",
+    "qr_apps": "Click, Payme, Uzum, Paynet va boshqa bank ilovalari qabul qiladi.",
+    "qr_open": "Havolani ochish",
+    "qr_copy": "Havolani nusxalash",
+    "qr_phone_hint": "Telefondan kirgan bo'lsangiz — «Havolani ochish»ni bosing, bank ilovasi o'zi ochiladi.",
+    "qr_zoom": "Kattalashtirish uchun bosing"
   },
   "stats": {
     "tab": "Statistika",

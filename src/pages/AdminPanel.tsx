@@ -11,6 +11,7 @@ import MonitoringPanel from "@/components/admin/MonitoringPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { billingApi, formatSum, formatCard, getAccess, type BillingSettings, type Payment } from "@/lib/billing";
+import PaymentQr from "@/components/PaymentQr";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -335,7 +336,7 @@ const BillingSettingsTab: React.FC = () => {
   const [form, setForm] = useState<Partial<BillingSettings>>({});
   const [busy, setBusy] = useState(false);
   useEffect(() => {
-    if (q.data) setForm({ amount: q.data.amount, card_number: q.data.card_number, card_holder: q.data.card_holder, period_days: q.data.period_days, remind_days: q.data.remind_days, note: q.data.note });
+    if (q.data) setForm({ amount: q.data.amount, card_number: q.data.card_number, card_holder: q.data.card_holder, qr_url: q.data.qr_url ?? "", period_days: q.data.period_days, remind_days: q.data.remind_days, note: q.data.note });
   }, [q.data]);
   const set = <K extends keyof BillingSettings>(k: K, v: BillingSettings[K]) => setForm((f) => ({ ...f, [k]: v }));
   const save = async () => {
@@ -365,6 +366,23 @@ const BillingSettingsTab: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1"><Label>{t("registrations_page.s_card_number")}</Label><Input inputMode="numeric" value={formatCard(form.card_number ?? "")} onChange={(e) => set("card_number", e.target.value.replace(/\D/g, "").slice(0, 16))} className="font-mono" placeholder="8600 0000 0000 0000" /></div>
           <div className="space-y-1"><Label>{t("registrations_page.s_card_holder")}</Label><Input value={form.card_holder ?? ""} onChange={(e) => set("card_holder", e.target.value)} /></div>
+        </div>
+        {/* To'lov QR havolasi (Paynet/Click/Payme). To'ldirilsa foydalanuvchiga karta
+            raqami emas, QR kodi ko'rsatiladi — ism-familiya ko'rinmaydi. */}
+        <div className="space-y-1">
+          <Label>{t("admin_panel.b_qr_url")}</Label>
+          <Input
+            value={form.qr_url ?? ""}
+            onChange={(e) => set("qr_url", e.target.value.trim())}
+            placeholder="https://app.paynet.uz/qr-online/..."
+            className="font-mono text-xs"
+          />
+          <p className="text-[11px] text-muted-foreground">{t("admin_panel.b_qr_hint")}</p>
+          {!!form.qr_url && (
+            <div className="mt-2 max-w-md overflow-hidden rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 p-3 text-white">
+              <PaymentQr url={form.qr_url} />
+            </div>
+          )}
         </div>
         <div className="space-y-1"><Label>{t("admin_panel.b_note")}</Label><Textarea value={form.note ?? ""} onChange={(e) => set("note", e.target.value)} rows={2} maxLength={500} placeholder={t("admin_panel.b_note_ph")} /></div>
         <div className="flex justify-end"><Button onClick={save} disabled={busy} className="min-w-[140px]">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : t("registrations_page.save")}</Button></div>

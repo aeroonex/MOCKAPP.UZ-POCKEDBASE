@@ -7,6 +7,8 @@ export interface BillingSettings {
   amount: number;
   card_number: string;
   card_holder: string;
+  /** To'lov QR havolasi (Paynet/Click/Payme). Bo'sh bo'lsa karta raqami ko'rsatiladi. */
+  qr_url: string;
   period_days: number;
   remind_days: number;
   note: string;

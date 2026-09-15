@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import CopyButton from "@/components/CopyButton";
+import PaymentQr from "@/components/PaymentQr";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -288,7 +289,10 @@ const BillingSection: React.FC = () => {
         <div className="rounded-2xl border bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 text-white p-5 shadow-lg">
           <div className="text-xs uppercase tracking-[0.2em] text-white/70">{t("billing.plan_price")}</div>
           <div className="text-3xl font-black mt-1">{st ? formatSum(st.amount) : "…"} <span className="text-base font-semibold text-white/80">{t("billing.sum")}</span> <span className="text-sm font-medium text-white/70">/ {st?.period_days ?? 30} {t("billing.days")}</span></div>
-          {st?.card_number ? (
+          {/* QR havolasi bo'lsa — QR bilan to'lov (karta raqami va egasining ismi ko'rsatilmaydi) */}
+          {st?.qr_url ? (
+            <PaymentQr url={st.qr_url} className="mt-4" />
+          ) : st?.card_number ? (
             <div className="mt-4 rounded-xl bg-white/10 backdrop-blur px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2">
               <div className="flex-1 min-w-0">
                 <div className="font-mono text-lg sm:text-xl tracking-widest">{formatCard(st.card_number)}</div>

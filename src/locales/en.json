@@ -772,7 +772,9 @@
     "st_payments": "Pending payments",
     "st_expired": "Expired users",
     "acc_blocked": "Blocked",
-    "acc_expired": "Expired"
+    "acc_expired": "Expired",
+    "b_qr_url": "Payment QR link (Paynet/Click/Payme)",
+    "b_qr_hint": "When set, users see the QR code instead of the card number (no name shown). Leave empty to show the card number."
   },
   "billing": {
     "title": "Billing & subscription",
@@ -807,7 +809,14 @@
     "locked_blocked_title": "Account blocked",
     "locked_blocked_desc": "Your account was temporarily blocked by the administrator. Please contact them for details.",
     "locked_station_desc": "The organizer's subscription is not active — the exam station is paused. Contact the center administrator.",
-    "contact_admin": "Contact administrator"
+    "contact_admin": "Contact administrator",
+    "qr_badge": "Pay by QR",
+    "qr_hint": "Point your bank app camera at the QR code to pay.",
+    "qr_apps": "Works with Click, Payme, Uzum, Paynet and other bank apps.",
+    "qr_open": "Open link",
+    "qr_copy": "Copy link",
+    "qr_phone_hint": "On a phone, tap “Open link” — your bank app will open automatically.",
+    "qr_zoom": "Click to enlarge"
   },
   "stats": {
     "tab": "Statistics",

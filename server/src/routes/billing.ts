@@ -10,6 +10,8 @@ export interface BillingSettingsRow {
   amount: number;
   card_number: string;
   card_holder: string;
+  /** To'lov QR kodi havolasi (Paynet/Click/Payme). Bo'sh bo'lsa karta raqami ko'rsatiladi. */
+  qr_url: string;
   period_days: number;
   remind_days: number;
   note: string;
@@ -70,8 +72,10 @@ export async function reviewPayment(
 }
 
 export async function getBillingSettings(): Promise<BillingSettingsRow> {
-  const row = await one<BillingSettingsRow>("SELECT amount, card_number, card_holder, period_days, remind_days, note, updated FROM billing_settings WHERE id = 1");
-  return row ?? { amount: 0, card_number: "", card_holder: "", period_days: 30, remind_days: 5, note: "", updated: new Date() };
+  const row = await one<BillingSettingsRow>(
+    "SELECT amount, card_number, card_holder, qr_url, period_days, remind_days, note, updated FROM billing_settings WHERE id = 1",
+  );
+  return row ?? { amount: 0, card_number: "", card_holder: "", qr_url: "", period_days: 30, remind_days: 5, note: "", updated: new Date() };
 }
 
 function paymentToClient(p: PaymentRow) {
@@ -103,6 +107,13 @@ const settingsSchema = z.object({
   amount: z.coerce.number().int().min(0).max(1_000_000_000).optional(),
   card_number: z.string().trim().max(32).transform((v) => v.replace(/\s/g, "")).optional(),
   card_holder: z.string().trim().max(120).optional(),
+  // QR havolasi: faqat https:// (yoki bo'sh — o'chirish uchun)
+  qr_url: z
+    .string()
+    .trim()
+    .max(2000)
+    .refine((v) => v === "" || /^https:\/\/[^\s]+$/i.test(v), "QR havolasi https:// bilan boshlanishi kerak")
+    .optional(),
   period_days: z.coerce.number().int().min(1).max(3650).optional(),
   remind_days: z.coerce.number().int().min(0).max(365).optional(),
   note: z.string().trim().max(500).optional(),
@@ -122,7 +133,7 @@ export async function billingRoutes(app: FastifyInstance) {
     const st = await getBillingSettings();
     const payments = await query<PaymentRow>(`SELECT ${PAY_COLS} FROM payments WHERE user_id = $1 ORDER BY created DESC LIMIT 20`, [uid]);
     return {
-      settings: { amount: Number(st.amount), card_number: st.card_number, card_holder: st.card_holder, period_days: Number(st.period_days), remind_days: Number(st.remind_days), note: st.note },
+      settings: { amount: Number(st.amount), card_number: st.card_number, card_holder: st.card_holder, qr_url: st.qr_url || "", period_days: Number(st.period_days), remind_days: Number(st.remind_days), note: st.note },
       access: accessOf(u, Number(st.remind_days)),
       pending: payments.find((p) => p.status === "pending") ? paymentToClient(payments.find((p) => p.status === "pending")!) : null,
       history: payments.map(paymentToClient),
@@ -205,9 +216,10 @@ export async function billingRoutes(app: FastifyInstance) {
     await query(
       `UPDATE billing_settings SET
          amount = COALESCE($1, amount), card_number = COALESCE($2, card_number), card_holder = COALESCE($3, card_holder),
-         period_days = COALESCE($4, period_days), remind_days = COALESCE($5, remind_days), note = COALESCE($6, note), updated = now()
+         period_days = COALESCE($4, period_days), remind_days = COALESCE($5, remind_days), note = COALESCE($6, note),
+         qr_url = COALESCE($7, qr_url), updated = now()
        WHERE id = 1`,
-      [d.amount ?? null, d.card_number ?? null, d.card_holder ?? null, d.period_days ?? null, d.remind_days ?? null, d.note ?? null],
+      [d.amount ?? null, d.card_number ?? null, d.card_holder ?? null, d.period_days ?? null, d.remind_days ?? null, d.note ?? null, d.qr_url ?? null],
     );
     return getBillingSettings();
   });
