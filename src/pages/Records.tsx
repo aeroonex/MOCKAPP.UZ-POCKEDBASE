@@ -175,12 +175,12 @@ const Records: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [t, user?.id]);
+  }, [t]);
 
   // Keep EduCloud usage accurate without causing refresh loops.
   useEffect(() => {
     if (!user?.id) return;
-    syncCloudStorageUsage(user.id, profile?.storage_used_bytes ?? null).then(() => {
+    syncCloudStorageUsage().then(() => {
       fetchProfile();
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -235,7 +235,7 @@ const Records: React.FC = () => {
       });
 
       // Recalculate used bytes from actual cloud records
-      await syncCloudStorageUsage(user.id, profile?.storage_used_bytes ?? null);
+      await syncCloudStorageUsage();
 
       setUploadBytesMap((prev) => ({ ...prev, [recording.id]: { loaded: blob.size, total: blob.size } }));
       setProgress(recording.id, 100);
@@ -336,7 +336,7 @@ const Records: React.FC = () => {
       const localDeleted = await deleteLocalRecording(recording.id);
       if (localDeleted) {
         setRecordings(prev => prev.filter(rec => rec.id !== recording.id));
-        if (user?.id) await syncCloudStorageUsage(user.id, profile?.storage_used_bytes ?? null);
+        if (user?.id) await syncCloudStorageUsage();
         await fetchProfile();
         showSuccess(t("records_page.success_recording_deleted"));
       }

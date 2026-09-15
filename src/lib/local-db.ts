@@ -430,14 +430,9 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
   return allRecordings;
 };
 
-export const syncCloudStorageUsage = async (
-  userId: string,
-  currentUsedBytes?: number | null
-): Promise<number> => {
+/** Serverda xotira hajmini qayta hisoblaydi (users.storage_used_bytes) va qaytaradi. */
+export const syncCloudStorageUsage = async (): Promise<number> => {
   try {
-    // Server recordings jadvalidan qayta hisoblab, users.storage_used_bytes ni yangilaydi.
-    void userId;
-    void currentUsedBytes;
     const res = await api.get<{ used_bytes: number; limit_bytes: number }>("/api/storage");
     return Number(res?.used_bytes || 0);
   } catch (e) {

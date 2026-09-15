@@ -105,7 +105,7 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
       }
     }
     throw new Error("Max retries exceeded for API call.");
-  }, [apiKey]);
+  }, []); // apiKey modul darajasidagi const — dep bo'lishi shart emas
 
   const handleChatSubmission = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -39,10 +39,11 @@ const LiveViewer: React.FC<{ target: WatchTarget | null; onClose: () => void }> 
         }
       },
     });
+    const video = videoRef.current;
     return () => {
       ctrl.stop();
       // Keyingi ochilishda eski kadr ko'rinib qolmasin
-      if (videoRef.current) videoRef.current.srcObject = null;
+      if (video) video.srcObject = null;
     };
   }, [targetUserId]);
 
