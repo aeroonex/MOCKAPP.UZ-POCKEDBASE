@@ -16,6 +16,7 @@ import { getLocalMoodEntries, addLocalMoodEntry, deleteLocalMoodEntry } from "@/
 import Navbar from "@/components/Navbar";
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
+import { errMessage } from "@/lib/utils";
 
 interface MoodEntry {
   id: string;
@@ -45,8 +46,8 @@ const MoodJournal: React.FC = () => {
     try {
       const data = getLocalMoodEntries();
       setEntries(data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-    } catch (error: any) {
-      showError(`${t("mood_journal_page.error_loading_entries")} ${error.message}`);
+    } catch (error) {
+      showError(`${t("mood_journal_page.error_loading_entries")} ${errMessage(error)}`);
     }
     setIsLoading(false);
   }, [t]);
@@ -59,8 +60,8 @@ const MoodJournal: React.FC = () => {
     try {
       addLocalMoodEntry({ mood, text });
       fetchEntries();
-    } catch (error: any) {
-      showError(`${t("mood_journal_page.error_saving_entry")} ${error.message}`);
+    } catch (error) {
+      showError(`${t("mood_journal_page.error_saving_entry")} ${errMessage(error)}`);
     }
   };
 
@@ -69,8 +70,8 @@ const MoodJournal: React.FC = () => {
       deleteLocalMoodEntry(id);
       showSuccess(t("mood_journal_page.success_entry_deleted"));
       setEntries((prevEntries) => prevEntries.filter((entry) => entry.id !== id));
-    } catch (error: any) {
-      showError(`${t("mood_journal_page.error_deleting_entry")} ${error.message}`);
+    } catch (error) {
+      showError(`${t("mood_journal_page.error_deleting_entry")} ${errMessage(error)}`);
     }
   };
 

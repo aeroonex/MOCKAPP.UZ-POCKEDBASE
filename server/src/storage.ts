@@ -5,6 +5,7 @@ import { pipeline } from "node:stream/promises";
 import { Transform } from "node:stream";
 import type { Readable } from "node:stream";
 import { config } from "./config.js";
+import { fileSignature } from "./file-urls.js";
 
 export const UPLOADS_DIR = path.join(config.dataDir, "uploads");
 /** Oqim bilan yuklanayotgan video bo'laklari (ommaviy /files/ dan tashqarida). */
@@ -76,8 +77,12 @@ export async function removeFile(rel: string | null | undefined): Promise<void> 
   }
 }
 
+/**
+ * Faylning tashqi manzili. Shaxsiy fayllar (videolar, cheklar) imzo bilan beriladi —
+ * imzosiz havola 403 qaytaradi (`file-urls.ts`).
+ */
 export function publicUrl(rel: string): string {
-  return `/files/${rel}`;
+  return `/files/${rel}${fileSignature(rel)}`;
 }
 
 // ---------- Bo'lakli (streaming) yuklash ----------

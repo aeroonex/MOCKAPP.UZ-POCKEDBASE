@@ -589,7 +589,8 @@
     "error": "Bağlanılamadı",
     "oneway_hint": "Yalnızca siz görür ve duyarsınız — kullanıcı sizi görmez",
     "mute": "Sessiz",
-    "unmute": "Sesli"
+    "unmute": "Sesli",
+    "denied": "Kullanıcı kamera/mikrofon erişimine izin vermedi"
   },
   "monitoring": {
     "tab": "İzleme",

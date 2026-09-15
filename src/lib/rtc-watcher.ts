@@ -1,4 +1,4 @@
-import { ICE_SERVERS, newCallId, openRtcStream, rtcSignal, rtcStop, rtcWatch, type RtcEvent } from "@/lib/rtc";
+import { getIceServers, newCallId, openRtcStream, rtcSignal, rtcStop, rtcWatch, type RtcEvent } from "@/lib/rtc";
 
 /**
  * Kuzatuvchi (admin) tomonidagi doimiy WebRTC menejeri — MODUL darajasida singleton.
@@ -7,7 +7,7 @@ import { ICE_SERVERS, newCallId, openRtcStream, rtcSignal, rtcStop, rtcWatch, ty
  * shuning uchun SSE uzilib qayta ulansa ham qo'ng'iroq buzilmaydi.
  */
 
-export type WatchState = "connecting" | "waiting" | "live" | "offline" | "error";
+export type WatchState = "connecting" | "waiting" | "live" | "offline" | "denied" | "error";
 
 interface WatchCbs {
   onStream: (stream: MediaStream) => void;
@@ -21,17 +21,30 @@ interface Call extends WatchCbs {
 }
 
 let sse: { close: () => void } | null = null;
-let ready: Promise<void> | null = null;
+let ready: Promise<boolean> | null = null;
 const calls = new Map<string, Call>();
 
-function ensureSSE(): Promise<void> {
+/** SSE tayyor bo'lishini kutadi. Ulanmasa (yoki 10 s javob bo'lmasa) false qaytaradi —
+ *  ilgari bu holatda "ulanmoqda" holati abadiy qotib qolardi. */
+function ensureSSE(): Promise<boolean> {
   if (ready) return ready;
-  ready = new Promise<void>((resolve) => {
-    sse = openRtcStream("watcher", onEvent, () => {
-      /* onOpen — hello kutamiz */
-    });
-    // hello kelganda tayyor deb hisoblaymiz (pastdagi onEvent resolve qiladi)
-    resolveReady = resolve;
+  ready = new Promise<boolean>((resolve) => {
+    let settled = false;
+    const done = (ok: boolean) => {
+      if (settled) return;
+      settled = true;
+      if (!ok) {
+        // keyingi urinish yangi ulanish ochsin
+        sse?.close();
+        sse = null;
+        ready = null;
+        resolveReady = null;
+      }
+      resolve(ok);
+    };
+    resolveReady = () => done(true);
+    sse = openRtcStream("watcher", onEvent, undefined, () => done(false));
+    setTimeout(() => done(false), 10_000);
   });
   return ready;
 }
@@ -41,34 +54,40 @@ async function onEvent(e: RtcEvent): Promise<void> {
   if (e.event === "hello") {
     resolveReady?.();
     resolveReady = null;
-  } else if (e.event === "signal") {
-    const call = calls.get(e.data.callId);
-    if (!call || !call.alive) return;
-    try {
-      if (e.data.kind === "offer") {
-        const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
-        call.pc = pc;
-        pc.ontrack = (ev) => {
-          if (ev.streams[0]) call.onStream(ev.streams[0]);
-        };
-        pc.onicecandidate = (ev) => {
-          if (ev.candidate) void rtcSignal(call.targetUserId, "source", call.callId, "ice", ev.candidate.toJSON());
-        };
-        pc.oniceconnectionstatechange = () => {
-          const st = pc.iceConnectionState;
-          if (st === "connected" || st === "completed") call.onState("live");
-          else if (st === "failed") call.onState("error");
-        };
-        await pc.setRemoteDescription(e.data.data as RTCSessionDescriptionInit);
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-        void rtcSignal(call.targetUserId, "source", call.callId, "answer", answer);
-      } else if (e.data.kind === "ice" && call.pc) {
-        await call.pc.addIceCandidate(e.data.data as RTCIceCandidateInit).catch(() => undefined);
-      }
-    } catch {
-      /* ignore */
+    return;
+  }
+  if (e.event !== "signal") return;
+  const call = calls.get(e.data.callId);
+  if (!call || !call.alive) return;
+  // O'quvchi kamerani bermadi — cheksiz "ulanmoqda" o'rniga aniq xabar
+  if (e.data.kind === "denied") {
+    call.onState("denied");
+    return;
+  }
+  try {
+    if (e.data.kind === "offer") {
+      const pc = new RTCPeerConnection({ iceServers: await getIceServers() });
+      call.pc = pc;
+      pc.ontrack = (ev) => {
+        if (ev.streams[0]) call.onStream(ev.streams[0]);
+      };
+      pc.onicecandidate = (ev) => {
+        if (ev.candidate) void rtcSignal(call.targetUserId, "source", call.callId, "ice", ev.candidate.toJSON());
+      };
+      pc.oniceconnectionstatechange = () => {
+        const st = pc.iceConnectionState;
+        if (st === "connected" || st === "completed") call.onState("live");
+        else if (st === "failed") call.onState("error");
+      };
+      await pc.setRemoteDescription(e.data.data as RTCSessionDescriptionInit);
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      void rtcSignal(call.targetUserId, "source", call.callId, "answer", answer);
+    } else if (e.data.kind === "ice" && call.pc) {
+      await call.pc.addIceCandidate(e.data.data as RTCIceCandidateInit).catch(() => undefined);
     }
+  } catch {
+    /* ignore */
   }
 }
 
@@ -80,12 +99,16 @@ export function startWatch(targetUserId: string, cbs: WatchCbs): { stop: () => v
   cbs.onState("connecting");
 
   void (async () => {
-    await ensureSSE();
+    const ok = await ensureSSE();
     if (!call.alive) return;
+    if (!ok) {
+      cbs.onState("error");
+      return;
+    }
     cbs.onState("waiting");
     try {
       await rtcWatch(targetUserId, callId);
-    } catch (err) {
+    } catch {
       // 404 — source onlayn emas
       if (call.alive) cbs.onState("offline");
     }

@@ -1,5 +1,6 @@
-import { randomBytes, scrypt as scryptCb, timingSafeEqual, type ScryptOptions } from "node:crypto";
+import { createHmac, randomBytes, scrypt as scryptCb, timingSafeEqual, type ScryptOptions } from "node:crypto";
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { config } from "./config.js";
 
 const scrypt = (password: string, salt: Buffer, keylen: number, options: ScryptOptions): Promise<Buffer> =>
   new Promise((resolve, reject) => {
@@ -33,6 +34,15 @@ export async function verifyPassword(password: string, stored: string): Promise<
   } catch {
     return false;
   }
+}
+
+/**
+ * Stansiya paroli uchun IZLASH kaliti (parolni tasdiqlash uchun emas!).
+ * Kirishda barcha markazlarning scrypt xeshini tekshirish o'rniga shu kalit bilan
+ * bitta qator topiladi, so'ng scrypt bilan bir marta tasdiqlanadi.
+ */
+export function stationLookupKey(password: string): string {
+  return createHmac("sha256", config.jwtSecret).update(`station:${password}`).digest("base64url");
 }
 
 export interface JwtPayload {
@@ -90,6 +100,22 @@ export type PublicUser = ReturnType<typeof publicUser>;
 export const USER_COLUMNS = `id, email, username, first_name, last_name, bio, avatar_url, role, tariff_name,
   storage_limit_bytes, storage_used_bytes, verified, blocked, paid_until, created, updated`;
 
+/**
+ * Bazadagi haqiqiy rol. Tokendagi rol 30 kun yashaydi — rol o'zgarganda (developer'dan
+ * oddiy foydalanuvchiga) darhol ta'sir qilishi uchun global hook bazadan o'qib shu yerga qo'yadi.
+ */
+const DB_ROLE: unique symbol = Symbol("dbRole");
+type RoleCarrier = FastifyRequest & { [DB_ROLE]?: "user" | "developer" };
+
+export function setDbRole(req: FastifyRequest, role: "user" | "developer"): void {
+  (req as RoleCarrier)[DB_ROLE] = role;
+}
+
+/** Amaldagi rol: bazadan olingani bo'lsa u, aks holda tokendagi. */
+export function effectiveRole(req: FastifyRequest): "user" | "developer" {
+  return (req as RoleCarrier)[DB_ROLE] ?? (req.user as JwtPayload | undefined)?.role ?? "user";
+}
+
 /** Fastify preHandler: JWT talab qiladi. */
 export async function requireAuth(req: FastifyRequest, reply: FastifyReply) {
   try {
@@ -102,12 +128,12 @@ export async function requireAuth(req: FastifyRequest, reply: FastifyReply) {
 /** Fastify preHandler: faqat developer (superadmin) roli. */
 export async function requireAdmin(req: FastifyRequest, reply: FastifyReply) {
   try {
-    const payload = await req.jwtVerify<JwtPayload>();
-    if (payload.role !== "developer") {
-      return reply.code(403).send({ code: 403, message: "Forbidden" });
-    }
+    await req.jwtVerify<JwtPayload>();
   } catch {
     return reply.code(401).send({ code: 401, message: "Unauthorized" });
+  }
+  if (effectiveRole(req) !== "developer") {
+    return reply.code(403).send({ code: 403, message: "Forbidden" });
   }
 }
 

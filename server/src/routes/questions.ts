@@ -55,24 +55,12 @@ async function optionalUser(req: FastifyRequest): Promise<string | null> {
 }
 
 export async function questionRoutes(app: FastifyInstance) {
-  // Ro'yxat: o'z savollari (token bilan) yoki ommaviy savollar (tokensiz / ?scope=public)
+  // Ro'yxat: o'z savollari (token bilan) yoki ommaviy savollar (tokensiz / ?scope=public).
+  // MUHIM: bu GET hech narsa yozmaydi. Avtomatik cooldown tiklash test boshlanishida
+  // (mijoz `reset-cooldowns` ni chaqiradi) bajariladi — har sahifa ochilishida emas.
   app.get("/api/questions", async (req) => {
     const q = req.query as { scope?: string; type?: string };
     const uid = q.scope === "public" ? null : await optionalUser(req);
-    // Avtomatik cooldown: biror qismning BARCHA savollari 2 soat ichida ishlatilgan bo'lsa —
-    // o'sha qism kutish vaqti o'z-o'zidan tiklanadi (xuddi "Kutish vaqtini tiklash" tugmasi bosilgandek).
-    if (uid) {
-      const reset = await query<{ type: string }>(
-        `UPDATE questions SET last_used = NULL
-         WHERE user_id = $1 AND type IN (
-           SELECT type FROM questions WHERE user_id = $1 GROUP BY type
-           HAVING COUNT(*) = COUNT(*) FILTER (WHERE last_used IS NOT NULL AND last_used > now() - interval '2 hours')
-         )
-         RETURNING type`,
-        [uid],
-      );
-      if (reset.length) req.log.info({ uid, parts: [...new Set(reset.map((r) => r.type))] }, "question cooldown auto-reset");
-    }
     const params: unknown[] = [];
     let where = uid ? "user_id = $1" : "user_id IS NULL";
     if (uid) params.push(uid);

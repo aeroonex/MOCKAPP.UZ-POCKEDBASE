@@ -41,23 +41,32 @@ export async function reviewPayment(
   adminNote: string,
   reviewedBy: string | null,
 ): Promise<{ ok: boolean; reason?: "not_found" | "already"; paidUntil?: Date | null; userId?: string }> {
-  const p = await one<PaymentRow>(`SELECT ${PAY_COLS} FROM payments WHERE id = $1`, [id]);
-  if (!p) return { ok: false, reason: "not_found" };
-  if (p.status !== "pending") return { ok: false, reason: "already" };
-  const st = await getBillingSettings();
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+    return { ok: false, reason: "not_found" };
+  }
+  // ATOMIK: faqat 'pending' holatdan o'tkazamiz. Shu tufayli bot va admin panel bir
+  // vaqtda tasdiqlasa ham obuna IKKI marta uzaymaydi (avval SELECT qilib, keyin
+  // UPDATE qilinganda shunday bo'lishi mumkin edi).
+  const claimed = await one<{ id: string; user_id: string }>(
+    `UPDATE payments SET status = $2, admin_note = $3, reviewed_at = now(), reviewed_by = $4
+     WHERE id = $1 AND status = 'pending' RETURNING id, user_id`,
+    [id, status, adminNote, reviewedBy],
+  );
+  if (!claimed) {
+    const exists = await one<{ id: string }>("SELECT id FROM payments WHERE id = $1", [id]);
+    return { ok: false, reason: exists ? "already" : "not_found" };
+  }
   let paidUntilAfter: Date | null = null;
   if (status === "approved") {
+    const st = await getBillingSettings();
     const u = await one<{ paid_until: Date | null }>(
       `UPDATE users SET paid_until = GREATEST(COALESCE(paid_until, now()), now()) + make_interval(days => $2) WHERE id = $1 RETURNING paid_until`,
-      [p.user_id, Number(st.period_days)],
+      [claimed.user_id, Number(st.period_days)],
     );
     paidUntilAfter = u?.paid_until ?? null;
+    await query("UPDATE payments SET paid_until_after = $2 WHERE id = $1", [id, paidUntilAfter]);
   }
-  await query(
-    `UPDATE payments SET status = $2, admin_note = $3, reviewed_at = now(), reviewed_by = $4, paid_until_after = $5 WHERE id = $1`,
-    [id, status, adminNote, reviewedBy, paidUntilAfter],
-  );
-  return { ok: true, paidUntil: paidUntilAfter, userId: p.user_id };
+  return { ok: true, paidUntil: paidUntilAfter, userId: claimed.user_id };
 }
 
 export async function getBillingSettings(): Promise<BillingSettingsRow> {
@@ -154,10 +163,20 @@ export async function billingRoutes(app: FastifyInstance) {
     if (!rel) return reply.code(400).send({ code: 400, message: "Receipt file is required" });
 
     const st = await getBillingSettings();
-    const row = await one<PaymentRow>(
-      `INSERT INTO payments (user_id, amount, receipt_path, note) VALUES ($1, $2, $3, $4) RETURNING ${PAY_COLS}`,
-      [uid, Number(st.amount), rel, (fields.note || "").slice(0, 500)],
-    );
+    let row: PaymentRow | null;
+    try {
+      row = await one<PaymentRow>(
+        `INSERT INTO payments (user_id, amount, receipt_path, note) VALUES ($1, $2, $3, $4) RETURNING ${PAY_COLS}`,
+        [uid, Number(st.amount), rel, (fields.note || "").slice(0, 500)],
+      );
+    } catch (err) {
+      // uq_payments_one_pending — bir vaqtda ikki so'rov kelsa ikkinchisi shu yerda to'xtaydi
+      await removeFile(rel);
+      if ((err as { code?: string }).code === "23505") {
+        return reply.code(409).send({ code: 409, message: "A payment is already pending review" });
+      }
+      throw err;
+    }
     // Superadmin botiga chek + Tasdiqlash/Rad etish tugmalari bilan
     void (async () => {
       const u = await one<{ name: string; email: string; username: string }>(

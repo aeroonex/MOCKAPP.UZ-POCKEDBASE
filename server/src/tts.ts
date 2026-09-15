@@ -117,7 +117,8 @@ function run(cmd: string, args: string[], input?: string, timeoutMs = 120_000): 
     });
     p.on("exit", (code) => {
       clearTimeout(timer);
-      code === 0 ? resolve() : reject(new Error(`${cmd} exit ${code}: ${err.slice(0, 300)}`));
+      if (code === 0) resolve();
+      else reject(new Error(`${cmd} exit ${code}: ${err.slice(0, 300)}`));
     });
     if (input !== undefined) {
       p.stdin?.end(input);

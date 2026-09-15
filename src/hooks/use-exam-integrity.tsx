@@ -31,7 +31,12 @@ export interface IntegrityStatus {
 
 const FACE_MISSING_AFTER_MS = 6000;
 const MULTI_FACE_AFTER_MS = 3000;
-const BLUR_MIN_MS = 800;
+/**
+ * Oynadan chiqish qancha davom etsa hodisa deb yozamiz. 2 sekund — kamera/mikrofon
+ * ruxsati so'rovi, brauzer menyusi yoki qisqa fokus yo'qolishi soxta ogohlantirish
+ * bermasligi uchun (ilgari 0.8 s edi va o'quvchiga keraksiz qizil banner chiqardi).
+ */
+const BLUR_MIN_MS = 2000;
 const DETECT_INTERVAL_MS = 700;
 
 const initial: IntegrityStatus = {
@@ -62,6 +67,11 @@ export function useExamIntegrity(active: boolean, webcamStream: MediaStream | nu
       if (blurAt) return;
       blurAt = Date.now();
       blurTimer = window.setTimeout(() => {
+        // Vaqt o'tib ham sahifa fokusda bo'lmasa — haqiqatan chiqilgan
+        if (document.hasFocus() && document.visibilityState === "visible") {
+          blurAt = 0;
+          return;
+        }
         logIntegrityEvent("window_blur");
         setStatus((s) => ({ ...s, away: true, awayCount: s.awayCount + 1 }));
       }, BLUR_MIN_MS);

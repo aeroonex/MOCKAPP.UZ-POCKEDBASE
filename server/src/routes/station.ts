@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { one, query } from "../db.js";
-import { publicUser, verifyPassword, USER_COLUMNS, type AuthUserRow, type JwtPayload } from "../auth.js";
+import { publicUser, stationLookupKey, verifyPassword, USER_COLUMNS, type AuthUserRow, type JwtPayload } from "../auth.js";
 import { config } from "../config.js";
 import { recordLogin, recordFailedLogin } from "../sessions.js";
 
@@ -16,15 +16,30 @@ export async function stationRoutes(app: FastifyInstance) {
     const parsed = loginSchema.safeParse(req.body);
     if (!parsed.success) return reply.code(400).send({ code: 400, message: "Invalid input" });
 
-    // Parol yagona (o'rnatishda tekshiriladi) — barcha yoqilgan stansiyalar bo'yicha solishtiramiz
-    const rows = await query<{ user_id: string; station_password_hash: string; center_name: string }>(
-      "SELECT user_id, station_password_hash, center_name FROM registration_settings WHERE station_enabled AND station_password_hash IS NOT NULL",
-    );
+    // Tez yo'l: izlash kaliti bo'yicha bitta qator (scrypt faqat bir marta ishlaydi).
+    // Eski parollarda kalit yo'q — ular uchun bir martalik zaxira yo'li ishlaydi va kalit yoziladi.
+    const lookup = stationLookupKey(parsed.data.password);
     let match: { user_id: string; center_name: string } | null = null;
-    for (const r of rows) {
-      if (await verifyPassword(parsed.data.password, r.station_password_hash)) {
-        match = r;
-        break;
+    const direct = await one<{ user_id: string; station_password_hash: string; center_name: string }>(
+      `SELECT user_id, station_password_hash, center_name FROM registration_settings
+       WHERE station_enabled AND station_password_lookup = $1`,
+      [lookup],
+    );
+    if (direct && (await verifyPassword(parsed.data.password, direct.station_password_hash))) {
+      match = direct;
+    } else if (!direct) {
+      const rows = await query<{ user_id: string; station_password_hash: string; center_name: string }>(
+        `SELECT user_id, station_password_hash, center_name FROM registration_settings
+         WHERE station_enabled AND station_password_hash IS NOT NULL AND station_password_lookup IS NULL`,
+      );
+      for (const r of rows) {
+        if (await verifyPassword(parsed.data.password, r.station_password_hash)) {
+          match = r;
+          // keyingi kirishlar tez bo'lsin
+          await query("UPDATE registration_settings SET station_password_lookup = $2 WHERE user_id = $1", [r.user_id, lookup])
+            .catch(() => undefined);
+          break;
+        }
       }
     }
     if (!match) {

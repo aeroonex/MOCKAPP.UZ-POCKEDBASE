@@ -8,7 +8,7 @@ import { Download, PlayCircle, Trash2, ArrowLeft, Cloud, Zap, CheckCircle2, Lock
 import { format } from "date-fns";
 import { RecordedSession } from "@/lib/types";
 import { showError, showSuccess } from "@/utils/toast";
-import { getLocalRecordings, deleteLocalRecording, getRecordingBlob, uploadRecordingToCloud, syncCloudStorageUsage } from "@/lib/local-db";
+import { getLocalRecordings, deleteLocalRecording, getRecordingBlob, uploadRecordingToCloud, syncCloudStorageUsage, revokeStaleBlobUrls } from "@/lib/local-db";
 import { Link } from "react-router-dom";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription as DialogDescriptionComponent, // Renamed to avoid conflict
@@ -25,7 +25,7 @@ import { useProgress, setProgress, removeProgress } from "@/utils/uploadProgress
 import { Badge } from "@/components/ui/badge"; // Badge import qilindi
 import { useAuth } from "@/context/AuthProvider"; // useAuth import qilindi
 import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
-import { cn } from "@/lib/utils";
+import { cn, errMessage } from "@/lib/utils";
 import { isStationHost } from "@/lib/station";
 
 // Xotira ishlatilishini ko'rsatuvchi kichik komponent
@@ -170,8 +170,8 @@ const Records: React.FC = () => {
       const data = await getLocalRecordings();
       loadedRecordings = data.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       setRecordings(loadedRecordings);
-    } catch (error: any) {
-      showError(`${t("records_page.error_loading_recordings")} ${error.message}`);
+    } catch (error) {
+      showError(`${t("records_page.error_loading_recordings")} ${errMessage(error)}`);
     } finally {
       setIsLoading(false);
     }
@@ -188,15 +188,17 @@ const Records: React.FC = () => {
 
   useEffect(() => {
     fetchRecordings();
-
-    return () => {
-      recordings.forEach(rec => {
-        if (rec.isLocalBlobAvailable && rec.video_url.startsWith('blob:')) {
-          URL.revokeObjectURL(rec.video_url);
-        }
-      });
-    };
   }, [fetchRecordings]);
+
+  // Ro'yxat yangilanganda ishlatilmayotgan blob havolalarini bo'shatamiz (DOM allaqachon
+  // yangi havolalarga o'tgan). Ilgari tozalash eski (bo'sh) ro'yxatni ko'rib, hech narsa
+  // bo'shatmasdi — har yangilanishda yuzlab MB video xotirada qolib ketardi.
+  useEffect(() => {
+    revokeStaleBlobUrls(recordings.map((r) => r.video_url).filter(Boolean));
+  }, [recordings]);
+
+  // Sahifadan chiqqanda hammasini bo'shatamiz
+  useEffect(() => () => revokeStaleBlobUrls([]), []);
 
   const handleUploadToCloud = useCallback(async (recording: RecordedSession) => {
     if (!user?.id) {
@@ -242,9 +244,9 @@ const Records: React.FC = () => {
       showSuccess(t("records_page.upload_success"));
       setUploadingRecordId(null);
       removeProgress(recording.id);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Upload error:", error);
-      showError(`${t("records_page.error_uploading_to_cloud")} ${error.message}`);
+      showError(`${t("records_page.error_uploading_to_cloud")} ${errMessage(error)}`);
       setUploadErrorRecordId(recording.id);
       setUploadingRecordId(null);
       removeProgress(recording.id);
@@ -265,7 +267,7 @@ const Records: React.FC = () => {
     setDownloadBytesMap((prev) => ({ ...prev, [downloadId]: { loaded: 0, total: 0 } }));
 
     try {
-      let urlToDownload = recording.video_url;
+      const urlToDownload = recording.video_url;
       let filename = `recording_${recording.id}.webm`;
 
       if (recording.student_name && recording.student_phone) {
@@ -313,8 +315,8 @@ const Records: React.FC = () => {
         URL.revokeObjectURL(url);
         showSuccess(t("records_page.success_downloaded"));
       });
-    } catch (error: any) {
-      showError(`${t("records_page.error_downloading_video")} ${error.message}`);
+    } catch (error) {
+      showError(`${t("records_page.error_downloading_video")} ${errMessage(error)}`);
     } finally {
       removeProgress(downloadId);
       setDownloadBytesMap((prev) => {
@@ -338,8 +340,8 @@ const Records: React.FC = () => {
         await fetchProfile();
         showSuccess(t("records_page.success_recording_deleted"));
       }
-    } catch (error: any) {
-      showError(`${t("records_page.error_deleting_recording")} ${error.message}`);
+    } catch (error) {
+      showError(`${t("records_page.error_deleting_recording")} ${errMessage(error)}`);
     }
   }, [t, fetchProfile, user?.id]);
 

@@ -17,6 +17,7 @@ import { Progress } from "@/components/ui/progress"; // Progress komponenti
 import { Badge } from "@/components/ui/badge"; // Badge import qilindi
 import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 import { updateMe } from "@/lib/api";
+import { errMessage } from "@/lib/utils";
 
 const UserProfile: React.FC = () => {
   const { t } = useTranslation();
@@ -60,8 +61,8 @@ const UserProfile: React.FC = () => {
       await fetchProfile();
 
       showSuccess(t("settings_page.success_profile_saved"));
-    } catch (error: any) {
-      showError(`${t("settings_page.error_saving_profile")} ${error.message}`);
+    } catch (error) {
+      showError(`${t("settings_page.error_saving_profile")} ${errMessage(error)}`);
     } finally {
       setIsSaving(false);
     }
@@ -102,7 +103,7 @@ const UserProfile: React.FC = () => {
           <CardContent className="space-y-6">
             <div className="flex flex-col items-center space-y-4">
               <Avatar className="h-24 w-24">
-                <AvatarImage src={(user as any)?.avatar_url || undefined} alt="" />
+                <AvatarImage src={user?.avatar_url || undefined} alt="" />
                 <AvatarFallback>
                   <User className="h-12 w-12 text-muted-foreground" />
                 </AvatarFallback>

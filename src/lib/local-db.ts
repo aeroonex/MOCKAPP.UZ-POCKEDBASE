@@ -4,6 +4,24 @@ import { SpeakingQuestion, MoodEntry, RecordedSession, Part1_1Question, Part1_2Q
 import { api, auth } from "@/lib/api";
 import { showError } from '@/utils/toast';
 import i18n from '@/i18n';
+import { errMessage } from "@/lib/utils";
+
+/** Serverdagi yozuv (API javobi) — /api/recordings */
+interface ServerRecording {
+  local_id: string;
+  user_id: string;
+  timestamp: string;
+  duration?: number;
+  student_id?: string;
+  student_name?: string;
+  student_phone?: string;
+  registration_id?: string | null;
+  video_url?: string;
+  cloud_url?: string;
+  tg_backup_at?: string | null;
+  video_deleted_at?: string | null;
+  integrity?: { t: number; type: string; detail?: string }[];
+}
 
 const DB_NAME = 'edumock_uz_db';
 const DB_VERSION = 1;
@@ -48,7 +66,7 @@ export const checkDuplicateQuestion = async (
   try {
     // Ommaviy (mehmon) savollar uchun scope=public, aks holda joriy foydalanuvchi savollari.
     const scope = userId ? "" : "scope=public&";
-    const data = await api.get<any[]>(`/api/questions?${scope}type=${encodeURIComponent(questionData.type)}`);
+    const data = await api.get<SpeakingQuestion[]>(`/api/questions?${scope}type=${encodeURIComponent(questionData.type)}`);
 
     if (!data || data.length === 0) return false;
 
@@ -59,9 +77,9 @@ export const checkDuplicateQuestion = async (
       const newNormalizedSubQuestions = normalizeSubQuestions((questionData as Part1_1Question | Part1_2Question).sub_questions);
       if (!newNormalizedSubQuestions) return false;
 
-      return data.some((existingQ: any) => {
+      return data.some((existingQ) => {
         if (excludeId && existingQ.id === excludeId) return false; // O'zini tekshirmaslik
-        const existingNormalizedSubQuestions = normalizeSubQuestions((existingQ as any).sub_questions);
+        const existingNormalizedSubQuestions = normalizeSubQuestions((existingQ as Part1_1Question | Part1_2Question).sub_questions);
         return existingNormalizedSubQuestions === newNormalizedSubQuestions;
       });
     }
@@ -70,16 +88,16 @@ export const checkDuplicateQuestion = async (
       const newQuestionText = (questionData as Part2Question | Part3Question).question_text?.trim();
       if (!newQuestionText) return false; // Yangi matn bo'sh bo'lsa, takrorlanish bo'lishi mumkin emas
 
-      return data.some((existingQ: any) => {
+      return data.some((existingQ) => {
         if (excludeId && existingQ.id === excludeId) return false; // O'zini tekshirmaslik
-        return String(existingQ.question_text || "").trim() === newQuestionText;
+        return String((existingQ as Part2Question | Part3Question).question_text || "").trim() === newQuestionText;
       });
     }
     default:
       return false;
   }
-  } catch (e: any) {
-    console.error("Error checking for duplicate questions:", e?.message || e);
+  } catch (e) {
+    console.error("Error checking for duplicate questions:", errMessage(e));
     return false;
   }
 };
@@ -99,11 +117,9 @@ export const getQuestions = async (): Promise<SpeakingQuestion[]> => {
       return [];
     }
 
-    const data = await api.get<any[]>(path);
-
-    return data as unknown as SpeakingQuestion[];
-  } catch (e: any) {
-    showError(i18n.t("add_question_page.error_loading_entries", { message: e?.message || String(e) }));
+    return await api.get<SpeakingQuestion[]>(path);
+  } catch (e) {
+    showError(i18n.t("add_question_page.error_loading_entries", { message: errMessage(e) }));
     return [];
   }
 };
@@ -124,10 +140,9 @@ export const addQuestion = async (question: Omit<SpeakingQuestion, 'id' | 'date'
   }
 
   try {
-    const data = await api.post<any>("/api/questions", question);
-    return data as unknown as SpeakingQuestion;
-  } catch (e: any) {
-    showError(i18n.t("add_question_page.error_saving_entry", { message: e?.message || String(e) }));
+    return await api.post<SpeakingQuestion>("/api/questions", question);
+  } catch (e) {
+    showError(i18n.t("add_question_page.error_saving_entry", { message: errMessage(e) }));
     return null;
   }
 };
@@ -153,11 +168,11 @@ export const updateQuestion = async (updatedQuestion: SpeakingQuestion): Promise
       showError(i18n.t("add_question_page.error_saving_entry", { message: "Forbidden" }));
       return null;
     }
-    const { id, user_id: _owner, date: _date, last_used: _lastUsed, isSimilar: _similar, ...fields } = updatedQuestion as any;
-    const data = await api.patch<any>(`/api/questions/${id}`, fields);
-    return data as unknown as SpeakingQuestion;
-  } catch (e: any) {
-    showError(i18n.t("add_question_page.error_saving_entry", { message: e?.message || String(e) }));
+    const { id, user_id: _owner, date: _date, last_used: _lastUsed, isSimilar: _similar, ...fields } =
+      updatedQuestion as SpeakingQuestion & { isSimilar?: boolean };
+    return await api.patch<SpeakingQuestion>(`/api/questions/${id}`, fields);
+  } catch (e) {
+    showError(i18n.t("add_question_page.error_saving_entry", { message: errMessage(e) }));
     return null;
   }
 };
@@ -175,8 +190,8 @@ export const updateQuestionCooldown = async (questionId: string): Promise<boolea
   try {
     await api.post(`/api/questions/${questionId}/use`);
     return true;
-  } catch (e: any) {
-    console.error(`Error updating cooldown for question ${questionId}:`, e?.message || e);
+  } catch (e) {
+    console.error(`Error updating cooldown for question ${questionId}:`, errMessage(e));
     return false;
   }
 };
@@ -192,8 +207,8 @@ export const deleteQuestion = async (id: string): Promise<boolean> => {
   try {
     await api.delete(`/api/questions/${id}`);
     return true;
-  } catch (e: any) {
-    showError(i18n.t("add_question_page.error_deleting_entry", { message: e?.message || String(e) }));
+  } catch (e) {
+    showError(i18n.t("add_question_page.error_deleting_entry", { message: errMessage(e) }));
     return false;
   }
 };
@@ -212,8 +227,8 @@ export const resetQuestionCooldowns = async (): Promise<boolean> => {
     await api.post("/api/questions/reset-cooldowns");
 
     return true;
-  } catch (e: any) {
-    showError(i18n.t("add_question_page.error_saving_entry", { message: e?.message || String(e) }));
+  } catch (e) {
+    showError(i18n.t("add_question_page.error_saving_entry", { message: errMessage(e) }));
     return false;
   }
 };
@@ -275,9 +290,9 @@ export const upsertRecordingMetadataToCloud = async (recording: Omit<RecordedSes
       student_phone: recording.student_phone ?? "",
       registration_id: recording.registration_id ?? "",
     });
-  } catch (e: any) {
-    console.error("Error upserting recording metadata:", e?.message || e);
-    showError(i18n.t("records_page.error_uploading_to_cloud", { message: e?.message || String(e) }));
+  } catch (e) {
+    console.error("Error upserting recording metadata:", errMessage(e));
+    showError(i18n.t("records_page.error_uploading_to_cloud", { message: errMessage(e) }));
   }
 };
 
@@ -286,10 +301,34 @@ const deleteCloudRecording = async (recordingLocalId: string, _userId: string): 
   try {
     await api.delete(`/api/recordings/${encodeURIComponent(recordingLocalId)}`);
     return true;
-  } catch (e: any) {
-    console.error("[Delete Cloud] Error deleting from server:", e?.message || e);
-    showError(i18n.t("records_page.error_deleting_from_cloud", { message: e?.message || String(e) }));
+  } catch (e) {
+    console.error("[Delete Cloud] Error deleting from server:", errMessage(e));
+    showError(i18n.t("records_page.error_deleting_from_cloud", { message: errMessage(e) }));
     return false;
+  }
+};
+
+/**
+ * Lokal videolar uchun yaratilgan blob havolalari. Har `getLocalRecordings` chaqiruvi
+ * yangi `blob:` havola yasaydi va u butun videoni brauzer xotirasida ushlab turadi —
+ * ilgari ular BO'SHATILMAS edi (ro'yxat bir necha marta yangilangach yuzlab MB "oqardi").
+ * Endi ishlatilmayotganlari `revokeStaleBlobUrls` bilan bo'shatiladi.
+ */
+const liveBlobUrls = new Set<string>();
+
+const trackBlobUrl = (blob: Blob): string => {
+  const url = URL.createObjectURL(blob);
+  liveBlobUrls.add(url);
+  return url;
+};
+
+/** Ro'yxatda qolmagan blob havolalarini bo'shatadi (DOM yangilangandan keyin chaqirilsin). */
+export const revokeStaleBlobUrls = (keep: Iterable<string>): void => {
+  const keepSet = new Set(keep);
+  for (const url of [...liveBlobUrls]) {
+    if (keepSet.has(url)) continue;
+    URL.revokeObjectURL(url);
+    liveBlobUrls.delete(url);
   }
 };
 
@@ -298,15 +337,15 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
   const storedRecordings: StoredRecording[] = await db.getAll(STORE_RECORDINGS);
   const userId = await getUserId();
 
-  let allRecordings: RecordedSession[] = [];
+  const allRecordings: RecordedSession[] = [];
 
   if (userId) {
     // Authenticated user: serverdagi yozuvlar ro'yxatini olish
-    let data: any[] = [];
+    let data: ServerRecording[] = [];
     try {
-      data = await api.get<any[]>("/api/recordings");
-    } catch (e: any) {
-      showError(i18n.t("records_page.error_loading_recordings", { message: e?.message || String(e) }));
+      data = await api.get<ServerRecording[]>("/api/recordings");
+    } catch (e) {
+      showError(i18n.t("records_page.error_loading_recordings", { message: errMessage(e) }));
       data = [];
     }
 
@@ -354,7 +393,7 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
           student_id: rec.student_id || undefined,
           student_name: rec.student_name || undefined,
           student_phone: rec.student_phone || undefined,
-          video_url: localVersion ? URL.createObjectURL(localVersion.videoBlob) : cloudUrl,
+          video_url: localVersion ? trackBlobUrl(localVersion.videoBlob) : cloudUrl,
           cloud_url: cloudUrl,
           isLocalBlobAvailable: !!localVersion,
           registration_id: rec.registration_id || localVersion?.registration_id || undefined,
@@ -369,7 +408,7 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
         if (!combinedIds.has(sRec.id)) {
           allRecordings.push({
             ...sRec,
-            video_url: URL.createObjectURL(sRec.videoBlob),
+            video_url: trackBlobUrl(sRec.videoBlob),
             isLocalBlobAvailable: true, // It's a local recording, so blob is available
           });
         }
@@ -381,7 +420,7 @@ export const getLocalRecordings = async (): Promise<RecordedSession[]> => {
       if (rec.user_id === 'local_user') { // Only show 'local_user' recordings in guest mode
         allRecordings.push({
           ...rec,
-          video_url: URL.createObjectURL(rec.videoBlob),
+          video_url: trackBlobUrl(rec.videoBlob),
           isLocalBlobAvailable: true, // It's a local recording, so blob is available
         });
       }
@@ -401,8 +440,8 @@ export const syncCloudStorageUsage = async (
     void currentUsedBytes;
     const res = await api.get<{ used_bytes: number; limit_bytes: number }>("/api/storage");
     return Number(res?.used_bytes || 0);
-  } catch (e: any) {
-    console.error("[syncCloudStorageUsage] Failed:", e?.message || e);
+  } catch (e) {
+    console.error("[syncCloudStorageUsage] Failed:", errMessage(e));
     return 0;
   }
 };
@@ -477,8 +516,8 @@ export const autoUploadRecording = async (recordingId: string): Promise<void> =>
     });
     setProgress(recordingId, 100);
     toast.success(i18n.t("records_page.auto_upload_done"), { id: toastId, duration: 6000 });
-  } catch (e: any) {
-    toast.error(i18n.t("records_page.auto_upload_failed", { message: e?.message || String(e) }), { id: toastId, duration: 8000 });
+  } catch (e) {
+    toast.error(i18n.t("records_page.auto_upload_failed", { message: errMessage(e) }), { id: toastId, duration: 8000 });
   } finally {
     removeProgress(recordingId);
   }
@@ -528,7 +567,7 @@ export const deleteLocalRecording = async (id: string): Promise<boolean> => {
   const db = await initDB();
   const userId = await getUserId();
 
-  let localRecording = await db.get(STORE_RECORDINGS, id);
+  const localRecording = await db.get(STORE_RECORDINGS, id);
   let cloudMetadataExists = false;
   let cloudDeletionSuccessful = true; // Assume true if no cloud interaction needed or successful
 

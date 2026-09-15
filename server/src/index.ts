@@ -6,7 +6,8 @@ import rateLimit from "@fastify/rate-limit";
 import fastifyStatic from "@fastify/static";
 import { config } from "./config.js";
 import { migrate, one, pool, query } from "./db.js";
-import { hashPassword } from "./auth.js";
+import { hashPassword, setDbRole } from "./auth.js";
+import { isProtectedRel, verifyFileSignature } from "./file-urls.js";
 import { ensureStorageDirs, UPLOADS_DIR } from "./storage.js";
 import { authRoutes } from "./routes/auth.js";
 import { questionRoutes } from "./routes/questions.js";
@@ -18,7 +19,7 @@ import { stationRoutes } from "./routes/station.js";
 import { billingRoutes } from "./routes/billing.js";
 import { statsRoutes } from "./routes/stats.js";
 import { netRoutes } from "./routes/net.js";
-import { touchSession } from "./sessions.js";
+import { isSessionRevoked, loadRevokedSessions, startSessionCleanupJob, touchSession } from "./sessions.js";
 import { ttsRoutes } from "./routes/tts.js";
 import { startTtsWorker } from "./tts.js";
 import { rtcRoutes } from "./routes/rtc.js";
@@ -64,12 +65,28 @@ async function main() {
   await app.register(rateLimit, { max: 300, timeWindow: "1 minute" });
   await app.register(jwt, { secret: config.jwtSecret });
 
+  // Shaxsiy fayllar (videolar, cheklar) — faqat imzolangan havola bilan ochiladi
+  app.addHook("onRequest", async (req, reply) => {
+    const [pathname, qs] = req.url.split("?");
+    if (!pathname.startsWith("/files/")) return;
+    let rel: string;
+    try {
+      rel = decodeURIComponent(pathname.slice("/files/".length));
+    } catch {
+      return reply.code(400).send({ code: 400, message: "Bad path" });
+    }
+    if (!isProtectedRel(rel)) return;
+    const q = new URLSearchParams(qs || "");
+    if (verifyFileSignature(rel, q.get("e"), q.get("s"))) return;
+    return reply.code(403).send({ code: 403, message: "Havola yaroqsiz yoki muddati o'tgan" });
+  });
+
   // Obuna tekshiruvi: bloklangan yoki muddati tugagan foydalanuvchi (developer emas) uchun
   // faqat kirish/billing/sozlamalar endpointlari ochiq, qolganlari 402 (Payment Required).
   const OPEN_PREFIXES = ["/api/auth/", "/api/billing", "/api/health", "/api/net/", "/api/tts/phrases", "/api/tts/status", "/api/station/", "/api/registrations/settings", "/files/"];
   app.addHook("preHandler", async (req, reply) => {
     const url = req.url.split("?")[0];
-    if (!url.startsWith("/api/") || OPEN_PREFIXES.some((p) => url.startsWith(p))) return;
+    if (!url.startsWith("/api/")) return;
     if (!req.headers.authorization) return; // ommaviy so'rovlar o'z tekshiruviga ega
     let payload: JwtPayload;
     try {
@@ -77,9 +94,18 @@ async function main() {
     } catch {
       return; // yaroqsiz token — marshrutning o'zi 401 qaytaradi
     }
+    // Admin "sessiyani yopish" bosgan yoki foydalanuvchi chiqqan bo'lsa — token ham kuchsiz
+    if (payload.sid && isSessionRevoked(payload.sid)) {
+      return reply.code(401).send({ code: 401, message: "Session ended" });
+    }
+    // Rol tokendan emas, bazadan (rol o'zgarsa darhol ta'sir qiladi)
+    const u = await one<{ blocked: boolean; paid_until: Date | null; role: "user" | "developer" }>(
+      "SELECT blocked, paid_until, role FROM users WHERE id = $1",
+      [payload.sub],
+    );
+    if (u) setDbRole(req, u.role);
     touchSession(payload.sub);
-    if (payload.role === "developer") return;
-    const u = await one<{ blocked: boolean; paid_until: Date | null; role: string }>("SELECT blocked, paid_until, role FROM users WHERE id = $1", [payload.sub]);
+    if (OPEN_PREFIXES.some((p) => url.startsWith(p))) return;
     if (!u || u.role === "developer") return;
     const expired = !u.paid_until || new Date(u.paid_until).getTime() <= Date.now();
     if (u.blocked || expired) {
@@ -124,8 +150,14 @@ async function main() {
   await app.register(rtcRoutes);
   startTtsWorker();
   void startAdminBot();
+  await loadRevokedSessions();
+  startSessionCleanupJob();
 
-  app.setErrorHandler((err: Error & { statusCode?: number }, _req, reply) => {
+  app.setErrorHandler((err: Error & { statusCode?: number; code?: string }, _req, reply) => {
+    // Postgres: yaroqsiz UUID/son (22P02) — mijoz xatosi, 500 emas
+    if (err.code === "22P02") {
+      return reply.code(400).send({ code: 400, message: "Invalid id" });
+    }
     const status = err.statusCode ?? 500;
     if (status >= 500) app.log.error(err);
     reply.code(status).send({

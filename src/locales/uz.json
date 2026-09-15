@@ -912,7 +912,8 @@
     "error": "Ulanib bo'lmadi",
     "oneway_hint": "Faqat siz ko'rasiz va eshitasiz — foydalanuvchi sizni ko'rmaydi",
     "mute": "Ovozsiz",
-    "unmute": "Ovozli"
+    "unmute": "Ovozli",
+    "denied": "Foydalanuvchi kamera/mikrofonga ruxsat bermagan"
   },
   "monitoring": {
     "tab": "Nazorat",

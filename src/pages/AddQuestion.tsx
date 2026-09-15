@@ -37,7 +37,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useTranslation } from 'react-i18next';
-import { normalizeText } from "@/lib/utils"; // normalizeText funksiyasini import qilish
+import { normalizeText, errMessage } from "@/lib/utils"; // normalizeText funksiyasini import qilish
 import {
   Tooltip,
   TooltipContent,
@@ -178,8 +178,8 @@ const SpeakingQuestionManager: React.FC = () => {
         newImagePreviewUrls[index] = publicUrl;
         setImagePreviewUrls(newImagePreviewUrls);
         showSuccess(t("add_question_page.success_video_saved"));
-      } catch (error: any) {
-        showError(`${t("add_question_page.error_uploading_image")} ${error.message}`);
+      } catch (error) {
+        showError(`${t("add_question_page.error_uploading_image")} ${errMessage(error)}`);
       } finally {
         setIsUploading(false);
       }

@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { one, query } from "../db.js";
-import { hashPassword, requireAuth, requireFullAuth, userId, verifyPassword } from "../auth.js";
+import { hashPassword, requireAuth, requireFullAuth, stationLookupKey, userId, verifyPassword } from "../auth.js";
 import { removeFile } from "../storage.js";
 import { config } from "../config.js";
 import { publicUrl } from "../storage.js";
@@ -206,19 +206,29 @@ export async function registrationRoutes(app: FastifyInstance) {
     if (!parsed.success) return reply.code(400).send({ code: 400, message: "Password must be 6-100 characters" });
     const uid = userId(req);
     await getOrCreateSettings(uid);
-    // Parol boshqa tashkilotchida ham ishlatilmasin (kirishda faqat parol so'raladi)
-    const others = await query<{ user_id: string; station_password_hash: string }>(
-      "SELECT user_id, station_password_hash FROM registration_settings WHERE user_id <> $1 AND station_password_hash IS NOT NULL",
+    // Parol boshqa tashkilotchida ham ishlatilmasin (kirishda faqat parol so'raladi).
+    // Izlash kaliti bo'yicha bitta so'rov — barcha xeshlarni tekshirish shart emas.
+    const lookup = stationLookupKey(parsed.data.password);
+    const taken = await one<{ user_id: string }>(
+      "SELECT user_id FROM registration_settings WHERE station_password_lookup = $1 AND user_id <> $2",
+      [lookup, uid],
+    );
+    if (taken) return reply.code(409).send({ code: 409, message: "This password is already in use — choose another one" });
+    // Kaliti hali yozilmagan eski parollar bilan ham to'qnashmasin
+    const legacy = await query<{ user_id: string; station_password_hash: string }>(
+      `SELECT user_id, station_password_hash FROM registration_settings
+       WHERE user_id <> $1 AND station_password_hash IS NOT NULL AND station_password_lookup IS NULL`,
       [uid],
     );
-    for (const o of others) {
+    for (const o of legacy) {
       if (await verifyPassword(parsed.data.password, o.station_password_hash)) {
         return reply.code(409).send({ code: 409, message: "This password is already in use — choose another one" });
       }
     }
     const st = await one<SettingsRow>(
-      `UPDATE registration_settings SET station_password_hash = $2, station_enabled = TRUE WHERE user_id = $1 RETURNING ${SETTINGS_COLS}`,
-      [uid, await hashPassword(parsed.data.password)],
+      `UPDATE registration_settings SET station_password_hash = $2, station_password_lookup = $3, station_enabled = TRUE
+       WHERE user_id = $1 RETURNING ${SETTINGS_COLS}`,
+      [uid, await hashPassword(parsed.data.password), lookup],
     );
     return settingsResponse(st!);
   });
@@ -226,7 +236,11 @@ export async function registrationRoutes(app: FastifyInstance) {
   app.delete("/api/registrations/settings/station", { preHandler: requireFullAuth }, async (req) => {
     const uid = userId(req);
     await getOrCreateSettings(uid);
-    const st = await one<SettingsRow>(`UPDATE registration_settings SET station_password_hash = NULL WHERE user_id = $1 RETURNING ${SETTINGS_COLS}`, [uid]);
+    const st = await one<SettingsRow>(
+      `UPDATE registration_settings SET station_password_hash = NULL, station_password_lookup = NULL
+       WHERE user_id = $1 RETURNING ${SETTINGS_COLS}`,
+      [uid],
+    );
     return settingsResponse(st!);
   });
 

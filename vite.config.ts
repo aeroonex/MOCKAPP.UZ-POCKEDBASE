@@ -1,9 +1,9 @@
-import { defineConfig } from "vite";
+import { defineConfig, type PluginOption } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 export default defineConfig(async ({ mode }) => {
-  const plugins = [react()];
+  const plugins: PluginOption[] = [react()];
 
   // Dyad component tagger faqat dev rejimida — production bundle'ga data-atributlar qo'shilmaydi.
   if (mode === "development") {

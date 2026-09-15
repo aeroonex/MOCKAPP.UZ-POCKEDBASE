@@ -1,4 +1,5 @@
 import { api, auth } from "@/lib/api";
+import { acquireMedia, releaseMedia } from "@/lib/media-devices";
 import i18n from "@/i18n";
 
 /**
@@ -24,10 +25,9 @@ async function doCheck(): Promise<void> {
   const card = mountCard();
   let stream: MediaStream | null = null;
   try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: "user" },
-      audio: false,
-    });
+    // Umumiy kamera oqimi (media-devices) — imtihon sahifasi bilan to'qnashmaydi
+    stream = await acquireMedia("camera");
+    if (!stream) throw new Error("no-camera");
     const video = document.createElement("video");
     video.muted = true;
     video.playsInline = true;
@@ -42,7 +42,7 @@ async function doCheck(): Promise<void> {
     // ruxsat berilmadi / kamera yo'q — belgini olib tashlaymiz
     setDone(card, false);
   } finally {
-    stream?.getTracks().forEach((tr) => tr.stop());
+    releaseMedia("camera", stream);
   }
 }
 

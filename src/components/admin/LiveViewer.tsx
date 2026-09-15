@@ -24,10 +24,11 @@ const LiveViewer: React.FC<{ target: WatchTarget | null; onClose: () => void }> 
   const [state, setState] = useState<WatchState>("connecting");
   const [muted, setMuted] = useState(true);
 
+  const targetUserId = target?.userId;
   useEffect(() => {
-    if (!target) return;
+    if (!targetUserId) return;
     setMuted(true);
-    const ctrl = startWatch(target.userId, {
+    const ctrl = startWatch(targetUserId, {
       onState: setState,
       onStream: (stream) => {
         const v = videoRef.current;
@@ -38,8 +39,12 @@ const LiveViewer: React.FC<{ target: WatchTarget | null; onClose: () => void }> 
         }
       },
     });
-    return () => ctrl.stop();
-  }, [target?.userId]);
+    return () => {
+      ctrl.stop();
+      // Keyingi ochilishda eski kadr ko'rinib qolmasin
+      if (videoRef.current) videoRef.current.srcObject = null;
+    };
+  }, [targetUserId]);
 
   const toggleMute = () => {
     if (videoRef.current) {
@@ -74,7 +79,9 @@ const LiveViewer: React.FC<{ target: WatchTarget | null; onClose: () => void }> 
               ) : (
                 <div className="space-y-2">
                   <VideoOff className={cn("mx-auto h-8 w-8", state === "error" ? "text-rose-400" : "opacity-60")} />
-                  <p className="text-sm opacity-80">{state === "offline" ? t("live.offline") : t("live.error")}</p>
+                  <p className="text-sm opacity-80">
+                    {state === "offline" ? t("live.offline") : state === "denied" ? t("live.denied") : t("live.error")}
+                  </p>
                 </div>
               )}
             </div>

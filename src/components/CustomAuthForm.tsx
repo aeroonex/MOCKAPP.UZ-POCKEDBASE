@@ -23,7 +23,7 @@ const CustomAuthForm: React.FC = () => {
     try {
       await login(email.trim(), password);
       showSuccess(t("common.success_logged_in"));
-    } catch (err: any) {
+    } catch (err) {
       showError(err?.message || t("common.error"));
     }
     setLoading(false);
@@ -54,7 +54,7 @@ const CustomAuthForm: React.FC = () => {
       setConfirmPassword('');
       setFirstName('');
       setLastName('');
-    } catch (err: any) {
+    } catch (err) {
       showError(err?.message || t("common.error"));
     }
     setLoading(false);

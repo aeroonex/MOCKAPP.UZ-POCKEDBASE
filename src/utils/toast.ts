@@ -3,7 +3,8 @@ import i18n from '@/i18n';
 
 export const playSound = (type: 'success' | 'error' = 'success') => {
   try {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const AudioCtx = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    const audioContext = AudioCtx ? new AudioCtx() : null;
     if (!audioContext) {
       console.warn("Web Audio API is not supported in this browser.");
       return;

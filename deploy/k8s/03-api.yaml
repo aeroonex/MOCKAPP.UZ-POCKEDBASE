@@ -78,6 +78,10 @@ spec:
             - name: ADMIN_BOT_TOKEN
               valueFrom:
                 secretKeyRef: { name: edumock-secrets, key: ADMIN_BOT_TOKEN, optional: true }
+            # TURN (jonli kuzatuv relayi): maxfiy kalit serverda, mijozga muddatli parol beriladi
+            - name: TURN_SECRET
+              valueFrom:
+                secretKeyRef: { name: edumock-secrets, key: TURN_SECRET, optional: true }
           volumeMounts:
             - name: uploads
               mountPath: /data

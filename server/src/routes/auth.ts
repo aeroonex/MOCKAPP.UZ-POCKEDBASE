@@ -104,8 +104,9 @@ export async function authRoutes(app: FastifyInstance) {
       return reply.code(400).send({ code: 400, message: "Invalid input" });
     }
     const { identity, password } = parsed.data;
+    // Email ham, username ham katta-kichik harfga sezgir emas ("Madina" ham kiradi)
     const row = await one<AuthUserRow & { password_hash: string }>(
-      `SELECT ${USER_COLUMNS}, password_hash FROM users WHERE email = lower($1) OR username = $1`,
+      `SELECT ${USER_COLUMNS}, password_hash FROM users WHERE email = lower($1) OR lower(username) = lower($1)`,
       [identity],
     );
     if (!row || !(await verifyPassword(password, row.password_hash))) {

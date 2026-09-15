@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthProvider";
 import { showError } from "@/utils/toast";
 import { useTranslation } from 'react-i18next';
 import { refreshAuth } from "@/lib/api";
+import { errMessage } from "@/lib/utils";
 
 interface Profile {
   id: string;
@@ -43,7 +44,7 @@ export const useProfile = () => {
 
     setLoading(true);
     try {
-      const u: any = (await refreshAuth()) || user;
+      const u = (await refreshAuth()) || user;
       setProfile({
         id: u.id,
         username: u.username || String(u.email || "").split("@")[0] || "user",
@@ -55,11 +56,11 @@ export const useProfile = () => {
         storage_limit_bytes: typeof u.storage_limit_bytes === "number" ? u.storage_limit_bytes : 10737418240,
         storage_used_bytes: typeof u.storage_used_bytes === "number" ? u.storage_used_bytes : 0,
       });
-    } catch (e: any) {
-      showError(`${t("user_profile_page.error_loading_profile")} ${e?.message || String(e)}`);
+    } catch (e) {
+      showError(`${t("user_profile_page.error_loading_profile")} ${errMessage(e)}`);
       setProfile({
         id: user.id,
-        username: (user as any).username || String((user as any).email || "").split("@")[0] || "user",
+        username: user.username || String(user.email || "").split("@")[0] || "user",
         role: "user",
         tariff_name: "Basic",
         storage_limit_bytes: 10737418240,

@@ -6,11 +6,13 @@ import { StudentInfo } from "@/lib/types";
 import { addLocalRecording, autoUploadRecording, updateLocalRecordingCloudUrl } from "@/lib/local-db";
 import { api, auth } from "@/lib/api";
 import { ExamCompositor, type OverlayState } from "@/lib/exam-compositor";
+import { acquireMedia, releaseMedia } from "@/lib/media-devices";
 import { ChunkUploader } from "@/lib/chunk-uploader";
 import { recorderState } from "@/lib/recorder-state";
 import { useTranslation } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import i18n from "@/i18n";
+import { errMessage } from "@/lib/utils";
 
 const MAX_RECORDING_DURATION_MS = 60 * 60 * 1000;
 /** Bo'lak uzunligi: har 5 soniyada serverga ketadi */
@@ -31,7 +33,6 @@ function pickMimeType(): string | null {
   return candidates.find((m) => MediaRecorder.isTypeSupported(m)) ?? null;
 }
 
-const isMobileDevice = () => /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
 /**
  * Yozib olish: kamera + savol + taymer bitta canvas'ga chiziladi (ekran ulashishsiz),
@@ -66,13 +67,18 @@ export const useRecorder = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       mediaRecorderRef.current.stop();
     }
-    micStreamRef.current?.getTracks().forEach(track => track.stop());
-    micStreamRef.current = null;
+    // Mikrofon umumiy (media-devices) — o'zimiz band qilganini qo'yib yuboramiz
+    if (micStreamRef.current) {
+      releaseMedia("mic", micStreamRef.current);
+      micStreamRef.current = null;
+    }
     compositorRef.current?.stop();
     compositorRef.current = null;
     recorderState.audioMix = null;
-    audioCtxRef.current?.close().catch(() => undefined);
+    // Oxirgi bo'lak MediaRecorder'dan chiqib ketishi uchun kontekstni darhol yopmaymiz
+    const ctx = audioCtxRef.current;
     audioCtxRef.current = null;
+    if (ctx) setTimeout(() => void ctx.close().catch(() => undefined), 1500);
     recorderState.isRecording = false;
     setIsRecording(false);
   }, [clearRecordingTimeout]);
@@ -80,7 +86,7 @@ export const useRecorder = () => {
   const stopAllStreams = useCallback(() => {
     stopRecordingProcess();
     if (webcamStreamRef.current) {
-      webcamStreamRef.current.getTracks().forEach(track => track.stop());
+      releaseMedia("camera", webcamStreamRef.current);
       webcamStreamRef.current = null;
     }
     setWebcamStream(null);
@@ -88,28 +94,27 @@ export const useRecorder = () => {
 
   useEffect(() => {
     const canvasOk = typeof HTMLCanvasElement !== "undefined" && "captureStream" in HTMLCanvasElement.prototype;
+    // Telefon/planshet ham qo'llab-quvvatlanadi: yozuv ekrandan emas, canvas'dan olinadi
     setIsRecordingSupported(
-      !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && canvasOk && !!pickMimeType() && !isMobileDevice(),
+      !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && canvasOk && !!pickMimeType(),
     );
 
-    const getWebcamPreview = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: { ideal: 960 }, height: { ideal: 540 }, frameRate: { ideal: 15, max: 30 }, facingMode: "user" },
-          audio: false,
-        });
-        webcamStreamRef.current = stream;
-        setWebcamStream(stream);
-      } catch (err) {
-        console.warn("Webcam stream error:", err);
-        // Kamera bo'lmasa ham test o'tkaziladi (videoda "Kamera yo'q" belgisi bo'ladi)
+    let cancelled = false;
+    void acquireMedia("camera").then((stream) => {
+      if (!stream) return; // ruxsat yo'q — test kamerasiz ham o'tadi
+      if (cancelled) {
+        releaseMedia("camera", stream);
+        return;
       }
-    };
-    getWebcamPreview();
+      webcamStreamRef.current = stream;
+      setWebcamStream(stream);
+    });
 
     return () => {
+      cancelled = true;
       if (webcamStreamRef.current) {
-        webcamStreamRef.current.getTracks().forEach(track => track.stop());
+        releaseMedia("camera", webcamStreamRef.current);
+        webcamStreamRef.current = null;
       }
     };
   }, []);
@@ -136,10 +141,10 @@ export const useRecorder = () => {
     const startedIso = new Date().toISOString();
 
     try {
-      // Mikrofon (kamera allaqachon ochiq; bo'lmasa kamerasiz davom etadi)
-      const micStream = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-      });
+      // Mikrofon (kamera allaqachon ochiq; bo'lmasa kamerasiz davom etadi).
+      // Umumiy oqim: "Qurilma tekshiruvi" ham shuni ishlatadi — qurilma ikki marta ochilmaydi.
+      const micStream = await acquireMedia("mic");
+      if (!micStream) throw new Error("mic-denied");
       micStreamRef.current = micStream;
       micStream.getAudioTracks()[0]?.addEventListener("ended", () => {
         showError(t("add_question_page.error_mic_stopped"));
@@ -214,8 +219,8 @@ export const useRecorder = () => {
             videoBlob: blob,
           });
           showSuccess(t("add_question_page.success_video_saved"));
-        } catch (dbError: any) {
-          showError(`${t("add_question_page.error_saving_record_data")} ${dbError.message}`);
+        } catch (dbError) {
+          showError(`${t("add_question_page.error_saving_record_data")} ${errMessage(dbError)}`);
         }
 
         // Serverga: avval oqim bilan kelgan bo'laklarni yakunlash; bo'lmasa — to'liq faylni yuklash
@@ -239,7 +244,8 @@ export const useRecorder = () => {
       };
 
       recorder.onerror = (event: Event) => {
-        showError(`${t("add_question_page.error_recording_failed")} ${((event as any).error?.message || "Noma'lum xato")}`);
+        const cause = (event as Event & { error?: { message?: string } }).error?.message;
+        showError(`${t("add_question_page.error_recording_failed")} ${cause || "Noma'lum xato"}`);
         stopRecordingProcess();
       };
 
@@ -299,14 +305,14 @@ async function finalizeStreamedUpload(uploader: ChunkUploader, meta: Parameters<
     if (recordingId && url) await updateLocalRecordingCloudUrl(recordingId, url);
     if (recordingId) setProgress(recordingId, 100);
     toast.success(i18n.t("records_page.auto_upload_done"), { id: toastId, duration: 6000 });
-  } catch (e: any) {
+  } catch (e) {
     uploader.abort();
     toast.dismiss(toastId);
     if (recordingId) {
       // Zaxira yo'li: to'liq faylni bir martada yuklash
       await autoUploadRecording(recordingId);
     } else {
-      toast.error(i18n.t("records_page.auto_upload_failed", { message: e?.message || String(e) }), { duration: 8000 });
+      toast.error(i18n.t("records_page.auto_upload_failed", { message: errMessage(e) }), { duration: 8000 });
     }
   } finally {
     if (recordingId) removeProgress(recordingId);

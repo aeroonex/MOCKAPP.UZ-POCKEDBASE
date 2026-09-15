@@ -41,11 +41,15 @@ interface UseMockTestLogicProps {
   stopAllStreams: () => void;
 }
 
+/** Tasodifiy tanlash — Fisher-Yates (sort(() => 0.5 - Math.random()) teng taqsimlamaydi). */
 function getRandomElements<T>(arr: T[], num: number): T[] {
   if (arr.length === 0 || num <= 0) return [];
-  if (num >= arr.length) return [...arr];
-  const shuffled = [...arr].sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, num);
+  const pool = [...arr];
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return num >= pool.length ? pool : pool.slice(0, num);
 }
 
 export const useMockTestLogic = ({
@@ -425,6 +429,15 @@ export const useMockTestLogic = ({
 
   const handleStudentInfoSave = async (id: string, name: string, phone: string, registrationId?: string) => {
     const newStudentInfo: StudentInfo = { id, name, phone, registration_id: registrationId };
+    // To'liq ekranni DARHOL so'raymiz: brauzer buni faqat foydalanuvchi bosgan zahoti
+    // ruxsat etadi. Ilgari bu chaqiruv tarmoq/getUserMedia'dan KEYIN edi — "user
+    // activation" sarflanib bo'lgani uchun deyarli har doim xato berardi.
+    const fullscreenRequest = document.fullscreenElement
+      ? Promise.resolve()
+      : document.documentElement.requestFullscreen?.().catch((err) => {
+          console.warn("To'liq ekran rejimiga o'tilmadi:", err);
+          return Promise.reject(err);
+        });
     // Ro'yxatdagi o'quvchi: urinish serverda hisoblanadi (limit tugagan bo'lsa test boshlanmaydi)
     if (registrationId) {
       try {
@@ -446,14 +459,12 @@ export const useMockTestLogic = ({
       setCurrentPhase("pre_test_countdown");
       showSuccess(t("add_question_page.success_test_starting"));
       setIsStudentInfoFormOpen(false);
-      try {
-        await document.documentElement.requestFullscreen();
-      } catch (err) {
-        console.error("To'liq ekran rejimiga o'tishda xatolik:", err);
-        showError(t("add_question_page.error_fullscreen_failed"));
-      }
+      await fullscreenRequest?.catch(() => showError(t("add_question_page.error_fullscreen_failed")));
     } else {
       setStudentInfo(null);
+      // Test boshlanmadi — to'liq ekranda qolib ketmasin
+      await fullscreenRequest?.catch(() => undefined);
+      if (document.fullscreenElement) await document.exitFullscreen().catch(() => undefined);
     }
   };
 

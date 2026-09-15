@@ -123,21 +123,38 @@ class AuthStore {
 
 export const auth = new AuthStore();
 
+/** So'rov cheksiz "osilib" qolmasin: JSON uchun 30 s, ikkilik yuklash uchun 3 daqiqa. */
+const JSON_TIMEOUT_MS = 30_000;
+const BLOB_TIMEOUT_MS = 180_000;
+
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const headers: Record<string, string> = {};
   if (auth.token) headers.Authorization = `Bearer ${auth.token}`;
   let payload: BodyInit | undefined;
+  let timeoutMs = JSON_TIMEOUT_MS;
   if (body instanceof FormData) {
     payload = body;
+    timeoutMs = BLOB_TIMEOUT_MS;
   } else if (body instanceof Blob) {
     headers["Content-Type"] = "application/octet-stream";
     payload = body;
+    timeoutMs = BLOB_TIMEOUT_MS;
   } else if (body !== undefined) {
     headers["Content-Type"] = "application/json";
     payload = JSON.stringify(body);
   }
 
-  const res = await fetch(`${API_BASE_URL}${path}`, { method, headers, body: payload });
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}${path}`, { method, headers, body: payload, signal: ctrl.signal });
+  } catch (e) {
+    if (ctrl.signal.aborted) throw new ApiError(408, "Tarmoq javob bermadi (timeout)");
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (res.status === 204) return undefined as T;
 

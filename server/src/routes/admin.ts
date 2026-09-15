@@ -3,8 +3,11 @@ import { z } from "zod";
 import { one, query } from "../db.js";
 import { hashPassword, publicUser, requireAdmin, userId, USER_COLUMNS, type AuthUserRow } from "../auth.js";
 import { createReadStream, existsSync } from "node:fs";
-import { loginPhotoAbs } from "../sessions.js";
+import { loginPhotoAbs, revokeSession } from "../sessions.js";
 import { createAdminBotLink } from "../admin-bot.js";
+
+/** UUID bo'lmagan id uchun 500 emas, 404 qaytaramiz (Postgres "invalid input syntax" bermasin). */
+const isUuid = (v: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 
 const updateUserSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(254).optional(),
@@ -43,6 +46,7 @@ export async function adminRoutes(app: FastifyInstance) {
 
   app.patch("/api/admin/users/:id", { preHandler: requireAdmin }, async (req, reply) => {
     const { id } = req.params as { id: string };
+    if (!isUuid(id)) return reply.code(404).send({ code: 404, message: "Not found" });
     const parsed = updateUserSchema.safeParse(req.body);
     if (!parsed.success) {
       return reply.code(400).send({ code: 400, message: "Invalid input", data: parsed.error.flatten() });
@@ -137,6 +141,7 @@ export async function adminRoutes(app: FastifyInstance) {
   // Bitta foydalanuvchining to'liq faolligi: profil, sessiyalar, kirish tarixi
   app.get("/api/admin/users/:id/activity", { preHandler: requireAdmin }, async (req, reply) => {
     const { id } = req.params as { id: string };
+    if (!isUuid(id)) return reply.code(404).send({ code: 404, message: "Not found" });
     const user = await one(
       `SELECT ${USER_COLUMNS}, last_login_at, last_seen_at, last_login_ip, login_count FROM users WHERE id = $1`,
       [id],
@@ -169,6 +174,7 @@ export async function adminRoutes(app: FastifyInstance) {
   // Kirishda olingan kamera kadri (sessiya id bo'yicha) — faqat admin
   app.get("/api/admin/sessions/:id/photo", { preHandler: requireAdmin }, async (req, reply) => {
     const { id } = req.params as { id: string };
+    if (!isUuid(id)) return reply.code(404).send({ code: 404, message: "No photo" });
     const row = await one<{ photo_path: string }>("SELECT photo_path FROM auth_sessions WHERE id = $1", [id]);
     if (!row?.photo_path) return reply.code(404).send({ code: 404, message: "No photo" });
     const abs = loginPhotoAbs(row.photo_path);
@@ -176,10 +182,14 @@ export async function adminRoutes(app: FastifyInstance) {
     return reply.header("Content-Type", "image/jpeg").header("Cache-Control", "private, max-age=3600").send(createReadStream(abs));
   });
 
-  // Sessiyani majburan yopish (chiqarib yuborish emas — belgilash; token muddati bilan tugaydi)
-  app.post("/api/admin/sessions/:id/end", { preHandler: requireAdmin }, async (req) => {
+  // Sessiyani majburan yopish — foydalanuvchi haqiqatan chiqariladi:
+  // sessiya belgilanadi va shu sessiya tokeni bekor qilinadi (keyingi so'rov 401)
+  app.post("/api/admin/sessions/:id/end", { preHandler: requireAdmin }, async (req, reply) => {
     const { id } = req.params as { id: string };
-    await query("UPDATE auth_sessions SET ended_at = now() WHERE id = $1", [id]);
+    if (!isUuid(id)) return reply.code(404).send({ code: 404, message: "Not found" });
+    const row = await one<{ id: string }>("UPDATE auth_sessions SET ended_at = now() WHERE id = $1 RETURNING id", [id]);
+    if (!row) return reply.code(404).send({ code: 404, message: "Not found" });
+    revokeSession(id);
     return { ok: true };
   });
 

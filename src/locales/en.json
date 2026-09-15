@@ -912,7 +912,8 @@
     "error": "Could not connect",
     "oneway_hint": "Only you see and hear — the user does not see you",
     "mute": "Mute",
-    "unmute": "Unmute"
+    "unmute": "Unmute",
+    "denied": "The user has not allowed camera/microphone access"
   },
   "monitoring": {
     "tab": "Monitoring",

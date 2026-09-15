@@ -3,7 +3,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { auth } from "@/lib/api";
-import { ICE_SERVERS, openRtcStream, rtcSignal, type RtcEvent } from "@/lib/rtc";
+import { acquireMedia, releaseMedia } from "@/lib/media-devices";
+import { getIceServers, openRtcStream, rtcSignal, type RtcEvent } from "@/lib/rtc";
 
 /**
  * Kuzatiluvchi tomon: tizimga kirgan har qanday foydalanuvchi brauzerida ishlaydi.
@@ -14,24 +15,35 @@ const LiveSource: React.FC = () => {
   const { t } = useTranslation();
   const [live, setLive] = useState(false);
   const streamRef = useRef<MediaStream | null>(null);
+  const heldRef = useRef<{ cam: MediaStream | null; mic: MediaStream | null } | null>(null);
   const callsRef = useRef<Map<string, { pc: RTCPeerConnection; watcherUserId: string }>>(new Map());
 
   useEffect(() => {
     if (!auth.token) return;
     let closed = false;
 
+    /**
+     * Kamera va mikrofon UMUMIY oqimdan olinadi (media-devices): imtihon yozuvi
+     * bilan bir vaqtda ishlaganda qurilma ikki marta ochilmaydi.
+     */
     const ensureStream = async (): Promise<MediaStream | null> => {
       if (streamRef.current) return streamRef.current;
-      try {
-        const s = await navigator.mediaDevices.getUserMedia({
-          video: { width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 20, max: 30 }, facingMode: "user" },
-          audio: { echoCancellation: true, noiseSuppression: true },
-        });
-        streamRef.current = s;
-        return s;
-      } catch {
-        return null; // ruxsat berilmadi — kuzatib bo'lmaydi
+      const [cam, mic] = await Promise.all([acquireMedia("camera"), acquireMedia("mic")]);
+      if (!cam && !mic) return null; // ruxsat berilmadi — kuzatib bo'lmaydi
+      heldRef.current = { cam, mic };
+      const s = new MediaStream([...(cam?.getVideoTracks() ?? []), ...(mic?.getAudioTracks() ?? [])]);
+      streamRef.current = s;
+      return s;
+    };
+
+    const releaseStream = () => {
+      const held = heldRef.current;
+      if (held) {
+        releaseMedia("camera", held.cam);
+        releaseMedia("mic", held.mic);
+        heldRef.current = null;
       }
+      streamRef.current = null;
     };
 
     const refreshLive = () => setLive(callsRef.current.size > 0);
@@ -46,18 +58,20 @@ const LiveSource: React.FC = () => {
         }
         callsRef.current.delete(callId);
       }
-      if (callsRef.current.size === 0 && streamRef.current) {
-        streamRef.current.getTracks().forEach((tr) => tr.stop());
-        streamRef.current = null;
-      }
+      if (callsRef.current.size === 0) releaseStream();
       refreshLive();
     };
 
     const startCall = async (callId: string, watcherUserId: string) => {
       if (callsRef.current.has(callId)) return; // takroriy watch-start
       const stream = await ensureStream();
-      if (!stream || closed) return;
-      const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+      if (closed) return;
+      if (!stream) {
+        // Kamera/mikrofon ruxsati yo'q — admin cheksiz kutmasin, aniq javob yuboramiz
+        void rtcSignal(watcherUserId, "watcher", callId, "denied", { reason: "no-permission" });
+        return;
+      }
+      const pc = new RTCPeerConnection({ iceServers: await getIceServers() });
       callsRef.current.set(callId, { pc, watcherUserId });
       refreshLive();
       stream.getTracks().forEach((tr) => pc.addTrack(tr, stream));
@@ -66,6 +80,13 @@ const LiveSource: React.FC = () => {
       };
       pc.onconnectionstatechange = () => {
         if (["failed", "closed"].includes(pc.connectionState)) endCall(callId);
+      };
+      // "disconnected" bir muncha vaqt tiklanmasa — qo'ng'iroqni yopamiz (belgi qotib qolmasin)
+      pc.oniceconnectionstatechange = () => {
+        if (pc.iceConnectionState !== "disconnected") return;
+        setTimeout(() => {
+          if (pc.iceConnectionState === "disconnected") endCall(callId);
+        }, 15000);
       };
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
@@ -92,19 +113,19 @@ const LiveSource: React.FC = () => {
 
     const stream = openRtcStream("source", (e) => void onEvent(e));
 
+    const calls = callsRef.current;
     return () => {
       closed = true;
       stream.close();
-      for (const c of callsRef.current.values()) {
+      for (const c of calls.values()) {
         try {
           c.pc.close();
         } catch {
           /* ignore */
         }
       }
-      callsRef.current.clear();
-      streamRef.current?.getTracks().forEach((tr) => tr.stop());
-      streamRef.current = null;
+      calls.clear();
+      releaseStream();
     };
   }, []);
 

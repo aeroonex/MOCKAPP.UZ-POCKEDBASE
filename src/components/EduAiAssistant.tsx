@@ -76,7 +76,7 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
     scrollToBottom();
   }, [chatHistory, isTyping]);
 
-  const fetchWithRetry = useCallback(async (payload: any, maxRetries = 5, delay = 1000): Promise<Response> => {
+  const fetchWithRetry = useCallback(async (payload: unknown, maxRetries = 5, delay = 1000): Promise<Response> => {
     if (!apiKey) {
       throw new Error("Gemini API Key is not configured. Please set VITE_GEMINI_API_KEY in your .env file.");
     }
@@ -137,11 +137,11 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
         const groundingMetadata = candidate.groundingMetadata;
         if (groundingMetadata && groundingMetadata.groundingAttributions) {
           sources = groundingMetadata.groundingAttributions
-            .map((attribution: any) => ({
+            .map((attribution: { web?: { uri?: string; title?: string } }) => ({
               uri: attribution.web?.uri,
               title: attribution.web?.title,
             }))
-            .filter((source: any) => source.uri && source.title);
+            .filter((source: { uri?: string; title?: string }) => source.uri && source.title);
         }
 
         setChatHistory(prev => [...prev, { role: "model", parts: [{ text: aiText }] }]);
@@ -164,7 +164,7 @@ const EduAiAssistant: React.FC<EduAiAssistantProps> = ({ isOpen, onClose }) => {
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
+        .replace(/"/g, "&quot;")
         .replace(/'/g, "&#39;");
 
     const escaped = escapeHtml(message.parts[0].text);

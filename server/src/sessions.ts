@@ -106,17 +106,48 @@ interface Ctx {
   city: string;
 }
 
-async function context(req: FastifyRequest): Promise<Ctx> {
+/**
+ * Kirish kontekstі — TARMOQNI KUTMAYDI. Shahar keshda bo'lsa darhol qo'shiladi,
+ * bo'lmasa kirish javobi kechiktirilmaydi: keshni fonda to'ldiramiz va sessiya
+ * yozuvini keyinroq yangilaymiz (ilgari ip-api javobi 2.5 s gacha kutilardi).
+ */
+function context(req: FastifyRequest): Ctx {
   const ip = clientIp(req);
   const device = parseDevice(String(req.headers["user-agent"] || ""));
   const cf = countryFromCf(req);
-  const geo = await lookupCity(ip);
-  return { ip, device, country: geo.country || cf.name, city: geo.city };
+  const cached = geoCache.get(ip);
+  const fresh = cached && Date.now() - cached.at < GEO_TTL ? cached : null;
+  return { ip, device, country: fresh?.country || cf.name, city: fresh?.city || "" };
+}
+
+/** Shaharni fonda aniqlab, sessiya va hodisa yozuvlarini yangilaydi. */
+function fillGeoLater(ip: string, sessionId: string | null, userId: string | null): void {
+  if (isPrivateIp(ip)) return;
+  const cached = geoCache.get(ip);
+  if (cached && Date.now() - cached.at < GEO_TTL) return;
+  void lookupCity(ip)
+    .then(async (geo) => {
+      if (!geo.city && !geo.country) return;
+      if (sessionId) {
+        await query(
+          "UPDATE auth_sessions SET city = $2, country = COALESCE(NULLIF($3, ''), country) WHERE id = $1",
+          [sessionId, geo.city, geo.country],
+        ).catch(() => undefined);
+      }
+      if (userId) {
+        await query(
+          `UPDATE login_events SET city = $2, country = COALESCE(NULLIF($3, ''), country)
+           WHERE id = (SELECT id FROM login_events WHERE user_id = $1 ORDER BY created DESC LIMIT 1)`,
+          [userId, geo.city, geo.country],
+        ).catch(() => undefined);
+      }
+    })
+    .catch(() => undefined);
 }
 
 /** Muvaffaqiyatli kirish: sessiya yaratadi, login hodisasini yozadi, users jadvalini yangilaydi. Sessiya id qaytadi. */
 export async function recordLogin(req: FastifyRequest, userId: string, panel: Panel): Promise<string> {
-  const c = await context(req);
+  const c = context(req);
   const ua = String(req.headers["user-agent"] || "").slice(0, 500);
   const session = await one<{ id: string }>(
     `INSERT INTO auth_sessions (user_id, panel, ip, user_agent, device, country, city)
@@ -132,13 +163,14 @@ export async function recordLogin(req: FastifyRequest, userId: string, panel: Pa
     `UPDATE users SET last_login_at = now(), last_seen_at = now(), last_login_ip = $2, login_count = login_count + 1 WHERE id = $1`,
     [userId, c.ip],
   );
+  fillGeoLater(c.ip, session!.id, userId); // shahar fonda aniqlanadi
   notifyLogin(session!.id); // superadmin botiga (rasm bilan, biroz kechikish bilan)
   return session!.id;
 }
 
 /** Muvaffaqiyatsiz kirish urinishi. */
 export async function recordFailedLogin(req: FastifyRequest, identity: string, panel: Panel, reason: string): Promise<void> {
-  const c = await context(req);
+  const c = context(req);
   await query(
     `INSERT INTO login_events (identity, panel, success, reason, ip, device, country, city)
      VALUES ($1, $2, FALSE, $3, $4, $5, $6, $7)`,
@@ -149,7 +181,7 @@ export async function recordFailedLogin(req: FastifyRequest, identity: string, p
 /** Maxfiy papka ichidagi xavfsiz absolyut yo'l (papkadan chiqib ketmaydi). */
 export function loginPhotoAbs(rel: string): string {
   const abs = path.resolve(PHOTO_DIR, rel);
-  if (!abs.startsWith(PHOTO_DIR)) throw new Error("Invalid path");
+  if (abs !== PHOTO_DIR && !abs.startsWith(PHOTO_DIR + path.sep)) throw new Error("Invalid path");
   return abs;
 }
 
@@ -214,5 +246,74 @@ export async function endSession(userId: string): Promise<void> {
   ).catch(() => null);
   if (!info) return;
   await query("UPDATE auth_sessions SET ended_at = now() WHERE id = $1", [info.id]).catch(() => undefined);
+  revokeSession(info.id);
   notifyLogout(info.name, info.panel);
+}
+
+// ---------- Yopilgan sessiyalar (token ham kuchsiz bo'ladi) ----------
+
+/**
+ * Yopilgan sessiyalar to'plami. JWT 30 kun yashaydi, shuning uchun "sessiyani yopish"
+ * faqat belgilash bo'lib qolmasligi kerak: shu ro'yxatdagi `sid` bilan kelgan token
+ * 401 qaytaradi (global hook tekshiradi). Xotirada — har so'rovda baza so'ralmaydi.
+ */
+const revoked = new Set<string>();
+
+export function revokeSession(sessionId: string): void {
+  if (sessionId) revoked.add(sessionId);
+}
+
+export function isSessionRevoked(sessionId: string): boolean {
+  return revoked.has(sessionId);
+}
+
+/** Ishga tushganda: token muddati ichida yopilgan sessiyalarni xotiraga oladi. */
+export async function loadRevokedSessions(): Promise<void> {
+  const rows = await query<{ id: string }>(
+    "SELECT id FROM auth_sessions WHERE ended_at IS NOT NULL AND ended_at > now() - interval '60 days'",
+  ).catch(() => []);
+  for (const r of rows) revoked.add(r.id);
+  if (rows.length) console.log(`[sessions] ${rows.length} ta yopilgan sessiya yuklandi`);
+}
+
+/**
+ * Eski nazorat yozuvlarini tozalaydi (disk cheksiz o'smasligi uchun):
+ * kirish jurnali va yopilgan sessiyalar 180 kundan keyin, egasiz login rasmlari ham.
+ */
+export async function cleanupOldSessions(): Promise<void> {
+  await query("DELETE FROM login_events WHERE created < now() - interval '180 days'").catch(() => undefined);
+  const gone = await query<{ photo_path: string }>(
+    `DELETE FROM auth_sessions
+     WHERE ended_at IS NOT NULL AND ended_at < now() - interval '180 days'
+     RETURNING photo_path`,
+  ).catch(() => []);
+  for (const r of gone) {
+    if (!r.photo_path) continue;
+    await fsp.rm(loginPhotoAbs(r.photo_path), { force: true }).catch(() => undefined);
+  }
+  // Bazada qolmagan login rasmlarini o'chiramiz (fayllar sessiyalardan ko'p bo'lmasin)
+  const used = new Set(
+    (await query<{ photo_path: string }>("SELECT photo_path FROM auth_sessions WHERE photo_path <> ''").catch(() => []))
+      .map((r) => r.photo_path),
+  );
+  const users = await fsp.readdir(PHOTO_DIR).catch(() => [] as string[]);
+  for (const u of users) {
+    const dir = path.join(PHOTO_DIR, u);
+    for (const f of await fsp.readdir(dir).catch(() => [] as string[])) {
+      const rel = path.posix.join(u, f);
+      if (used.has(rel)) continue;
+      const st = await fsp.stat(path.join(dir, f)).catch(() => null);
+      // faqat bir kundan oshgan "egasiz" fayllar (hozir yozilayotganiga tegmaymiz)
+      if (st && Date.now() - st.mtimeMs > 24 * 60 * 60 * 1000) {
+        await fsp.rm(path.join(dir, f), { force: true }).catch(() => undefined);
+      }
+    }
+  }
+}
+
+/** Har 12 soatda eski yozuvlarni tozalash (ishga tushgandan 5 daqiqa keyin birinchi marta). */
+export function startSessionCleanupJob(): void {
+  const run = () => cleanupOldSessions().catch((e) => console.error("[sessions] tozalash xatosi:", e));
+  setTimeout(run, 5 * 60 * 1000).unref();
+  setInterval(run, 12 * 60 * 60 * 1000).unref();
 }

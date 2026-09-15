@@ -25,7 +25,7 @@ interface MobileBottomNavbarProps {
   handleLogout: () => void;
   setIsGuideDialogOpen: (isOpen: boolean) => void;
   isGuestMode: boolean;
-  session: any;
+  session: unknown;
 }
 
 const MobileBottomNavbar: React.FC<MobileBottomNavbarProps> = ({

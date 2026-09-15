@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, Camera, CheckCircle2, Loader2, Mic, RefreshCw, Wifi, XCircle } from "lucide-react";
 import { API_BASE_URL } from "@/lib/api";
+import { acquireMedia, releaseMedia } from "@/lib/media-devices";
 import { cn } from "@/lib/utils";
 
 interface DeviceCheckProps {
@@ -97,11 +98,14 @@ const DeviceCheck: React.FC<DeviceCheckProps> = ({ webcamStream }) => {
 
     (async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-        });
+        // Umumiy mikrofon oqimi (imtihon yozuvi ham shuni ishlatadi — qurilma ikki marta ochilmaydi)
+        stream = await acquireMedia("mic");
+        if (!stream) {
+          if (!cancelled) setMicStatus("fail");
+          return;
+        }
         if (cancelled) {
-          stream.getTracks().forEach((tr) => tr.stop());
+          releaseMedia("mic", stream);
           return;
         }
         ctx = new AudioContext();
@@ -154,7 +158,7 @@ const DeviceCheck: React.FC<DeviceCheckProps> = ({ webcamStream }) => {
       cancelAnimationFrame(raf);
       window.removeEventListener("pointerdown", onGesture, { capture: true });
       window.removeEventListener("keydown", onGesture, { capture: true });
-      stream?.getTracks().forEach((tr) => tr.stop());
+      releaseMedia("mic", stream);
       nodesRef.current = null;
       ctxRef.current = null;
       ctx?.close().catch(() => undefined);

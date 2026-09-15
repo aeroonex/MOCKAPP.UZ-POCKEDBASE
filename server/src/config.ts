@@ -49,6 +49,17 @@ export const config = {
   /** Piper TTS ("imtihonchi ovozi"): binar va ovoz modeli; topilmasa mijoz brauzer TTS'iga qaytadi */
   // Superadmin bildirishnoma boti (kirish/chiqish/yangi savol + login rasmlari). Maxfiy — env orqali.
   adminBotToken: env.ADMIN_BOT_TOKEN?.trim() || "",
+  /**
+   * Jonli kuzatuv uchun TURN (relay). Maxfiy kalit serverda qoladi: mijozga har safar
+   * MUDDATLI (vaqtinchalik) login/parol beriladi, shuning uchun bundle'dan o'g'irlab
+   * relay trafigimizni ishlatib bo'lmaydi.
+   */
+  turnUrls: (env.TURN_URLS?.trim() || "turn:37.60.249.121:3478?transport=udp,turn:37.60.249.121:3478?transport=tcp")
+    .split(",").map((s) => s.trim()).filter(Boolean),
+  turnSecret: env.TURN_SECRET?.trim() || "",
+  turnTtlSeconds: int("TURN_TTL_SECONDS", 4 * 60 * 60),
+  stunUrls: (env.STUN_URLS?.trim() || "stun:stun.l.google.com:19302,stun:stun1.l.google.com:19302")
+    .split(",").map((s) => s.trim()).filter(Boolean),
   piperBin: env.PIPER_BIN?.trim() || "/opt/piper/piper",
   piperVoiceDir: env.PIPER_VOICE_DIR?.trim() || "/opt/piper/voices",
   piperVoice: env.PIPER_VOICE?.trim() || "en_US-lessac-medium",
