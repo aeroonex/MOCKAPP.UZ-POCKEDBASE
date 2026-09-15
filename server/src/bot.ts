@@ -15,6 +15,7 @@ import fsp from "node:fs/promises";
 import { Bot, GrammyError, HttpError, InlineKeyboard, InputFile, Keyboard, type Context } from "grammy";
 import { config } from "./config.js";
 import { integritySummaryHtml } from "./integrity.js";
+import { CENTERS_PER_PAGE, SELF_STUDY, canonicalCenter, centersFor } from "./centers.js";
 import { buildResultPdf } from "./results-pdf.js";
 import { one, query } from "./db.js";
 import { absPath, publicUrl, relPath, streamToFile, FileTooLargeError } from "./storage.js";
@@ -124,7 +125,6 @@ const STATUS_LABEL: Record<RegistrationRow["status"], string> = {
 
 const kbCancel = () => new Keyboard().text(BTN_CANCEL).resized();
 const kbPhone = () => new Keyboard().requestContact(BTN_SHARE_PHONE).row().text(BTN_CANCEL).resized();
-const kbCenter = () => new Keyboard().text(BTN_SELF_STUDY).row().text(BTN_CANCEL).resized();
 const kbPayTime = () => new Keyboard().text(BTN_PAID_NOW).row().text(BTN_CANCEL).resized();
 const kbTeacher = () => new Keyboard().text(BTN_NO_TEACHER).row().text(BTN_CANCEL).resized();
 const removeKb = { remove_keyboard: true as const };
@@ -191,10 +191,38 @@ async function askPhone(ctx: Context, st: SettingsRow) {
   );
 }
 
-async function askCenter(ctx: Context, st: SettingsRow) {
+/**
+ * O'quv markaz: ro'yxatdan TANLAB olinadi (har sahifada 10 ta, "⬅️ Avvalgi / Keyingi ➡️").
+ * Shu tufayli nomlar bir xil yoziladi va statistika to'g'ri chiqadi.
+ * "✍️ Boshqa" — ro'yxatda yo'q markazni qo'lda yozish uchun.
+ */
+function centerKeyboard(list: string[], page: number): InlineKeyboard {
+  const pages = Math.max(1, Math.ceil(list.length / CENTERS_PER_PAGE));
+  const p = Math.min(Math.max(0, page), pages - 1);
+  const slice = list.slice(p * CENTERS_PER_PAGE, p * CENTERS_PER_PAGE + CENTERS_PER_PAGE);
+  const kb = new InlineKeyboard();
+  slice.forEach((name, i) => {
+    const idx = p * CENTERS_PER_PAGE + i;
+    kb.text(name.length > 28 ? `${name.slice(0, 27)}…` : name, `ctr:s:${idx}`);
+    if (i % 2 === 1) kb.row();
+  });
+  if (slice.length % 2 === 1) kb.row();
+  if (pages > 1) {
+    if (p > 0) kb.text("⬅️ Avvalgi", `ctr:p:${p - 1}`);
+    kb.text(`${p + 1}/${pages}`, "ctr:noop");
+    if (p < pages - 1) kb.text("Keyingi ➡️", `ctr:p:${p + 1}`);
+    kb.row();
+  }
+  kb.text("🎓 Mustaqil o'qiyman", "ctr:self").row();
+  kb.text("✍️ Boshqa (ro'yxatda yo'q)", "ctr:other");
+  return kb;
+}
+
+async function askCenter(ctx: Context, st: SettingsRow, page = 0) {
+  const list = centersFor(st.centers);
   await ctx.reply(
-    `<b>3/${totalSteps(st)} · 🏫 O'quv markaz</b>\n\nHozir qaysi o'quv markazida o'qiysiz?\n<i>Misol: Younine Academy</i>`,
-    { parse_mode: "HTML", reply_markup: kbCenter() },
+    `<b>3/${totalSteps(st)} · 🏫 O'quv markaz</b>\n\nQaysi o'quv markazida o'qiysiz? Pastdagi ro'yxatdan tanlang.\n<i>Ro'yxatda bo'lmasa — «✍️ Boshqa» tugmasini bosing.</i>`,
+    { parse_mode: "HTML", reply_markup: centerKeyboard(list, page) },
   );
 }
 
@@ -404,12 +432,14 @@ async function handleText(ctx: Context, s: Session, text: string) {
     }
 
     case "center": {
-      const center = t === BTN_SELF_STUDY ? "Mustaqil" : t;
-      if (center.length < 2 || center.length > 120) {
-        await ctx.reply("⚠️ O'quv markaz nomini kiriting.\n<i>Misol: Younine Academy</i>", { parse_mode: "HTML", reply_markup: kbCenter() });
+      // Odatda markaz tugmalardan tanlanadi; bu yo'l "✍️ Boshqa" (yoki qo'lda yozganlar) uchun
+      const raw = t === BTN_SELF_STUDY ? SELF_STUDY : t;
+      if (raw.length < 2 || raw.length > 120) {
+        await ctx.reply("⚠️ O'quv markaz nomini yozing.\n<i>Misol: Younine Academy</i>", { parse_mode: "HTML", reply_markup: kbCancel() });
         return;
       }
-      s.data.center_name = center;
+      // Yozilgani tanish variant bo'lsa kanonik nomga keltiramiz ("you9" -> "Younine Academy")
+      s.data.center_name = canonicalCenter(raw, centersFor(st!.centers));
       s.step = "teacher";
       await saveSession(s);
       await askTeacher(ctx, st!);
@@ -546,6 +576,63 @@ async function handleFile(ctx: Context, s: Session) {
 
 async function handleCallback(ctx: Context, s: Session, data: string) {
   const [kind, arg] = data.split(":", 2);
+
+  // ---- O'quv markaz tugmalari: tanlash, sahifalash, "Boshqa" ----
+  if (kind === "ctr") {
+    if (arg === "noop") {
+      await ctx.answerCallbackQuery();
+      return;
+    }
+    if (s.step !== "center") {
+      await ctx.answerCallbackQuery({ text: "Bu qadam allaqachon o'tilgan" });
+      await ctx.editMessageReplyMarkup({ reply_markup: undefined }).catch(() => undefined);
+      return;
+    }
+    const st = await organizerFor(s);
+    if (!st) {
+      await ctx.answerCallbackQuery({ text: "Ro'yxatdan o'tish yopiq" });
+      return;
+    }
+    const list = centersFor(st.centers);
+
+    if (arg === "p") {
+      const page = Number(data.split(":")[2] || 0);
+      await ctx.answerCallbackQuery();
+      await ctx.editMessageReplyMarkup({ reply_markup: centerKeyboard(list, page) }).catch(() => undefined);
+      return;
+    }
+
+    if (arg === "other") {
+      await ctx.answerCallbackQuery();
+      await ctx.editMessageReplyMarkup({ reply_markup: undefined }).catch(() => undefined);
+      await ctx.reply(
+        "✍️ O'quv markazingiz nomini yozing.\n<i>Misol: Bright Academy</i>",
+        { parse_mode: "HTML", reply_markup: kbCancel() },
+      );
+      return;
+    }
+
+    let chosen: string | null = null;
+    if (arg === "self") chosen = SELF_STUDY;
+    else if (arg === "s") {
+      const idx = Number(data.split(":")[2]);
+      chosen = Number.isInteger(idx) && idx >= 0 && idx < list.length ? list[idx] : null;
+    }
+    if (!chosen) {
+      await ctx.answerCallbackQuery({ text: "Ro'yxat yangilangan — qaytadan tanlang" });
+      await ctx.editMessageReplyMarkup({ reply_markup: centerKeyboard(list, 0) }).catch(() => undefined);
+      return;
+    }
+
+    await ctx.answerCallbackQuery({ text: chosen });
+    await ctx.editMessageReplyMarkup({ reply_markup: undefined }).catch(() => undefined);
+    s.data.center_name = chosen;
+    s.step = "teacher";
+    await saveSession(s);
+    await ctx.reply(`🏫 O'quv markaz: <b>${esc(chosen)}</b>`, { parse_mode: "HTML" });
+    await askTeacher(ctx, st);
+    return;
+  }
 
   if (kind === "reg" && arg === "my") {
     await ctx.answerCallbackQuery();

@@ -26,6 +26,8 @@ export interface SettingsRow {
   station_enabled: boolean;
   bot_token: string | null;
   bot_username: string;
+  /** Botdagi o'quv markaz tugmalari (bo'sh massiv — kodda turgan standart ro'yxat) */
+  centers: unknown;
   created: Date;
   updated: Date;
 }
@@ -81,7 +83,7 @@ export interface RegistrationWithSpeaking extends RegistrationRow {
 
 export const SETTINGS_COLS = `user_id, reg_code, enabled, free_mode, center_name, exam_price, card_number, card_holder,
   exam_info, contact_info, receipt_minutes, admin_code, admin_chat_id, admin_chat_title, video_retention_days,
-  ticket_footer, ticket_qr_url, station_password_hash, station_enabled, bot_token, bot_username, created, updated`;
+  ticket_footer, ticket_qr_url, station_password_hash, station_enabled, bot_token, bot_username, centers, created, updated`;
 
 export const REG_COLS = `id, user_id, seq, telegram_id, telegram_username, full_name, phone, center_name, teacher_name, amount,
   receipt_path, receipt_sent_at, payment_time, status, note, reviewed_at,
