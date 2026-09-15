@@ -107,7 +107,7 @@ interface Ctx {
 }
 
 /**
- * Kirish kontekstі — TARMOQNI KUTMAYDI. Shahar keshda bo'lsa darhol qo'shiladi,
+ * Kirish konteksti — TARMOQNI KUTMAYDI. Shahar keshda bo'lsa darhol qo'shiladi,
  * bo'lmasa kirish javobi kechiktirilmaydi: keshni fonda to'ldiramiz va sessiya
  * yozuvini keyinroq yangilaymiz (ilgari ip-api javobi 2.5 s gacha kutilardi).
  */
