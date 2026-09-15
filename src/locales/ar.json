@@ -973,6 +973,10 @@
     "students_limited": "تم عرض أول {{n}} فقط",
     "skills_avg": "المهارات (L/R/W/S)",
     "student_list": "قائمة الطلاب",
-    "center_teachers": "المراكز والمعلمون"
+    "center_teachers": "المراكز والمعلمون",
+    "scored_n": "{{scored}} / {{total}} مُقيَّم",
+    "no_scores": "لم تُدخل الدرجات",
+    "show_more": "عرض {{n}} إضافية",
+    "show_less": "عرض أقل"
   }
 }

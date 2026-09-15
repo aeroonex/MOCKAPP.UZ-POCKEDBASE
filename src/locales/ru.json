@@ -859,7 +859,11 @@
     "students_limited": "Показаны только первые {{n}}",
     "skills_avg": "Навыки (L/R/W/S)",
     "student_list": "Список учеников",
-    "center_teachers": "Центры и преподаватели"
+    "center_teachers": "Центры и преподаватели",
+    "scored_n": "{{scored}} / {{total}} оценено",
+    "no_scores": "Баллы не внесены",
+    "show_more": "Показать ещё {{n}}",
+    "show_less": "Свернуть"
   },
   "integrity": {
     "video_fullscreen": "ВЫХОД ИЗ ПОЛНОГО ЭКРАНА",

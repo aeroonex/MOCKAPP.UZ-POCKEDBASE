@@ -859,7 +859,11 @@
     "students_limited": "Faqat birinchi {{n}} ta ko'rsatildi",
     "skills_avg": "Ko'nikmalar (L/R/W/S)",
     "student_list": "O'quvchilar ro'yxati",
-    "center_teachers": "Markazlar va ustozlar"
+    "center_teachers": "Markazlar va ustozlar",
+    "scored_n": "{{scored}} / {{total}} baholangan",
+    "no_scores": "Ballar kiritilmagan",
+    "show_more": "Yana {{n}} ta ko'rsatish",
+    "show_less": "Qisqartirish"
   },
   "integrity": {
     "video_fullscreen": "TO'LIQ EKRANDAN CHIQILDI",

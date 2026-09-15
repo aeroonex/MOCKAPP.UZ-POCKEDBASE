@@ -859,7 +859,11 @@
     "students_limited": "Showing the first {{n}} only",
     "skills_avg": "Skills (L/R/W/S)",
     "student_list": "Student list",
-    "center_teachers": "Centers and teachers"
+    "center_teachers": "Centers and teachers",
+    "scored_n": "{{scored}} / {{total}} graded",
+    "no_scores": "No scores yet",
+    "show_more": "Show {{n}} more",
+    "show_less": "Show less"
   },
   "integrity": {
     "video_fullscreen": "LEFT FULL SCREEN",

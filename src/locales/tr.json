@@ -974,6 +974,10 @@
     "students_limited": "Yalnızca ilk {{n}} gösterildi",
     "skills_avg": "Beceriler (L/R/W/S)",
     "student_list": "Öğrenci listesi",
-    "center_teachers": "Merkezler ve öğretmenler"
+    "center_teachers": "Merkezler ve öğretmenler",
+    "scored_n": "{{scored}} / {{total}} puanlandı",
+    "no_scores": "Puan girilmedi",
+    "show_more": "{{n}} tane daha göster",
+    "show_less": "Daralt"
   }
 }

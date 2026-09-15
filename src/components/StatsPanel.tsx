@@ -32,88 +32,163 @@ const Kpi: React.FC<{ icon: React.ElementType; label: string; value: React.React
   </Card>
 );
 
-const skillCell = (v: number | null, skipped: boolean) => (skipped ? "👤✗" : v === null ? "—" : String(v));
+/** Bitta ko'nikma bali: kichik yorliqli chip (L 62). Topshirmagan — ✗, kiritilmagan — xira. */
+const ScoreChip: React.FC<{ label: string; value: number | null; skipped: boolean }> = ({ label, value, skipped }) => (
+  <span
+    title={skipped ? `${label}: topshirilmagan` : value === null ? `${label}: kiritilmagan` : `${label}: ${value}`}
+    className={cn(
+      "inline-flex h-[22px] items-center gap-1 rounded-md border px-1.5 text-[11px] font-bold tabular-nums",
+      skipped
+        ? "border-dashed border-border text-muted-foreground"
+        : value === null
+          ? "border-border/50 text-muted-foreground/45"
+          : "border-primary/25 bg-primary/10 text-foreground",
+    )}
+  >
+    <span className="text-[9px] font-extrabold uppercase opacity-55">{label}</span>
+    {skipped ? "✗" : (value ?? "·")}
+  </span>
+);
+
+const STUDENTS_CHUNK = 12;
+
+/** Nol qiymat xira ko'rsatiladi — jadvalda haqiqiy sonlar ko'zga tashlanadi. */
+const numCell = (v: number) => <span className={cn(v === 0 && "text-muted-foreground/40")}>{v}</span>;
+/** Summa (bo'sh joy bilan ajratilgan), nol bo'lsa xira */
+const sumCell = (v: number) => <span className={cn(v === 0 && "text-muted-foreground/40")}>{fmtSum(v)}</span>;
+/** Darajalar: 0 lar xira, borlari rangli */
+const lvlCell = (r: { c1: number; b2: number; b1: number; a2: number }) => (
+  <span className="tabular-nums">
+    <span className={r.c1 ? "font-bold text-emerald-500" : "text-muted-foreground/40"}>{r.c1}</span>
+    <span className="text-muted-foreground/30"> / </span>
+    <span className={r.b2 ? "font-bold text-sky-500" : "text-muted-foreground/40"}>{r.b2}</span>
+    <span className="text-muted-foreground/30"> / </span>
+    <span className={r.b1 ? "font-bold text-amber-500" : "text-muted-foreground/40"}>{r.b1}</span>
+    <span className="text-muted-foreground/30"> / </span>
+    <span className={r.a2 ? "font-bold text-rose-500" : "text-muted-foreground/40"}>{r.a2}</span>
+  </span>
+);
 
 /**
  * Markaz yoki ustozning O'QUVCHILARI — qator ochilganda serverdan olinadi.
- * Ballar (L/R/W/S), Overall, daraja, holat va Speaking videosi bor-yo'qligi.
+ * Jadval ichida jadval CHALKASH bo'lgani uchun bu yerda ro'yxat ko'rinishi:
+ * chapda o'quvchi (raqami, ismi, telefoni), o'ngda ballar (L/R/W/S) va Overall + daraja.
  */
 const StudentsPanel: React.FC<{
   mode: "organizer" | "admin";
   filter: StudentsFilter;
   enabled: boolean;
-}> = ({ mode, filter, enabled }) => {
+  /** Ochilgan qator nomi (sarlavhada ko'rinadi) */
+  parentName: string;
+  /** Ustoz ustunini ko'rsatish (markaz ochilganda kerak, ustoz ochilganda — yo'q) */
+  showTeacher: boolean;
+}> = ({ mode, filter, enabled, parentName, showTeacher }) => {
   const { t } = useTranslation();
+  const [expanded, setExpanded] = useState(false);
   const q = useQuery({
     queryKey: ["stats-students", mode, filter],
     queryFn: () => statsApi.students(mode, filter),
     enabled,
     staleTime: 60_000,
   });
+
   if (q.isLoading) {
     return (
-      <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
+      <div className="flex items-center gap-2 py-3 text-sm text-muted-foreground">
         <Loader2 className="h-4 w-4 animate-spin" /> {t("common.loading")}
       </div>
     );
   }
   const items = q.data?.items ?? [];
-  if (!items.length) return <p className="py-4 text-sm text-muted-foreground">{t("stats.empty")}</p>;
+  if (!items.length) return <p className="py-3 text-sm text-muted-foreground">{t("stats.empty")}</p>;
+
+  const scored = items.filter((s) => s.overall !== null).length;
+  const shown = expanded ? items : items.slice(0, STUDENTS_CHUNK);
+
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <Users className="h-3.5 w-3.5 text-muted-foreground" />
-        <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-          {t("stats.students")} · {items.length}
+    <div className="rounded-lg border-l-[3px] border-l-primary/70 bg-background/60 p-3">
+      {/* Sarlavha: kimning o'quvchilari va qanchasi baholangan */}
+      <div className="mb-2.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+        <Users className="h-4 w-4 text-primary" />
+        <span className="text-sm font-bold">{parentName}</span>
+        <span className="text-muted-foreground">·</span>
+        <span className="text-sm font-semibold text-muted-foreground">
+          {items.length} {t("stats.students").toLowerCase()}
         </span>
+        <Badge variant="outline" className="ml-auto text-[10px] font-semibold">
+          {t("stats.scored_n", { scored, total: items.length })}
+        </Badge>
       </div>
-      <div className="max-h-80 overflow-auto rounded-md border">
-        <Table>
-          <TableHeader className="sticky top-0 z-10 bg-muted">
-            <TableRow>
-              <TableHead className="whitespace-nowrap">#</TableHead>
-              <TableHead className="whitespace-nowrap">{t("registrations_page.col_student")}</TableHead>
-              <TableHead className="whitespace-nowrap">{t("stats.teacher")}</TableHead>
-              <TableHead className="text-center whitespace-nowrap">L / R / W / S</TableHead>
-              <TableHead className="text-right whitespace-nowrap">{t("registrations_page.col_overall")}</TableHead>
-              <TableHead className="text-center whitespace-nowrap">{t("stats.level")}</TableHead>
-              <TableHead className="text-center whitespace-nowrap">{t("registrations_page.col_speaking")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.map((s) => {
-              const lvl = levelOf(s.overall);
-              return (
-                <TableRow key={s.id} className="text-sm">
-                  <TableCell className="tabular-nums text-muted-foreground">{s.seq}</TableCell>
-                  <TableCell>
-                    <div className="font-semibold">{s.full_name}</div>
-                    <div className="text-[11px] text-muted-foreground">{s.phone}</div>
-                  </TableCell>
-                  <TableCell className="text-xs">{s.teacher_name || "—"}</TableCell>
-                  <TableCell className="text-center text-xs tabular-nums whitespace-nowrap">
-                    {skillCell(s.listening, s.skip_listening)} / {skillCell(s.reading, s.skip_reading)} /{" "}
-                    {skillCell(s.writing, s.skip_writing)} / {skillCell(s.speaking, s.skip_speaking)}
-                  </TableCell>
-                  <TableCell className="text-right font-bold tabular-nums">{s.overall ?? "—"}</TableCell>
-                  <TableCell className="text-center">
-                    {lvl ? (
-                      <Badge variant="outline" style={{ borderColor: LEVEL_COLORS[lvl], color: LEVEL_COLORS[lvl] }} className="text-[10px]">
+
+      <ul className="divide-y divide-border/60 overflow-hidden rounded-md border bg-card">
+        {shown.map((s) => {
+          const lvl = levelOf(s.overall);
+          const noScores = s.overall === null && [s.listening, s.reading, s.writing, s.speaking].every((v) => v === null);
+          return (
+            <li key={s.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2 transition-colors hover:bg-muted/40">
+              <span className="w-7 shrink-0 text-right text-[11px] font-bold tabular-nums text-muted-foreground">{s.seq}</span>
+              <div className="min-w-[8rem] flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="truncate text-sm font-semibold">{s.full_name}</span>
+                  {s.has_speaking && (
+                    <span title={t("registrations_page.col_speaking")} className="shrink-0">
+                      <Mic className="h-3 w-3 text-rose-500" />
+                    </span>
+                  )}
+                </div>
+                <div className="truncate text-[11px] text-muted-foreground">
+                  {s.phone}
+                  {showTeacher && s.teacher_name ? ` · ${s.teacher_name}` : ""}
+                </div>
+              </div>
+
+              {noScores ? (
+                <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                  {t("stats.no_scores")}
+                </span>
+              ) : (
+                <div className="flex items-center gap-1">
+                  <ScoreChip label="L" value={s.listening} skipped={s.skip_listening} />
+                  <ScoreChip label="R" value={s.reading} skipped={s.skip_reading} />
+                  <ScoreChip label="W" value={s.writing} skipped={s.skip_writing} />
+                  <ScoreChip label="S" value={s.speaking} skipped={s.skip_speaking} />
+                </div>
+              )}
+
+              <div className="ml-auto flex w-[4.5rem] shrink-0 items-center justify-end gap-1.5">
+                {s.overall !== null ? (
+                  <>
+                    <span className="text-base font-black tabular-nums leading-none">{s.overall}</span>
+                    {lvl && (
+                      <Badge
+                        className="h-5 px-1.5 text-[10px] font-bold text-white"
+                        style={{ backgroundColor: LEVEL_COLORS[lvl] }}
+                      >
                         {lvl}
                       </Badge>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
                     )}
-                  </TableCell>
-                  <TableCell className="text-center">{s.has_speaking ? "🎥" : "—"}</TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </div>
+                  </>
+                ) : (
+                  <span className="text-xs text-muted-foreground/60">—</span>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      {items.length > STUDENTS_CHUNK && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+        >
+          <ChevronRight className={cn("h-3.5 w-3.5 transition-transform", expanded && "rotate-90")} />
+          {expanded ? t("stats.show_less") : t("stats.show_more", { n: items.length - STUDENTS_CHUNK })}
+        </button>
+      )}
       {q.data && items.length >= q.data.limit && (
-        <p className="text-[11px] text-muted-foreground">{t("stats.students_limited", { n: q.data.limit })}</p>
+        <p className="mt-1.5 text-[11px] text-muted-foreground">{t("stats.students_limited", { n: q.data.limit })}</p>
       )}
     </div>
   );
@@ -191,7 +266,7 @@ const GroupTable: React.FC<{
                         ))}
                       </div>
                     )}
-                    <StudentsPanel mode={mode} filter={filterFor(r.name)} enabled />
+                    <StudentsPanel mode={mode} filter={filterFor(r.name)} enabled parentName={r.name} showTeacher={kind === "center"} />
                   </div>
                 )}
               </div>
@@ -208,7 +283,7 @@ const GroupTable: React.FC<{
                   {th("with_speaking", t("stats.speaking_short"), "text-right")}
                   {th("published", t("stats.published_short"), "text-right")}
                   {th("avg_overall", t("stats.avg_overall_short"), "text-right")}
-                  <TableHead className="text-center">C1 / B2 / B1 / A2</TableHead>
+                  <TableHead className="whitespace-nowrap text-center">C1 / B2 / B1 / A2</TableHead>
                   {th("revenue", t("stats.revenue"), "text-right")}
                 </TableRow>
               </TableHeader>
@@ -222,7 +297,7 @@ const GroupTable: React.FC<{
                         onClick={() => toggle(r.name)}
                       >
                         <TableCell className="font-semibold">
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1 whitespace-nowrap">
                             <ChevronRight className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform", open === r.name && "rotate-90")} />
                             <span>{r.name}</span>
                             {children.length > 0 && <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">{children.length}</Badge>}
@@ -230,14 +305,12 @@ const GroupTable: React.FC<{
                           <div className="h-1 rounded-full bg-muted overflow-hidden mt-1 w-32"><div className="h-full bg-primary" style={{ width: `${(r.total / maxTotal) * 100}%` }} /></div>
                         </TableCell>
                         <TableCell className="text-right font-bold tabular-nums">{r.total}</TableCell>
-                        <TableCell className="text-right tabular-nums">{r.approved}</TableCell>
-                        <TableCell className="text-right tabular-nums">{r.with_speaking}</TableCell>
-                        <TableCell className="text-right tabular-nums">{r.published}</TableCell>
-                        <TableCell className="text-right tabular-nums">{r.avg_overall ?? "—"}</TableCell>
-                        <TableCell className="text-center text-xs tabular-nums">
-                          <span className="text-emerald-600">{r.c1}</span> / <span className="text-sky-600">{r.b2}</span> / <span className="text-amber-600">{r.b1}</span> / <span className="text-rose-600">{r.a2}</span>
-                        </TableCell>
-                        <TableCell className="text-right tabular-nums whitespace-nowrap">{fmtSum(r.revenue)}</TableCell>
+                        <TableCell className="text-right tabular-nums">{numCell(r.approved)}</TableCell>
+                        <TableCell className="text-right tabular-nums">{numCell(r.with_speaking)}</TableCell>
+                        <TableCell className="text-right tabular-nums">{numCell(r.published)}</TableCell>
+                        <TableCell className="text-right font-semibold tabular-nums">{r.avg_overall ?? <span className="text-muted-foreground/40">—</span>}</TableCell>
+                        <TableCell className="whitespace-nowrap text-center text-xs">{lvlCell(r)}</TableCell>
+                        <TableCell className="text-right tabular-nums whitespace-nowrap">{sumCell(r.revenue)}</TableCell>
                       </TableRow>
                       {open === r.name && (
                         <>
@@ -249,22 +322,14 @@ const GroupTable: React.FC<{
                                 {subLabel && <span className="ml-2 text-[10px] uppercase tracking-wider text-muted-foreground">{subLabel}</span>}
                               </TableCell>
                               <TableCell className="text-right font-semibold tabular-nums">{k.total}</TableCell>
-                              <TableCell className="text-right tabular-nums">{k.approved}</TableCell>
-                              <TableCell className="text-right tabular-nums">{k.with_speaking}</TableCell>
-                              <TableCell className="text-right tabular-nums">{k.published}</TableCell>
-                              <TableCell className="text-right tabular-nums">{k.avg_overall ?? "—"}</TableCell>
-                              <TableCell className="text-center text-xs tabular-nums">
-                                <span className="text-emerald-600">{k.c1}</span> / <span className="text-sky-600">{k.b2}</span> / <span className="text-amber-600">{k.b1}</span> / <span className="text-rose-600">{k.a2}</span>
-                              </TableCell>
-                              <TableCell className="text-right tabular-nums whitespace-nowrap">{fmtSum(k.revenue)}</TableCell>
+                              <TableCell className="text-right tabular-nums">{numCell(k.approved)}</TableCell>
+                              <TableCell className="text-right tabular-nums">{numCell(k.with_speaking)}</TableCell>
+                              <TableCell className="text-right tabular-nums">{numCell(k.published)}</TableCell>
+                              <TableCell className="text-right tabular-nums">{k.avg_overall ?? <span className="text-muted-foreground/40">—</span>}</TableCell>
+                              <TableCell className="whitespace-nowrap text-center text-xs">{lvlCell(k)}</TableCell>
+                              <TableCell className="text-right tabular-nums whitespace-nowrap">{sumCell(k.revenue)}</TableCell>
                             </TableRow>
                           ))}
-                          {/* O'quvchilar ro'yxati — markaz/ustoz kesimida */}
-                          <TableRow className="bg-muted/10 hover:bg-muted/10">
-                            <TableCell colSpan={8} className="p-3">
-                              <StudentsPanel mode={mode} filter={filterFor(r.name)} enabled />
-                            </TableCell>
-                          </TableRow>
                         </>
                       )}
                     </React.Fragment>
@@ -272,6 +337,20 @@ const GroupTable: React.FC<{
                 })}
               </TableBody>
             </Table>
+          </div>
+        )}
+
+        {/* O'quvchilar ro'yxati jadval TASHQARISIDA — kartaning to'liq kengligida
+            (jadval ichida bo'lsa keng ustunlar tufayli o'ng tomoni kesilib qolardi) */}
+        {!isMobile && open && (
+          <div className="mt-3">
+            <StudentsPanel
+              mode={mode}
+              filter={filterFor(open)}
+              enabled
+              parentName={open}
+              showTeacher={kind === "center"}
+            />
           </div>
         )}
       </CardContent>
