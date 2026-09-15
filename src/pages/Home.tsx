@@ -87,8 +87,10 @@ export default function Home({ setIsGuideDialogOpen, handleLogout, isGuideDialog
       accent: "from-violet-500/30 to-violet-500/0 text-violet-300 hover:border-violet-400/60 hover:shadow-violet-500/30",
     },
   ];
-  // Stansiyada: Savollar, Savol qo'shish, Yozuvlar (Mock Test tepada); Ro'yxat — faqat asosiy saytda
-  const items = station ? allItems.filter((i) => i.path !== "/registrations") : allItems;
+  // Stansiyada (cefr.*): Savollar, Savol qo'shish, Yozuvlar (Mock Test tepada).
+  // Ro'yxat va Writing AI — faqat asosiy saytda (stansiya imtihon uchun sodda bo'lib qoladi).
+  const STATION_HIDDEN = ["/registrations", "/writing"];
+  const items = station ? allItems.filter((i) => !STATION_HIDDEN.includes(i.path)) : allItems;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-sky-500 to-slate-900 text-white p-4 pb-24 sm:pb-4">
