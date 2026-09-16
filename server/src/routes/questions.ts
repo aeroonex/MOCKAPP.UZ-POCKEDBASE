@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { one, query } from "../db.js";
-import { requireAuth, requireFullAuth, userId, type JwtPayload } from "../auth.js";
+import { requireAuth, userId, type JwtPayload } from "../auth.js";
 import { enqueueTts, ttsForQuestion } from "../tts.js";
 import { notifyNewQuestion } from "../admin-bot.js";
 
@@ -147,7 +147,8 @@ export async function questionRoutes(app: FastifyInstance) {
     return { ok: true, count: rows.length };
   });
 
-  app.delete("/api/questions/:id", { preHandler: requireFullAuth }, async (req, reply) => {
+  // Stansiya (cefr.*) ham o'chira oladi — qo'shish/tahrirlash bilan bir xil huquq
+  app.delete("/api/questions/:id", { preHandler: requireAuth }, async (req, reply) => {
     const { id } = req.params as { id: string };
     const rows = await query("DELETE FROM questions WHERE id = $1 AND user_id = $2 RETURNING id", [id, userId(req)]);
     return rows.length ? reply.code(204).send() : reply.code(404).send({ code: 404, message: "Not found" });
